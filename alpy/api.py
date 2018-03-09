@@ -43,7 +43,9 @@ class API(object):
             error = resp.json()
             if 'code' in error:
                 raise APIError(error)
-        return resp.json()
+        if resp.text != '':
+            return resp.json()
+        return None
 
     def get(self, path, data=None):
         return self._request('GET', path, data)
@@ -64,12 +66,12 @@ class API(object):
 
 
 class Entity(object):
-    def __init__(self, obj):
-        self._obj = obj
+    def __init__(self, raw):
+        self._raw = raw
 
     def __getattr__(self, key):
-        if key in self._obj:
-            val = self._obj[key]
+        if key in self._raw:
+            val = self._raw[key]
             if key.endswith('_at') and ISO8601YMD.match(val):
                 return dateutil.parser.parse(val)
             else:
@@ -104,11 +106,11 @@ class Account(Entity):
         resp = self.get('/orders')
         return [Order(o) for o in resp]
 
-    def create_order(self, assert_id, shares, side, type, timeinforce,
+    def create_order(self, asset_id, shares, side, type, timeinforce,
                      limit_price=None, stop_price=None, client_order_id=None):
         '''Request a new order'''
-        data = dict(
-            assert_id=assert_id,
+        params = dict(
+            asset_id=asset_id,
             shares=shares,
             side=side,
             type=type,
@@ -117,14 +119,7 @@ class Account(Entity):
             stop_price=stop_price,
             client_order_id=client_order_id,
         )
-        resp = self.post('/orders', data)
-        return Order(resp)
-
-    def get_order(self, order_id):
-        '''Get an order'''
-        resp = self._api.get('/api/v1/{}/orders/{}'.format(
-            self._account_id, order_id,
-        ))
+        resp = self.post('/orders', params)
         return Order(resp)
 
     def get_order_by_client_order_id(self, client_order_id):
@@ -133,6 +128,11 @@ class Account(Entity):
             'client_order_id': client_order_id,
         },
         )
+        return Order(resp)
+
+    def get_order(self, order_id):
+        '''Get an order'''
+        resp = self.get('/orders/{}'.format(order_id))
         return Order(resp)
 
     def delete_order(self, order_id):
@@ -149,10 +149,24 @@ class Account(Entity):
         resp = self.get('/positions/{}'.format(asset_id))
         return Position(resp)
 
+    def list_dividends(self, asset_id=None, from_id=None, limit=None):
+        '''Get dividends'''
+        params = {}
+        if from_id is not None:
+            params['from_id'] = from_id
+        if limit is not None:
+            params['limit'] = limit
+        resp = self.get('/dividends', params)
+        return [Dividend(o) for o in resp]
+
 
 class Order(Entity):
     pass
 
 
 class Position(Entity):
+    pass
+
+
+class Dividend(Entity):
     pass

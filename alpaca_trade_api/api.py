@@ -53,9 +53,6 @@ class API(object):
     def post(self, path, data=None):
         return self._request('POST', path, data)
 
-    def patch(self, path, data=None):
-        return self._request('PATCH', path, data)
-
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 

@@ -1,4 +1,4 @@
-import alpy
+import alpaca_trade_api as tradeapi
 
 import pytest
 import requests_mock
@@ -12,8 +12,8 @@ def reqmock():
 
 @pytest.fixture
 def account():
-    api = alpy.API('test-key')
-    return alpy.api.Account({
+    api = tradeapi.API('test-key')
+    return tradeapi.api.Account({
         "id": "904837e3-3b76-47ec-b432-046db621571b",
         "status": "ONBOARDING",
         "currency": "USD",
@@ -31,8 +31,8 @@ def account():
 
 @pytest.fixture
 def asset():
-    api = alpy.API('test-key')
-    return alpy.api.Asset({
+    api = tradeapi.API('test-key')
+    return tradeapi.api.Asset({
         "id": "904837e3-3b76-47ec-b432-046db621571b",
         "name": "Apple inc.",
         "asset_class": "us_equity",
@@ -44,7 +44,7 @@ def asset():
 
 
 def test_api(reqmock):
-    api = alpy.API('test-key')
+    api = tradeapi.API('test-key')
 
     # Get a list of accounts
     reqmock.get('https://api.alpaca.markets/api/v1/accounts', text='''

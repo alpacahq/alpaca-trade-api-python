@@ -49,9 +49,40 @@ def test_list_accounts(reqmock):
     ]
 ''')
 
-    api = alpy.API('test_key')
+    api = alpy.API('test-key')
     accounts = api.list_accounts()
     assert accounts[0].status == 'ONBOARDING'
+
+
+def test_assets(reqmock):
+    api = alpy.API('test-key')
+    reqmock.get('https://api.alpaca.markets/api/v1/assets', text='''[
+  {
+    "id": "904837e3-3b76-47ec-b432-046db621571b",
+    "name": "Apple inc.",
+    "asset_class": "us_equity",
+    "exchange": "NASDAQ",
+    "symbol": "AAPL",
+    "status": "active",
+    "tradable": true
+  }
+]''')
+    assets = api.list_assets()
+    assert assets[0].name == 'Apple inc.'
+
+    asset_id = '904837e3-3b76-47ec-b432-046db621571b'
+    reqmock.get('https://api.alpaca.markets/api/v1/assets/{}'.format(asset_id),
+                text='''{
+    "id": "904837e3-3b76-47ec-b432-046db621571b",
+    "name": "Apple inc.",
+    "asset_class": "us_equity",
+    "exchange": "NASDAQ",
+    "symbol": "AAPL",
+    "status": "active",
+    "tradable": true
+  }''')
+    asset = api.get_asset(asset_id)
+    assert asset.name == 'Apple inc.'
 
 
 def test_orders(reqmock, account):

@@ -61,8 +61,23 @@ class API(object):
 
     def list_accounts(self):
         '''Get a list of accounts'''
-        resp = self._request('GET', '/api/v1/accounts')
+        resp = self.get('/api/v1/accounts')
         return [Account(o, self) for o in resp]
+
+    def list_assets(self, status=None, asset_class=None):
+        '''Get a list of assets'''
+        params = {}
+        if status is not None:
+            params['status'] = status
+        if asset_class is not None:
+            params['asset_class'] = asset_class
+        resp = self.get('/api/v1/assets', params)
+        return [Asset(o) for o in resp]
+
+    def get_asset(self, asset_id):
+        '''Get an asset'''
+        resp = self.get('/api/v1/assets/{}'.format(asset_id))
+        return Asset(resp)
 
 
 class Entity(object):
@@ -158,6 +173,10 @@ class Account(Entity):
             params['limit'] = limit
         resp = self.get('/dividends', params)
         return [Dividend(o) for o in resp]
+
+
+class Asset(Entity):
+    pass
 
 
 class Order(Entity):

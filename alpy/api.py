@@ -72,12 +72,31 @@ class API(object):
         if asset_class is not None:
             params['asset_class'] = asset_class
         resp = self.get('/api/v1/assets', params)
-        return [Asset(o) for o in resp]
+        return [Asset(o, self) for o in resp]
 
     def get_asset(self, asset_id):
         '''Get an asset'''
         resp = self.get('/api/v1/assets/{}'.format(asset_id))
-        return Asset(resp)
+        return Asset(resp, self)
+
+    def list_quotes(self, asset_ids):
+        '''Get a list of quotes'''
+        if not isinstance(asset_ids, str):
+            asset_ids = ','.join(asset_ids)
+        params = {
+            'asset_ids': asset_ids,
+        }
+        resp = self.get('/api/v1/quotes', params)
+        return [Quote(o) for o in resp]
+
+    def list_fundamentals(self, asset_ids):
+        if not isinstance(asset_ids, str):
+            asset_ids = ','.join(asset_ids)
+        params = {
+            'asset_ids': asset_ids,
+        }
+        resp = self.get('/api/v1/fundamentals', params)
+        return [Fundamental(o) for o in resp]
 
 
 class Entity(object):
@@ -87,7 +106,9 @@ class Entity(object):
     def __getattr__(self, key):
         if key in self._raw:
             val = self._raw[key]
-            if key.endswith('_at') and ISO8601YMD.match(val):
+            if (isinstance(val, str) and
+                    (key.endswith('_at') or key.endswith('_timestamp')) and
+                    ISO8601YMD.match(val)):
                 return dateutil.parser.parse(val)
             else:
                 return val
@@ -176,7 +197,34 @@ class Account(Entity):
 
 
 class Asset(Entity):
-    pass
+    def __init__(self, raw, api):
+        super().__init__(raw)
+        self._api = api
+        self._asset_id = raw['id']
+
+    def get(self, path, data=None):
+        fullpath = '/api/v1/assets/{}{}'.format(self._asset_id, path)
+        return self._api.get(fullpath, data)
+
+    def list_candles(self, start_dt=None, end_dt=None):
+        '''Get candles'''
+        params = {}
+        if start_dt is not None:
+            params['start_dt'] = start_dt
+        if end_dt is not None:
+            params['end_dt'] = end_dt
+        resp = self.get('/candles', params)
+        return [Candle(o) for o in resp]
+
+    def get_quote(self):
+        '''Get a quote'''
+        resp = self.get('/quote')
+        return Quote(resp)
+
+    def get_fundamental(self):
+        '''Get a fundamental'''
+        resp = self.get('/fundamental')
+        return Fundamental(resp)
 
 
 class Order(Entity):
@@ -188,4 +236,16 @@ class Position(Entity):
 
 
 class Dividend(Entity):
+    pass
+
+
+class Candle(Entity):
+    pass
+
+
+class Quote(Entity):
+    pass
+
+
+class Fundamental(Entity):
     pass

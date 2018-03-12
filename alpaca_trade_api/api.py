@@ -1,8 +1,8 @@
 import dateutil.parser
-import os
 import re
 import requests
 from requests.exceptions import HTTPError
+from .common import get_base_url
 
 ISO8601YMD = re.compile(r'\d{4}-\d{2}-\d{2}T')
 
@@ -20,8 +20,7 @@ class APIError(Exception):
 class API(object):
     def __init__(self, api_key):
         self._key = api_key
-        self._base_url = os.environ.get(
-            'ALPACA_API_BASE_URL', 'https://api.alpaca.markets')
+        self._base_url = get_base_url()
         self._session = requests.Session()
 
     def _request(self, method, path, data=None):

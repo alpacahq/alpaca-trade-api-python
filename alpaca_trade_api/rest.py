@@ -17,7 +17,7 @@ class APIError(Exception):
         return self._error['code']
 
 
-class API(object):
+class REST(object):
     def __init__(self, api_key):
         self._key = api_key
         self._base_url = get_base_url()
@@ -62,11 +62,10 @@ class API(object):
 
     def list_assets(self, status=None, asset_class=None):
         '''Get a list of assets'''
-        params = {}
-        if status is not None:
-            params['status'] = status
-        if asset_class is not None:
-            params['asset_class'] = asset_class
+        params = {
+            'status': status,
+            'assert_class': asset_class,
+        }
         resp = self.get('/api/v1/assets', params)
         return [Asset(o, self) for o in resp]
 
@@ -183,11 +182,10 @@ class Account(Entity):
 
     def list_dividends(self, asset_id=None, from_id=None, limit=None):
         '''Get dividends'''
-        params = {}
-        if from_id is not None:
-            params['from_id'] = from_id
-        if limit is not None:
-            params['limit'] = limit
+        params = {
+            'from_id': from_id,
+            'limit': limit,
+        }
         resp = self.get('/dividends', params)
         return [Dividend(o) for o in resp]
 
@@ -204,11 +202,10 @@ class Asset(Entity):
 
     def list_candles(self, start_dt=None, end_dt=None):
         '''Get candles'''
-        params = {}
-        if start_dt is not None:
-            params['start_dt'] = start_dt
-        if end_dt is not None:
-            params['end_dt'] = end_dt
+        params = {
+            'start_dt': start_dt,
+            'end_dt': end_dt,
+        }
         resp = self.get('/candles', params)
         return [Candle(o) for o in resp]
 

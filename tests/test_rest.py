@@ -12,8 +12,8 @@ def reqmock():
 
 @pytest.fixture
 def account():
-    api = tradeapi.API('test-key')
-    return tradeapi.api.Account({
+    api = tradeapi.REST('test-key')
+    return tradeapi.rest.Account({
         "id": "904837e3-3b76-47ec-b432-046db621571b",
         "status": "ONBOARDING",
         "currency": "USD",
@@ -31,8 +31,8 @@ def account():
 
 @pytest.fixture
 def asset():
-    api = tradeapi.API('test-key')
-    return tradeapi.api.Asset({
+    api = tradeapi.REST('test-key')
+    return tradeapi.rest.Asset({
         "id": "904837e3-3b76-47ec-b432-046db621571b",
         "name": "Apple inc.",
         "asset_class": "us_equity",
@@ -44,7 +44,7 @@ def asset():
 
 
 def test_api(reqmock):
-    api = tradeapi.API('test-key')
+    api = tradeapi.REST('test-key')
 
     # Get a list of accounts
     reqmock.get('https://api.alpaca.markets/api/v1/accounts', text='''

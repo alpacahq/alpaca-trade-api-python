@@ -1,9 +1,8 @@
 import dateutil.parser
-import os
 import re
 import requests
 from requests.exceptions import HTTPError
-from .common import get_base_url
+from .common import get_base_url, get_credentials
 
 ISO8601YMD = re.compile(r'\d{4}-\d{2}-\d{2}T')
 
@@ -19,17 +18,16 @@ class APIError(Exception):
 
 
 class REST(object):
-    def __init__(self, key_id=None, key_secret=None, base_url=None):
-        self._key_id = (key_id or os.environ['APCA_ACCESS_KEY_ID'])
-        self._key_secret = (key_secret or os.environ['APCA_ACCESS_KEY_SECRET'])
+    def __init__(self, key_id=None, secret_key=None, base_url=None):
+        self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
 
     def _request(self, method, path, data=None):
         url = self._base_url + path
         headers = {
-            'APCA-ACCESS-KEY-ID': self._key_id,
-            'APCA-ACCESS-KEY-SECRET': self._key_secret,
+            'APCA-API-KEY-ID': self._key_id,
+            'APCA-API-SECRET-KEY': self._secret_key,
         }
         opts = {
             'headers': headers,

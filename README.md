@@ -91,13 +91,13 @@ The `Streaming` class provides WebSocket-based event-driven
 interfaces.  Using the `on` decorator of the instance, you can
 define custom event handlers that are called when the pattern
 is matched on the stream name.  Once event handlers are set up,
-call the `run` method which runs forever until critical exception
+call the `run` method which runs forever until a critical exception
 is raised. This module itself does not provide any threading
 capability, so if you need to consume the messages pushed from the
 server, you need to run it in a background thread.
 
 The `run` method routine starts from establishing the WebSocket
-connection, which is immediately followed by the authentication
+connection, immediately followed by the authentication
 handshake. The `authenticated` event is called right after authentication
 is done, where it is the best time to start subscribing to particular
 streams you are interested in, by calling the `subscribe` method.
@@ -119,11 +119,11 @@ def on_bars(conn, stream, bar):
 ```
 
 
-## Support and Contribute
+## Support and Contribution
 
 For technical issues particular to this module, please report the
-issue on this GitHub repository. Any API issue can be reported through
+issue on this GitHub repository. Any API issues can be reported through
 Alpaca's customer support.
 
-New features, as well as bug fixes by sending pull request is always
+New features, as well as bug fixes, by sending pull request is always
 welcomed.

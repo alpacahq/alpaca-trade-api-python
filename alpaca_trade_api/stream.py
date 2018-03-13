@@ -1,14 +1,13 @@
 import json
 import re
 import websocket
-from .common import get_base_url
+from .common import get_base_url, get_credentials
 
 
 class StreamConn(object):
-    def __init__(self, account_id, api_key):
-        self._account_id = account_id
-        self._api_key = api_key
-        base_url = re.sub(r'^http', 'ws', get_base_url())
+    def __init__(self, key_id=None, secret_key=None, base_url=None):
+        self._key_id, self._secret_key = get_credentials(key_id, secret_key)
+        base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
         self._endpoint = base_url + '/stream'
         self._handlers = {}
 
@@ -18,8 +17,8 @@ class StreamConn(object):
         ws.send(json.dumps({
             'action': 'authenticate',
             'data': {
-                'account_id': self._account_id,
-                'key': self._api_key
+                'key_id': self._key_id,
+                'secret_key': self._secret_key,
             }
         }))
         r = ws.recv()

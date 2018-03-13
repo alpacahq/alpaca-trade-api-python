@@ -14,14 +14,14 @@ $ pip install alpaca-trade-api-python
 ## Example
 
 In order to call Alpaca's trade API, you need to obtain API key pairs.
-Replace <api_key_id> and <api_key_secret> with what you get from the
+Replace <key_id> and <secret_key> with what you get from the
 web console.
 
 ### REST example
 ```python
 import alpaca_trade_api as tradeapi
 
-api = tradeapi.REST('<api_key_id>', '<api_key_secret>')
+api = tradeapi.REST('<key_id>', '<secret_key>')
 account = api.list_accounts()[0]
 account.list_positions()
 ```
@@ -30,7 +30,7 @@ account.list_positions()
 ```python
 import alpaca_trade_api as tradeapi
 
-conn = tradeapi.StreamConn('<api_key_id>', '<api_key_secret>')
+conn = tradeapi.StreamConn('<key_id>', '<secret_key>')
 
 # Setup event handlers
 @conn.on('authenticated')
@@ -56,13 +56,13 @@ conn.run()
 
 ## Authentication
 
-The API requires API key ID and secret, which you can obtain from the
+The API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can give them to the initializers of
 `REST` or `StreamConn` as arguments, or set up environment variables as
 follows.
 
-- APCA_ACCESS_KEY_ID: key ID
-- APCA_ACCESS_KEY_SECRET: key secret
+- APCA_API_KEY_ID: key ID
+- APCA_API_SECRET_KEY: secret key
 
 ## REST
 

@@ -1,4 +1,5 @@
 import dateutil.parser
+import os
 import re
 import requests
 from requests.exceptions import HTTPError
@@ -18,15 +19,17 @@ class APIError(Exception):
 
 
 class REST(object):
-    def __init__(self, api_key):
-        self._key = api_key
-        self._base_url = get_base_url()
+    def __init__(self, key_id=None, key_secret=None, base_url=None):
+        self._key_id = (key_id or os.environ['APCA_ACCESS_KEY_ID'])
+        self._key_secret = (key_secret or os.environ['APCA_ACCESS_KEY_SECRET'])
+        self._base_url = base_url or get_base_url()
         self._session = requests.Session()
 
     def _request(self, method, path, data=None):
         url = self._base_url + path
         headers = {
-            'X-API-KEY': self._key,
+            'APCA-ACCESS-KEY-ID': self._key_id,
+            'APCA-ACCESS-KEY-SECRET': self._key_secret,
         }
         opts = {
             'headers': headers,
@@ -39,9 +42,12 @@ class REST(object):
         try:
             resp.raise_for_status()
         except HTTPError as exc:
-            error = resp.json()
-            if 'code' in error:
-                raise APIError(error)
+            if 'code' in resp.text:
+                error = resp.json()
+                if 'code' in error:
+                    raise APIError(error)
+            else:
+                raise
         if resp.text != '':
             return resp.json()
         return None
@@ -85,6 +91,7 @@ class REST(object):
         return [Quote(o) for o in resp]
 
     def list_fundamentals(self, asset_ids):
+        '''Get a list of fundamentals'''
         if not isinstance(asset_ids, str):
             asset_ids = ','.join(asset_ids)
         params = {

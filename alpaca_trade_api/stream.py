@@ -2,6 +2,7 @@ import json
 import re
 import websocket
 from .common import get_base_url, get_credentials
+from .rest import REST, Account, Candle, Quote, Entity
 
 
 class StreamConn(object):
@@ -10,6 +11,7 @@ class StreamConn(object):
         base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
         self._endpoint = base_url + '/stream'
         self._handlers = {}
+        self._base_url = base_url
 
     def _connect(self):
         ws = websocket.WebSocket()
@@ -48,10 +50,21 @@ class StreamConn(object):
         finally:
             ws.close()
 
+    def _cast(self, stream, msg):
+        api = REST(self._key_id, self._secret_key, self._base_url)
+        if stream == 'account_updates':
+            return Account(msg, api)
+        elif re.match(r'^bars/', stream):
+            return Candle(msg)
+        elif re.match(r'^quotes/', stream):
+            return Quote(msg)
+        return Entity(msg)
+
     def _dispatch(self, stream, msg):
         for pat, handler in self._handlers.items():
             if pat.match(stream):
-                handler(self, stream, msg)
+                ent = self._cast(stream, msg)
+                handler(self, stream, ent)
 
     def on(self, stream_pat):
         def decorator(func):

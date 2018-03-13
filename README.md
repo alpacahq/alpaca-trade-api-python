@@ -74,6 +74,17 @@ particular account.
 For the market data, you can directly request bars, quotes and
 fundamentals from the same instance of `REST`.
 
+Each returned object is wrapped by a subclass of `Entity` class.  This
+helper class provides property access (the "dot notation") to the
+json object, backed by the original object stored in the `_raw` field.
+It also converts certain types to the appropriate python object.
+
+```python
+account = api.list_accounts()[0]
+account.status
+=> 'ACTIVE'
+```
+
 ## Streaming
 
 The `Streaming` class provides WebSocket-based event-driven
@@ -96,6 +107,16 @@ connection failure.  In this case you may want to reset your state
 which is best in the `connect` event.  The method still raises
 exception in the case any other unknown error happens inside the
 event loop.
+
+The `msg` object passed to each handler is wrapped by the entity
+helper class if the message is from the server.
+
+```python
+@conn.on(r'bars/')
+def on_bars(conn, stream, bar):
+    print('bars', bar.open)
+
+```
 
 
 ## Support and Contribute

@@ -1,4 +1,5 @@
 import dateutil.parser
+import pprint
 import re
 import requests
 from requests.exceptions import HTTPError
@@ -113,6 +114,12 @@ class Entity(object):
             else:
                 return val
         return getattr(super(), key)
+
+    def __repr__(self):
+        return '{name}({raw})'.format(
+            name=self.__class__.__name__,
+            raw=pprint.pformat(self._raw, indent=4),
+        )
 
 
 class Account(Entity):

@@ -1,13 +1,13 @@
 # alpaca-trade-api-python
 
-The alpaca-trade-api-python is a python library for the Alpaca trade API.
-It allows rapid trading algo development easily, with support for both
-REST and streaming interfaces. For details of API specification, please
-see the online API document.
+`alpaca-trade-api-python` is a python library for the Alpaca trade API.
+It allows rapid trading algo development easily, with support for the
+both REST and streaming interfaces. For details of each API behavior,
+please see the online API document.
 
 ## Install
 
-```
+```bash
 $ pip install alpaca-trade-api-python
 ```
 
@@ -18,7 +18,7 @@ Replace <api_key_id> and <api_key_secret> with what you get from the
 web console.
 
 ### REST example
-```
+```python
 import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST('<api_key_id>', '<api_key_secret>')
@@ -27,10 +27,12 @@ account.list_positions()
 ```
 
 ### Streaming example
-```
+```python
 import alpaca_trade_api as tradeapi
 
 conn = tradeapi.StreamConn('<api_key_id>', '<api_key_secret>')
+
+# Setup event handlers
 @conn.on('authenticated')
 def on_auth(conn, stream, msg):
     conn.subscribe([
@@ -66,7 +68,8 @@ follows.
 
 The `REST` class is the entry point for the API request.  Call
 `list_accounts` to obtain Account Entity with which you can further
-query the up-to-date information of orders and positions.
+query the up-to-date information of orders and positions under the
+particular account.
 
 For the market data, you can directly request bars, quotes and
 fundamentals from the same instance of `REST`.

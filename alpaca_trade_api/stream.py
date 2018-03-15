@@ -63,7 +63,7 @@ class StreamConn(object):
     def _dispatch(self, stream, msg):
         for pat, handler in self._handlers.items():
             if pat.match(stream):
-                ent = self._cast(stream, msg)
+                ent = self._cast(stream, msg['data'])
                 handler(self, stream, ent)
 
     def on(self, stream_pat):

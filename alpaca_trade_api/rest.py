@@ -144,9 +144,12 @@ class Account(Entity):
         fullpath = self._fullpath(path)
         return self._api.delete(fullpath, data)
 
-    def list_orders(self):
+    def list_orders(self, status=None):
         '''Get a list of orders'''
-        resp = self.get('/orders')
+        params = dict()
+        if status is not None:
+            params['status'] = status
+        resp = self.get('/orders', params)
         return [Order(o) for o in resp]
 
     def create_order(self, asset_id, shares, side, type, timeinforce,
@@ -162,6 +165,12 @@ class Account(Entity):
             stop_price=stop_price,
             client_order_id=client_order_id,
         )
+        if limit_price is None:
+            params['limit_price'] = limit_price
+        if stop_price is None:
+            params['stop_price'] = stop_price
+        if client_order_id is not None:
+            params['client_order_id'] = client_order_id
         resp = self.post('/orders', params)
         return Order(resp)
 

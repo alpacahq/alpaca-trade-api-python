@@ -1,8 +1,11 @@
 import alpaca_trade_api as tradeapi
 
+import os
 import pytest
 import requests_mock
 
+
+del os.environ['APCA_API_BASE_URL']
 
 @pytest.fixture
 def reqmock():
@@ -100,9 +103,9 @@ def test_api(reqmock):
     assert asset.name == 'Apple inc.'
 
     # Get a list of quotes
-    asset_ids = 'asset_1,asset_2'
-    reqmock.get('https://api.alpaca.markets/api/v1/quotes?asset_ids={}'.format(
-        asset_ids,
+    symbols = 'asset_1,asset_2'
+    reqmock.get('https://api.alpaca.markets/api/v1/quotes?symbols={}'.format(
+        symbols,
     ),
         text='''[
   {
@@ -116,13 +119,14 @@ def test_api(reqmock):
     "day_change": 0.008050799
   }
 ]''')
-    quotes = api.list_quotes(asset_ids)
+    quotes = api.list_quotes(symbols)
     assert quotes[0].ask == 120.4
 
-    # Get a list of undamentals
+    # Get a list of fundamentals
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/fundamentals?asset_ids={}'.format(
-            asset_ids, ), text='''[
+        'https://api.alpaca.markets/api/v1/fundamentals?symbols={}'.format(
+            symbols,
+    ), text='''[
   {
     "symbol": "string",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -146,7 +150,7 @@ def test_api(reqmock):
     "gross_margin": 38.4
   }
 ]''')
-    fundamentals = api.list_fundamentals(asset_ids)
+    fundamentals = api.list_fundamentals(symbols)
     assert fundamentals[0].full_name == 'Apple inc.'
 
 
@@ -214,12 +218,12 @@ def test_orders(reqmock, account):
   "cancel_requested_at": "2018-03-09T19:05:27Z",
   "submitted_at": "2018-03-09T19:05:27Z"
 }''')
-    order = account.create_order(
-        asset_id='904837e3-3b76-47ec-b432-046db621571b',
+    order = account.submit_order(
+        symbol='904837e3-3b76-47ec-b432-046db621571b',
         shares=15,
         side='buy',
         type='market',
-        timeinforce='day',
+        time_in_force='day',
         limit_price='107.00',
         stop_price='106.00',
     )
@@ -304,7 +308,7 @@ def test_orders(reqmock, account):
         text='',
         status_code=204,
     )
-    account.delete_order(order_id)
+    account.cancel_order(order_id)
 
 
 def test_positions(reqmock, account):
@@ -351,24 +355,30 @@ def test_positions(reqmock, account):
 
 
 def test_assets(reqmock, asset):
-    # Candles
+    # Bars
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/assets/{}/candles'.format(
+        'https://api.alpaca.markets/api/v1/assets/{}/bars?timeframe=1D'.format(
             asset.id,
         ),
-        text='''[
-  {
-    "open": 120.4,
-    "high": 120.5,
-    "low": 120.4,
-    "close": 120.45,
-    "volume": 130000,
-    "timestamp": "2018-04-01T12:00:00.000Z"
-  }
-]''',
+        text='''{
+  "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
+  "symbol": "AAPL",
+  "exchange": "NASDAQ",
+  "asset_class": "us_equity",
+  "bars": [
+    {
+      "open": 120.4,
+      "high": 120.4,
+      "low": 120.4,
+      "close": 120.4,
+      "volume": 1000,
+      "time": "2018-04-01T12:00:00.000Z"
+    }
+  ]
+}''',
     )
-    candles = asset.list_candles()
-    assert candles[0].open == 120.4
+    abars = asset.get_bars('1D')
+    assert abars.bars[0].open == 120.4
 
     # Quote
     reqmock.get(

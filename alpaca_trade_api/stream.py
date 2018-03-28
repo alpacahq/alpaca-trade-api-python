@@ -2,7 +2,7 @@ import json
 import re
 import websocket
 from .common import get_base_url, get_credentials
-from .rest import REST, Account, Candle, Quote, Entity
+from .rest import REST, Account, AssetBars, Quote, Entity
 
 
 class StreamConn(object):
@@ -55,7 +55,7 @@ class StreamConn(object):
         if stream == 'account_updates':
             return Account(msg, api)
         elif re.match(r'^bars/', stream):
-            return Candle(msg)
+            return AssetBars(msg)
         elif re.match(r'^quotes/', stream):
             return Quote(msg)
         return Entity(msg)

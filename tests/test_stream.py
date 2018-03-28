@@ -60,12 +60,18 @@ def test_stream(WebSocket):
                     return json.dumps({
                         "stream": stream,
                         "data": {
-                            "timestamp": "2018-02-28T20:59:00Z",
-                            "open": 178.31,
-                            "high": 178.48,
-                            "low": 178.2,
-                            "close": 178.22,
-                            "volume": 38618
+                            "asset_id": "ef505a9a-2f3c-4b8a-be95-6b6f185f8a03",
+                            "symbol": "AAAPL",
+                            "exchange": "NASDAQ",
+                            "asset_class": "us_equity",
+                            "bars": [{
+                                "time": "2018-02-28T20:59:00Z",
+                                "open": 178.31,
+                                "high": 178.48,
+                                "low": 178.2,
+                                "close": 178.22,
+                                "volume": 38618
+                            }]
                         }
                     })
             else:

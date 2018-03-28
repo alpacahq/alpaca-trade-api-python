@@ -20,6 +20,7 @@ setup(
     keywords='financial,timeseries,api,trade',
     packages=['alpaca_trade_api', ],
     install_requires=[
+        'pandas',
         'python-dateutil',
         'requests',
         'urllib3',

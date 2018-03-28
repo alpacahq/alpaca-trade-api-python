@@ -1,4 +1,5 @@
 import dateutil.parser
+import pandas as pd
 import pprint
 import re
 import requests
@@ -74,27 +75,27 @@ class REST(object):
         resp = self.get('/api/v1/assets', params)
         return [Asset(o, self) for o in resp]
 
-    def get_asset(self, asset_id):
+    def get_asset(self, symbol):
         '''Get an asset'''
-        resp = self.get('/api/v1/assets/{}'.format(asset_id))
+        resp = self.get('/api/v1/assets/{}'.format(symbol))
         return Asset(resp, self)
 
-    def list_quotes(self, asset_ids):
+    def list_quotes(self, symbols):
         '''Get a list of quotes'''
-        if not isinstance(asset_ids, str):
-            asset_ids = ','.join(asset_ids)
+        if not isinstance(symbols, str):
+            symbols = ','.join(symbols)
         params = {
-            'asset_ids': asset_ids,
+            'symbols': symbols,
         }
         resp = self.get('/api/v1/quotes', params)
         return [Quote(o) for o in resp]
 
-    def list_fundamentals(self, asset_ids):
+    def list_fundamentals(self, symbols):
         '''Get a list of fundamentals'''
-        if not isinstance(asset_ids, str):
-            asset_ids = ','.join(asset_ids)
+        if not isinstance(symbols, str):
+            symbols = ','.join(symbols)
         params = {
-            'asset_ids': asset_ids,
+            'symbols': symbols,
         }
         resp = self.get('/api/v1/fundamentals', params)
         return [Fundamental(o) for o in resp]
@@ -108,7 +109,9 @@ class Entity(object):
         if key in self._raw:
             val = self._raw[key]
             if (isinstance(val, str) and
-                    (key.endswith('_at') or key.endswith('_timestamp')) and
+                    (key.endswith('_at') or
+                     key.endswith('_timestamp') or
+                     key.endswith('_time')) and
                     ISO8601YMD.match(val)):
                 return dateutil.parser.parse(val)
             else:
@@ -124,10 +127,10 @@ class Entity(object):
 
 class Account(Entity):
 
-    def __init__(self, obj, api):
-        super().__init__(obj)
+    def __init__(self, raw, api):
+        super().__init__(raw)
         self._api = api
-        self._account_id = obj['id']
+        self._account_id = raw['id']
 
     def _fullpath(self, path, v='1'):
         return '/api/v{}/accounts/{}{}'.format(v, self._account_id, path)
@@ -152,19 +155,16 @@ class Account(Entity):
         resp = self.get('/orders', params)
         return [Order(o) for o in resp]
 
-    def create_order(self, asset_id, shares, side, type, timeinforce,
+    def submit_order(self, symbol, shares, side, type, time_in_force,
                      limit_price=None, stop_price=None, client_order_id=None):
         '''Request a new order'''
-        params = dict(
-            asset_id=asset_id,
-            shares=shares,
-            side=side,
-            type=type,
-            timeinforce=timeinforce,
-            limit_price=limit_price,
-            stop_price=stop_price,
-            client_order_id=client_order_id,
-        )
+        params = {
+            'symbol': symbol,
+            'shares': shares,
+            'side': side,
+            'type': type,
+            'time_in_force': time_in_force,
+        }
         if limit_price is None:
             params['limit_price'] = limit_price
         if stop_price is None:
@@ -187,7 +187,7 @@ class Account(Entity):
         resp = self.get('/orders/{}'.format(order_id))
         return Order(resp)
 
-    def delete_order(self, order_id):
+    def cancel_order(self, order_id):
         '''Cancel an order'''
         self.delete('/orders/{}'.format(order_id))
 
@@ -196,19 +196,10 @@ class Account(Entity):
         resp = self.get('/positions')
         return [Position(o) for o in resp]
 
-    def get_position(self, asset_id):
+    def get_position(self, symbol):
         '''Get an open position'''
-        resp = self.get('/positions/{}'.format(asset_id))
+        resp = self.get('/positions/{}'.format(symbol))
         return Position(resp)
-
-    def list_dividends(self, asset_id=None, from_id=None, limit=None):
-        '''Get dividends'''
-        params = {
-            'from_id': from_id,
-            'limit': limit,
-        }
-        resp = self.get('/dividends', params)
-        return [Dividend(o) for o in resp]
 
 
 class Asset(Entity):
@@ -221,14 +212,19 @@ class Asset(Entity):
         fullpath = '/api/v1/assets/{}{}'.format(self._asset_id, path)
         return self._api.get(fullpath, data)
 
-    def list_candles(self, start_dt=None, end_dt=None):
-        '''Get candles'''
+    def get_bars(self, timeframe, start_dt=None, end_dt=None, limit=None):
+        '''Get bars'''
         params = {
-            'start_dt': start_dt,
-            'end_dt': end_dt,
+            'timeframe': timeframe,
         }
-        resp = self.get('/candles', params)
-        return [Candle(o) for o in resp]
+        if start_dt is not None:
+            params['start_dt'] = start_dt
+        if end_dt is not None:
+            params['end_dt'] = end_dt
+        if limit is not None:
+            params['limit'] = limit
+        resp = self.get('/bars', params)
+        return AssetBars(resp)
 
     def get_quote(self):
         '''Get a quote'''
@@ -249,12 +245,40 @@ class Position(Entity):
     pass
 
 
-class Dividend(Entity):
+class Bar(Entity):
     pass
 
 
-class Candle(Entity):
-    pass
+class AssetBars(Entity):
+    def __init__(self, raw):
+        super().__init__(raw)
+        t = []
+        o = []
+        h = []
+        l = []
+        c = []
+        v = []
+        bars = []
+        for bar in raw['bars']:
+            t.append(pd.Timestamp(bar['time']))
+            o.append(bar['open'])
+            h.append(bar['high'])
+            l.append(bar['low'])
+            c.append(bar['close'])
+            v.append(bar['volume'])
+            bars.append(Bar(bar))
+        raw['bars'] = bars
+        self._df = pd.DataFrame(dict(
+            open=o,
+            high=h,
+            low=l,
+            close=c,
+            volume=v,
+        ), index=t)
+
+    @property
+    def df(self):
+        return self._df
 
 
 class Quote(Entity):

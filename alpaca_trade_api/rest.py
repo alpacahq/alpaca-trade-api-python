@@ -25,8 +25,8 @@ class REST(object):
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
 
-    def _request(self, method, path, data=None):
-        url = self._base_url + path
+    def _request(self, method, path, data=None, prefix='/api/v1'):
+        url = self._base_url + prefix + path
         headers = {
             'APCA-API-KEY-ID': self._key_id,
             'APCA-API-SECRET-KEY': self._secret_key,
@@ -61,91 +61,10 @@ class REST(object):
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 
-    def list_accounts(self):
-        '''Get a list of accounts'''
-        resp = self.get('/api/v1/accounts')
-        return [Account(o, self) for o in resp]
-
-    def list_assets(self, status=None, asset_class=None):
-        '''Get a list of assets'''
-        params = {
-            'status': status,
-            'assert_class': asset_class,
-        }
-        resp = self.get('/api/v1/assets', params)
-        return [Asset(o, self) for o in resp]
-
-    def get_asset(self, symbol):
-        '''Get an asset'''
-        resp = self.get('/api/v1/assets/{}'.format(symbol))
-        return Asset(resp, self)
-
-    def list_quotes(self, symbols):
-        '''Get a list of quotes'''
-        if not isinstance(symbols, str):
-            symbols = ','.join(symbols)
-        params = {
-            'symbols': symbols,
-        }
-        resp = self.get('/api/v1/quotes', params)
-        return [Quote(o) for o in resp]
-
-    def list_fundamentals(self, symbols):
-        '''Get a list of fundamentals'''
-        if not isinstance(symbols, str):
-            symbols = ','.join(symbols)
-        params = {
-            'symbols': symbols,
-        }
-        resp = self.get('/api/v1/fundamentals', params)
-        return [Fundamental(o) for o in resp]
-
-
-class Entity(object):
-    def __init__(self, raw):
-        self._raw = raw
-
-    def __getattr__(self, key):
-        if key in self._raw:
-            val = self._raw[key]
-            if (isinstance(val, str) and
-                    (key.endswith('_at') or
-                     key.endswith('_timestamp') or
-                     key.endswith('_time')) and
-                    ISO8601YMD.match(val)):
-                return dateutil.parser.parse(val)
-            else:
-                return val
-        return getattr(super(), key)
-
-    def __repr__(self):
-        return '{name}({raw})'.format(
-            name=self.__class__.__name__,
-            raw=pprint.pformat(self._raw, indent=4),
-        )
-
-
-class Account(Entity):
-
-    def __init__(self, raw, api):
-        super().__init__(raw)
-        self._api = api
-        self._account_id = raw['id']
-
-    def _fullpath(self, path, v='1'):
-        return '/api/v{}/accounts/{}{}'.format(v, self._account_id, path)
-
-    def get(self, path, data=None):
-        fullpath = self._fullpath(path)
-        return self._api.get(fullpath, data)
-
-    def post(self, path, data=None):
-        fullpath = self._fullpath(path)
-        return self._api.post(fullpath, data)
-
-    def delete(self, path, data=None):
-        fullpath = self._fullpath(path)
-        return self._api.delete(fullpath, data)
+    def get_account(self):
+        '''Get the account'''
+        resp = self.get('/account')
+        return Account(resp)
 
     def list_orders(self, status=None):
         '''Get a list of orders'''
@@ -201,18 +120,57 @@ class Account(Entity):
         resp = self.get('/positions/{}'.format(symbol))
         return Position(resp)
 
+    def list_assets(self, status=None, asset_class=None):
+        '''Get a list of assets'''
+        params = {
+            'status': status,
+            'assert_class': asset_class,
+        }
+        resp = self.get('/assets', params)
+        return [Asset(o) for o in resp]
 
-class Asset(Entity):
-    def __init__(self, raw, api):
-        super().__init__(raw)
-        self._api = api
-        self._asset_id = raw['id']
+    def get_asset(self, symbol):
+        '''Get an asset'''
+        resp = self.get('/assets/{}'.format(symbol))
+        return Asset(resp)
 
-    def get(self, path, data=None):
-        fullpath = '/api/v1/assets/{}{}'.format(self._asset_id, path)
-        return self._api.get(fullpath, data)
+    def list_quotes(self, symbols):
+        '''Get a list of quotes'''
+        if not isinstance(symbols, str):
+            symbols = ','.join(symbols)
+        params = {
+            'symbols': symbols,
+        }
+        resp = self.get('/quotes', params)
+        return [Quote(o) for o in resp]
 
-    def get_bars(self, timeframe, start_dt=None, end_dt=None, limit=None):
+    def get_quote(self, symbol):
+        '''Get a quote'''
+        resp = self.get('/assets/{}/quote'.format(symbol))
+        return Quote(resp)
+
+    def list_fundamentals(self, symbols):
+        '''Get a list of fundamentals'''
+        if not isinstance(symbols, str):
+            symbols = ','.join(symbols)
+        params = {
+            'symbols': symbols,
+        }
+        resp = self.get('/fundamentals', params)
+        return [Fundamental(o) for o in resp]
+
+    def get_fundamental(self, symbol):
+        '''Get a fundamental'''
+        resp = self.get('/assets/{}/fundamental'.format(symbol))
+        return Fundamental(resp)
+
+    def get_bars(
+            self,
+            symbol,
+            timeframe,
+            start_dt=None,
+            end_dt=None,
+            limit=None):
         '''Get bars'''
         params = {
             'timeframe': timeframe,
@@ -223,18 +181,40 @@ class Asset(Entity):
             params['end_dt'] = end_dt
         if limit is not None:
             params['limit'] = limit
-        resp = self.get('/bars', params)
+        resp = self.get('/assets/{}/bars'.format(symbol), params)
         return AssetBars(resp)
 
-    def get_quote(self):
-        '''Get a quote'''
-        resp = self.get('/quote')
-        return Quote(resp)
 
-    def get_fundamental(self):
-        '''Get a fundamental'''
-        resp = self.get('/fundamental')
-        return Fundamental(resp)
+class Entity(object):
+    def __init__(self, raw):
+        self._raw = raw
+
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if (isinstance(val, str) and
+                    (key.endswith('_at') or
+                     key.endswith('_timestamp') or
+                     key.endswith('_time')) and
+                    ISO8601YMD.match(val)):
+                return dateutil.parser.parse(val)
+            else:
+                return val
+        return getattr(super(), key)
+
+    def __repr__(self):
+        return '{name}({raw})'.format(
+            name=self.__class__.__name__,
+            raw=pprint.pformat(self._raw, indent=4),
+        )
+
+
+class Account(Entity):
+    pass
+
+
+class Asset(Entity):
+    pass
 
 
 class Order(Entity):

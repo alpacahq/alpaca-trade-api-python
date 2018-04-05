@@ -5,7 +5,9 @@ import pytest
 import requests_mock
 
 
-del os.environ['APCA_API_BASE_URL']
+if 'APCA_API_BASE_URL' in os.environ:
+    del os.environ['APCA_API_BASE_URL']
+
 
 @pytest.fixture
 def reqmock():
@@ -13,64 +15,29 @@ def reqmock():
         yield m
 
 
-@pytest.fixture
-def account():
-    api = tradeapi.REST('key-id', 'secret-key')
-    return tradeapi.rest.Account({
-        "id": "904837e3-3b76-47ec-b432-046db621571b",
-        "status": "ONBOARDING",
-        "currency": "USD",
-        "amount_tradable": "4000.32",
-        "amount_withdrawable": "4000.32",
-        "plan": "REGULAR",
-        "pattern_day_trader": True,
-        "trading_blocked": True,
-        "transfers_blocked": True,
-        "account_blocked": True,
-        "created_at": "2018-03-09T05:50:50Z",
-        "updated_at": "2018-03-09T05:50:50Z"
-    }, api)
-
-
-@pytest.fixture
-def asset():
-    api = tradeapi.REST('key-id', 'secret-key')
-    return tradeapi.rest.Asset({
-        "id": "904837e3-3b76-47ec-b432-046db621571b",
-        "name": "Apple inc.",
-        "asset_class": "us_equity",
-        "exchange": "NASDAQ",
-        "symbol": "AAPL",
-        "status": "active",
-        "tradable": True
-    }, api)
-
-
 def test_api(reqmock):
     api = tradeapi.REST('key-id', 'secret-key')
 
     # Get a list of accounts
-    reqmock.get('https://api.alpaca.markets/api/v1/accounts', text='''
-    [
-      {
-        "id": "904837e3-3b76-47ec-b432-046db621571b",
-        "status": "ONBOARDING",
-        "currency": "USD",
-        "amount_tradable": "4000.32",
-        "amount_withdrawable": "4000.32",
-        "plan": "REGULAR",
-        "pattern_day_trader": true,
-        "trading_blocked": true,
-        "transfers_blocked": true,
-        "account_blocked": true,
-        "created_at": "2018-03-09T05:50:50Z",
-        "updated_at": "2018-03-09T05:50:50Z"
-      }
-    ]
+    reqmock.get('https://api.alpaca.markets/api/v1/account', text='''
+    {
+      "id": "904837e3-3b76-47ec-b432-046db621571b",
+      "status": "ONBOARDING",
+      "currency": "USD",
+      "amount_tradable": "4000.32",
+      "amount_withdrawable": "4000.32",
+      "plan": "REGULAR",
+      "pattern_day_trader": true,
+      "trading_blocked": true,
+      "transfers_blocked": true,
+      "account_blocked": true,
+      "created_at": "2018-03-09T05:50:50Z",
+      "updated_at": "2018-03-09T05:50:50Z"
+    }
 ''')
 
-    accounts = api.list_accounts()
-    assert accounts[0].status == 'ONBOARDING'
+    account = api.get_account()
+    assert account.status == 'ONBOARDING'
 
     # Get a list of assets
     reqmock.get('https://api.alpaca.markets/api/v1/assets', text='''[
@@ -126,7 +93,7 @@ def test_api(reqmock):
     reqmock.get(
         'https://api.alpaca.markets/api/v1/fundamentals?symbols={}'.format(
             symbols,
-    ), text='''[
+        ), text='''[
   {
     "symbol": "string",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -154,12 +121,12 @@ def test_api(reqmock):
     assert fundamentals[0].full_name == 'Apple inc.'
 
 
-def test_orders(reqmock, account):
+def test_orders(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key')
+
     # Get a list of orders
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/accounts/{}/orders'.format(
-            account.id,
-        ),
+        'https://api.alpaca.markets/api/v1/orders',
         text='''[
   {
     "id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -186,14 +153,12 @@ def test_orders(reqmock, account):
     "submitted_at": "2018-03-09T19:05:27Z"
   }
 ]''')
-    orders = account.list_orders()
+    orders = api.list_orders()
     assert orders[0].type == 'market'
 
     # Create an order
     reqmock.post(
-        'https://api.alpaca.markets/api/v1/accounts/{}/orders'.format(
-            account.id,
-        ),
+        'https://api.alpaca.markets/api/v1/orders',
         text='''{
   "id": "904837e3-3b76-47ec-b432-046db621571b",
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -218,7 +183,7 @@ def test_orders(reqmock, account):
   "cancel_requested_at": "2018-03-09T19:05:27Z",
   "submitted_at": "2018-03-09T19:05:27Z"
 }''')
-    order = account.submit_order(
+    order = api.submit_order(
         symbol='904837e3-3b76-47ec-b432-046db621571b',
         shares=15,
         side='buy',
@@ -233,9 +198,8 @@ def test_orders(reqmock, account):
     # Get an order by client order id
     client_order_id = 'client-order-id'
     reqmock.get(
-        ('https://api.alpaca.markets/api/v1/accounts/{}'
-         '/orders?client_order_id={}').format(
-            account.id, client_order_id,
+        'https://api.alpaca.markets/api/v1/orders?client_order_id={}'.format(
+            client_order_id,
         ),
         text='''{
   "id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -262,15 +226,13 @@ def test_orders(reqmock, account):
   "submitted_at": "2018-03-09T05:50:50Z"
 }'''
     )
-    order = account.get_order_by_client_order_id(client_order_id)
+    order = api.get_order_by_client_order_id(client_order_id)
     assert order.submitted_at.minute == 50
 
     # Get an order
     order_id = '904837e3-3b76-47ec-b432-046db621571b'
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/accounts/{}/orders/{}'.format(
-            account.id, order_id,
-        ),
+        'https://api.alpaca.markets/api/v1/orders/{}'.format(order_id),
         text='''{
   "id": "904837e3-3b76-47ec-b432-046db621571b",
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -296,27 +258,25 @@ def test_orders(reqmock, account):
   "submitted_at": "2018-03-09T05:50:50Z"
 }'''
     )
-    order = account.get_order(order_id)
+    order = api.get_order(order_id)
     assert order.side == 'buy'
 
     # Cancel an order
     order_id = '904837e3-3b76-47ec-b432-046db621571b'
     reqmock.delete(
-        'https://api.alpaca.markets/api/v1/accounts/{}/orders/{}'.format(
-            account.id, order_id,
-        ),
+        'https://api.alpaca.markets/api/v1/orders/{}'.format(order_id),
         text='',
         status_code=204,
     )
-    account.cancel_order(order_id)
+    api.cancel_order(order_id)
 
 
-def test_positions(reqmock, account):
+def test_positions(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key')
+
     # Get a list of positions
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/accounts/{}/positions'.format(
-            account.id,
-        ),
+        'https://api.alpaca.markets/api/v1/positions',
         text='''[
   {
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -330,15 +290,13 @@ def test_positions(reqmock, account):
   }
 ]'''
     )
-    positions = account.list_positions()
+    positions = api.list_positions()
     assert positions[0].entry_price == '100.0'
 
     # Get an open position
     asset_id = 'test-asset'
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/accounts/{}/positions/{}'.format(
-            account.id, asset_id,
-        ),
+        'https://api.alpaca.markets/api/v1/positions/{}'.format(asset_id),
         text='''{
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -350,16 +308,15 @@ def test_positions(reqmock, account):
   "last_price": "120.00"
 }'''
     )
-    position = account.get_position(asset_id)
+    position = api.get_position(asset_id)
     assert position.cost_basis == '500.0'
 
 
-def test_assets(reqmock, asset):
+def test_assets(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key')
     # Bars
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/assets/{}/bars?timeframe=1D'.format(
-            asset.id,
-        ),
+        'https://api.alpaca.markets/api/v1/assets/AAPL/bars?timeframe=1D',
         text='''{
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "symbol": "AAPL",
@@ -377,14 +334,12 @@ def test_assets(reqmock, asset):
   ]
 }''',
     )
-    abars = asset.get_bars('1D')
+    abars = api.get_bars('AAPL', '1D')
     assert abars.bars[0].open == 120.4
 
     # Quote
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/assets/{}/quote'.format(
-            asset.id,
-        ),
+        'https://api.alpaca.markets/api/v1/assets/AAPL/quote',
         text='''{
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "bid": 120.4,
@@ -396,14 +351,12 @@ def test_assets(reqmock, asset):
   "day_change": 0.008050799
 }''',
     )
-    quote = asset.get_quote()
+    quote = api.get_quote('AAPL')
     assert quote.last_timestamp.minute == 16
 
     # Fundamental
     reqmock.get(
-        'https://api.alpaca.markets/api/v1/assets/{}/fundamental'.format(
-            asset.id,
-        ),
+        'https://api.alpaca.markets/api/v1/assets/AAPL/fundamental',
         text='''{
   "symbol": "string",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -427,5 +380,5 @@ def test_assets(reqmock, asset):
   "gross_margin": 38.4
 }''',
     )
-    fundamental = asset.get_fundamental()
+    fundamental = api.get_fundamental('AAPL')
     assert fundamental.pe_ratio == 17.42

@@ -25,7 +25,7 @@ class REST(object):
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
 
-    def _request(self, method, path, data=None, prefix='/api/v1'):
+    def _request(self, method, path, data=None, prefix='/v1'):
         url = self._base_url + prefix + path
         headers = {
             'APCA-API-KEY-ID': self._key_id,

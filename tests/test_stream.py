@@ -56,23 +56,19 @@ def test_stream(WebSocket):
                             "amount_withdrawable": "523.71"
                         }
                     })
-                elif stream.startswith('bars/'):
+                elif stream.startswith('quotes/'):
                     return json.dumps({
                         "stream": stream,
                         "data": {
-                            "asset_id": "ef505a9a-2f3c-4b8a-be95-6b6f185f8a03",
-                            "symbol": "AAAPL",
-                            "exchange": "NASDAQ",
-                            "asset_class": "us_equity",
-                            "bars": [{
-                                "time": "2018-02-28T20:59:00Z",
-                                "open": 178.31,
-                                "high": 178.48,
-                                "low": 178.2,
-                                "close": 178.22,
-                                "volume": 38618
-                            }]
-                        }
+                          "bid_timestamp":"2018-02-28T21:16:58.704+0000",
+                          "bid": 178.22,
+                          "ask_timestamp": "2018-02-28T21:16:58.704+0000",
+                          "ask": 178.23,
+                          "last_timestamp": "2018-02-28T21:16:58.704+0000",
+                          "last": 178.22,
+                          "day_change":0.008050799,
+                          "symbol": "AAPL"
+                        },
                     })
             else:
                 raise AssertionError('unexpected')
@@ -86,12 +82,12 @@ def test_stream(WebSocket):
     def on_auth(conn, stream, msg):
         conn.subscribe([
             'account_updates',
-            'bars/bats/AAPL/1Min',
+            'quotes/AAPL',
         ])
 
     @conn.on(r'^bars/')
     def on_bars(conn, stream, msg):
-        assert stream == 'bars/bats/AAPL/1Min'
+        assert stream == 'quotes/AAPL'
 
     with pytest.raises(WebSocketConnectionClosedException):
         conn.run()

@@ -10,10 +10,15 @@ with open('alpaca_trade_api/__init__.py', 'rb') as f:
     version = str(ast.literal_eval(_version_re.search(
         f.read().decode('utf-8')).group(1)))
 
+with open('README.md') as readme_file:
+    README = readme_file.read()
+
 setup(
     name='alpaca-trade-api',
     version=version,
     description='Alpaca API python client',
+    long_description=README,
+    ong_description_content_type='text/markdown',
     author='Alpaca',
     author_email='oss@alpaca.markets',
     url='https://github.com/alpacahq/alpaca-trade-api-python',

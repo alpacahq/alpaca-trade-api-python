@@ -164,6 +164,29 @@ class REST(object):
         resp = self.get('/assets/{}/fundamental'.format(symbol))
         return Fundamental(resp)
 
+    def list_bars(
+            self,
+            symbols,
+            timeframe,
+            start_dt=None,
+            end_dt=None,
+            limit=None):
+        '''Get a list of bars'''
+        if not isinstance(symbols, str):
+            symbols = ','.join(symbols)
+        params = {
+            'symbols': symbols,
+            'timeframe': timeframe,
+        }
+        if start_dt is not None:
+            params['start_dt'] = start_dt
+        if end_dt is not None:
+            params['end_dt'] = end_dt
+        if limit is not None:
+            params['limit'] = limit
+        resp = self.get('/bars', params)
+        return [AssetBars(o) for o in resp]
+
     def get_bars(
             self,
             symbol,

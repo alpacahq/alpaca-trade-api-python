@@ -53,7 +53,7 @@ class StreamConn(object):
     def _cast(self, stream, msg):
         api = REST(self._key_id, self._secret_key, self._base_url)
         if stream == 'account_updates':
-            return Account(msg, api)
+            return Account(msg)
         elif re.match(r'^bars/', stream):
             return AssetBars(msg)
         elif re.match(r'^quotes/', stream):

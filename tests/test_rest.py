@@ -22,22 +22,21 @@ def test_api(reqmock):
     reqmock.get('https://api.alpaca.markets/v1/account', text='''
     {
       "id": "904837e3-3b76-47ec-b432-046db621571b",
-      "status": "ONBOARDING",
+      "status": "ACTIVE",
       "currency": "USD",
-      "amount_tradable": "4000.32",
-      "amount_withdrawable": "4000.32",
-      "plan": "REGULAR",
-      "pattern_day_trader": true,
-      "trading_blocked": true,
-      "transfers_blocked": true,
-      "account_blocked": true,
-      "created_at": "2018-03-09T05:50:50Z",
-      "updated_at": "2018-03-09T05:50:50Z"
+      "cash": "4000.32",
+      "cash_withdrawable": "4000.32",
+      "portfolio_value": "4321.98",
+      "pattern_day_trader": false,
+      "trading_blocked": false,
+      "transfers_blocked": false,
+      "account_blocked": false,
+      "created_at": "2018-05-03T06:17:56Z"
     }
 ''')
 
     account = api.get_account()
-    assert account.status == 'ONBOARDING'
+    assert account.status == 'ACTIVE'
 
     # Get a list of assets
     reqmock.get('https://api.alpaca.markets/v1/assets', text='''[

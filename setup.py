@@ -18,7 +18,7 @@ setup(
     version=version,
     description='Alpaca API python client',
     long_description=README,
-    ong_description_content_type='text/markdown',
+    long_description_content_type='text/markdown',
     author='Alpaca',
     author_email='oss@alpaca.markets',
     url='https://github.com/alpacahq/alpaca-trade-api-python',

@@ -38,13 +38,12 @@ def on_auth(conn, stream, msg):
     conn.subscribe([
         'account_updates',
         'trade_updates',
-        'bars/bats/AAPL/1Min',
-        'quotes/gdax/BTC-USD',
+        'quotes/AAPL',
         ])
 
-@conn.on(r'bars/')
-def on_bars(conn, stream, msg):
-    print('bars', msg)
+@conn.on(r'quotes/')
+def on_quotes(conn, stream, msg):
+    print('quotes', msg)
 
 @conn.on(r'account_updates')
 def on_account(conn, stream, msg):
@@ -54,9 +53,13 @@ def on_account(conn, stream, msg):
 conn.run()
 ```
 
+## API Document
+
+The HTTP API document is located in https://docs.alpaca.markets/
+
 ## Authentication
 
-The API requires API key ID and secret key, which you can obtain from the
+The Alpaca API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can give them to the initializers of
 `REST` or `StreamConn` as arguments, or set up environment variables as
 follows.
@@ -66,28 +69,83 @@ follows.
 
 ## REST
 
-The `REST` class is the entry point for the API request.  Call
-`list_accounts` to obtain Account Entity with which you can further
-query the up-to-date information of orders and positions under the
-particular account.
+The `REST` class is the entry point for the API request.  The instance of this
+class provides all REST API calls such as account, orders, positions,
+bars, quotes and fundamentals.
 
-For the market data, you can directly request bars, quotes and
-fundamentals from the same instance of `REST`.
-
-Each returned object is wrapped by a subclass of `Entity` class.  This
-helper class provides property access (the "dot notation") to the
+Each returned object is wrapped by a subclass of `Entity` class (or a list of it).
+This helper class provides property access (the "dot notation") to the
 json object, backed by the original object stored in the `_raw` field.
 It also converts certain types to the appropriate python object.
 
 ```python
-account = api.list_accounts()[0]
+import alpaca_trade_api as tradeapi
+
+api = tradeapi.REST()
+account = api.get_account()
 account.status
 => 'ACTIVE'
 ```
 
-## Streaming
+The `Entity` class also converts timestamp string field to a pandas.Timestamp
+object.
 
-The `Streaming` class provides WebSocket-based event-driven
+### REST.get_account()
+Calls `GET /account` and returns an `Account` entity.
+
+### REST.list_orders(status=None)
+Calls `GET /orders` and returns a list of `Order` entities.
+
+### REST.submit_order(symbol, shares, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
+Calls `POST /orders` and returns an `Order` entity.
+
+### REST.get_order_by_client_order_id(client_order_id)
+Calls `GET /orders` with client_order_id and returns an `Order` entity.
+
+### REST.get_order(order_id)
+Calls `GET /orders/{order_id}` and returns an `Order` entity.
+
+### REST.cancel_order(order_id)
+Calls `DELETE /orders/{order_id}`.
+
+### REST.list_position()
+Calls `GET /positions` and returns a list of `Position` entities.
+
+### REST.get_position(symbol)
+Calls `GET /positions/{symbol}` and returns a `Position` entity.
+
+### REST.list_assets(status=None, asset_class=None)
+Calls `GET /assets` and returns a list of `Asset` entities.
+
+### REST.get_asset(symbol)
+Calls `GET /assets/{symbol}` and returns an `Asset` entity.
+
+### REST.list_quotes(symbols)
+Calls `GET /quotes` with symbols and returns a list of `Quote` entities.  If `symbols` is not a string, it is concatenated with commas.
+
+### REST.get_quote(symbol)
+Calls `GET /assets/{symbol}/quote` and returns a `Quote` entity.
+
+### REST.list_fundamentals(symbols)
+Calls `GET /fundamentals` with symbols and returns a list of `Fundamental` entities.
+If `symbols` is not a string, it is concatenated with commas.
+
+### REST.get_fundamental(symbol)
+Calls `GET /assets/{symbol}/fundamental` and returns a `Fundamental` entity.
+
+### REST.list_bars(symbols, timeframe, start_dt=None, end_dt=None, limit=None)
+Calls `GET /bars` and returns a list of `AssetBars` entities. If `symbols` is
+not a string, it is concatenated with commas. `start_dt` and `end_dt` should be
+in the ISO8601 string format.
+
+### REST.get_bars(symbol, timeframe, start_dt=None, end_dt=None, limit=None)
+Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
+entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
+
+
+## StreamConn
+
+The `StreamConn` class provides WebSocket-based event-driven
 interfaces.  Using the `on` decorator of the instance, you can
 define custom event handlers that are called when the pattern
 is matched on the stream name.  Once event handlers are set up,
@@ -112,11 +170,35 @@ The `msg` object passed to each handler is wrapped by the entity
 helper class if the message is from the server.
 
 ```python
-@conn.on(r'bars/')
-def on_bars(conn, stream, bar):
-    print('bars', bar.open)
+@conn.on(r'quotes/')
+def on_quotes(conn, stream, quote):
+    print('quotes', quote)
 
 ```
+
+You will likely call the `run` method in a thread since it will keep runnig
+unless an exception is raised.
+
+### StreamConn.subscribe(streams)
+Request "listen" to the server.  `streams` must be a list of string stream names.
+A "listening" response will be triggered if server responses to this request.
+
+### StreamConn.run()
+Goes into an infinite loop and awaits for messages from the server.  You should
+set up event listeners using the `on` or `register` method before calling `run`.
+
+### StreamConn.on(stream_pat)
+As in the above example, this is a decorator method to add an event handler function.
+`stream_pat` is used as a regular expression pattern to filter stream names.
+
+### StreamConn.register(stream_pat, func)
+Registers a function as an event handler that is triggered by the stream events
+that match with `stream_path` regular expression. Calling this method with the
+same `stream_pat` will overwrite the old handler.
+
+### StreamConn.deregister(stream_pat)
+Deregisters the event handler function that was previously registered via `on` or
+`register` method.
 
 
 ## Support and Contribution

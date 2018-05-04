@@ -51,7 +51,6 @@ class StreamConn(object):
             ws.close()
 
     def _cast(self, stream, msg):
-        api = REST(self._key_id, self._secret_key, self._base_url)
         if stream == 'account_updates':
             return Account(msg)
         elif re.match(r'^bars/', stream):

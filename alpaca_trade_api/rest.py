@@ -209,6 +209,10 @@ class REST(object):
 
 
 class Entity(object):
+    '''This helper class provides property access (the "dot notation")
+    to the json object, backed by the original object stored in the _raw
+    field.
+    '''
     def __init__(self, raw):
         self._raw = raw
 

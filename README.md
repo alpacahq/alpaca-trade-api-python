@@ -22,8 +22,8 @@ web console.
 import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST('<key_id>', '<secret_key>')
-account = api.list_accounts()[0]
-account.list_positions()
+account = api.get_account()
+api.list_positions()
 ```
 
 ### Streaming example

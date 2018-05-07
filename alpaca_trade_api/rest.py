@@ -74,12 +74,12 @@ class REST(object):
         resp = self.get('/orders', params)
         return [Order(o) for o in resp]
 
-    def submit_order(self, symbol, shares, side, type, time_in_force,
+    def submit_order(self, symbol, qty, side, type, time_in_force,
                      limit_price=None, stop_price=None, client_order_id=None):
         '''Request a new order'''
         params = {
             'symbol': symbol,
-            'shares': shares,
+            'qty': qty,
             'side': side,
             'type': type,
             'time_in_force': time_in_force,

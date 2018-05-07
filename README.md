@@ -96,7 +96,7 @@ Calls `GET /account` and returns an `Account` entity.
 ### REST.list_orders(status=None)
 Calls `GET /orders` and returns a list of `Order` entities.
 
-### REST.submit_order(symbol, shares, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
+### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
 Calls `POST /orders` and returns an `Order` entity.
 
 ### REST.get_order_by_client_order_id(client_order_id)

@@ -1,4 +1,4 @@
 from .rest import REST  # noqa
 from .stream import StreamConn  # noqa
 
-__version__ = '0.7'
+__version__ = '0.8'

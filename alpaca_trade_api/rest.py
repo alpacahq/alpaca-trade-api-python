@@ -84,9 +84,9 @@ class REST(object):
             'type': type,
             'time_in_force': time_in_force,
         }
-        if limit_price is None:
+        if limit_price is not None:
             params['limit_price'] = limit_price
-        if stop_price is None:
+        if stop_price is not None:
             params['stop_price'] = stop_price
         if client_order_id is not None:
             params['client_order_id'] = client_order_id
@@ -95,10 +95,9 @@ class REST(object):
 
     def get_order_by_client_order_id(self, client_order_id):
         '''Get an order by client order id'''
-        resp = self.get('/orders', data={
+        resp = self.get('/orders:by_client_order_id', {
             'client_order_id': client_order_id,
-        },
-        )
+        })
         return Order(resp)
 
     def get_order(self, order_id):

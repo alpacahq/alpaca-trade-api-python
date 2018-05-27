@@ -1,7 +1,10 @@
 import alpaca_trade_api as tradeapi
 import json
 import pytest
-from unittest.mock import patch
+try:
+  from unittest.mock import patch
+except ImportError:
+  from mock import patch
 from websocket import WebSocketConnectionClosedException
 
 

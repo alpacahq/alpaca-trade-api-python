@@ -60,14 +60,14 @@ def test_stream(WebSocket):
                     return json.dumps({
                         "stream": stream,
                         "data": {
-                          "bid_timestamp":"2018-02-28T21:16:58.704+0000",
-                          "bid": 178.22,
-                          "ask_timestamp": "2018-02-28T21:16:58.704+0000",
-                          "ask": 178.23,
-                          "last_timestamp": "2018-02-28T21:16:58.704+0000",
-                          "last": 178.22,
-                          "day_change":0.008050799,
-                          "symbol": "AAPL"
+                            "bid_timestamp": "2018-02-28T21:16:58.704+0000",
+                            "bid": 178.22,
+                            "ask_timestamp": "2018-02-28T21:16:58.704+0000",
+                            "ask": 178.23,
+                            "last_timestamp": "2018-02-28T21:16:58.704+0000",
+                            "last": 178.22,
+                            "day_change": 0.008050799,
+                            "symbol": "AAPL"
                         },
                     })
             else:

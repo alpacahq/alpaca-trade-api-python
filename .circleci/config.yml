@@ -1,0 +1,76 @@
+version: 2
+jobs:
+  build-python27:
+    docker:
+      - image: python:2.7.13
+    working_directory: ~/repo
+    steps:
+      - run: echo "hello python 2.7.13"
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "setup.py" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      # run tests!
+      # this example uses Django's built-in test-runner
+      # other common Python testing frameworks include pytest and nose
+      # https://pytest.org
+      # https://nose.readthedocs.io
+      - run:
+          name: run tests
+          command: |
+            python setup.py test
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "setup.py" }}
+
+      - store_artifacts:
+          path: test-reports_py2.7.13
+          destination: test-reports2.7.13
+
+  build-python36:
+    docker:
+      - image: python:3.6.1
+    working_directory: ~/repo
+    steps:
+      - run: echo "hello python 3.6.1"
+      - checkout
+ 
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "setup.py" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      # run tests!
+      # this example uses Django's built-in test-runner
+      # other common Python testing frameworks include pytest and nose
+      # https://pytest.org
+      # https://nose.readthedocs.io
+      - run:
+          name: run tests
+          command: |
+            python setup.py test
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "setup.py" }}
+
+      - store_artifacts:
+          path: test-reports3.6.1
+          destination: test-reports3.6.1
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      # - build-python27
+      - build-python36

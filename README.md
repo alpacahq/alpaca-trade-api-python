@@ -14,8 +14,7 @@ $ pip install alpaca-trade-api-python
 ## Example
 
 In order to call Alpaca's trade API, you need to obtain API key pairs.
-Replace <key_id> and <secret_key> with what you get from the
-web console.
+Replace <key_id> and <secret_key> with what you get from the web console.
 
 ### REST example
 ```python
@@ -88,7 +87,8 @@ account.status
 ```
 
 The `Entity` class also converts timestamp string field to a pandas.Timestamp
-object.
+object.  Its `_raw` property returns the original raw primitive data unmarshaled
+from the response JSON text.
 
 ### REST.get_account()
 Calls `GET /account` and returns an `Account` entity.
@@ -142,6 +142,8 @@ in the ISO8601 string format.
 Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
 entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
 
+### AssetBars.df
+Returns a DataFrame constructed from the Bars response.  The property is cached.
 
 ## StreamConn
 

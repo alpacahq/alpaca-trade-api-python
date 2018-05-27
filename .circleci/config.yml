@@ -8,6 +8,13 @@ jobs:
       - run: echo "hello python 2.7.13"
       - checkout
 
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "setup.py" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
       # run tests!
       # this example uses Django's built-in test-runner
       # other common Python testing frameworks include pytest and nose
@@ -17,6 +24,11 @@ jobs:
           name: run tests
           command: |
             python setup.py test
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "setup.py" }}
 
       - store_artifacts:
           path: test-reports_py2.7.13
@@ -29,6 +41,13 @@ jobs:
     steps:
       - run: echo "hello python 3.6.1"
       - checkout
+ 
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "setup.py" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
 
       # run tests!
       # this example uses Django's built-in test-runner
@@ -39,6 +58,11 @@ jobs:
           name: run tests
           command: |
             python setup.py test
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "setup.py" }}
 
       - store_artifacts:
           path: test-reports3.6.1

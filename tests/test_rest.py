@@ -197,7 +197,7 @@ def test_orders(reqmock):
     # Get an order by client order id
     client_order_id = 'client-order-id'
     reqmock.get(
-        'https://api.alpaca.markets/v1/orders?client_order_id={}'.format(
+        'https://api.alpaca.markets/v1/orders:by_client_order_id?client_order_id={}'.format(
             client_order_id,
         ),
         text='''{
@@ -335,6 +335,7 @@ def test_assets(reqmock):
     )
     abars = api.get_bars('AAPL', '1D')
     assert abars.bars[0].open == 120.4
+    assert abars.df.shape == (1, 5)
 
     # Quote
     reqmock.get(

@@ -257,35 +257,34 @@ class Bar(Entity):
 
 
 class AssetBars(Entity):
-    def __init__(self, raw):
-        super().__init__(raw)
-        t = []
-        o = []
-        h = []
-        l = []
-        c = []
-        v = []
-        bars = []
-        for bar in raw['bars']:
-            t.append(pd.Timestamp(bar['time']))
-            o.append(bar['open'])
-            h.append(bar['high'])
-            l.append(bar['low'])
-            c.append(bar['close'])
-            v.append(bar['volume'])
-            bars.append(Bar(bar))
-        raw['bars'] = bars
-        self._df = pd.DataFrame(dict(
-            open=o,
-            high=h,
-            low=l,
-            close=c,
-            volume=v,
-        ), index=t)
 
     @property
     def df(self):
+        if not hasattr(self, '_df'):
+            self._df = pd.DataFrame(self._raw['bars']).set_index('time')
         return self._df
+
+    @property
+    def bars(self):
+        if not hasattr(self, '_bars'):
+            raw = self._raw
+            t = []
+            o = []
+            h = []
+            l = []
+            c = []
+            v = []
+            bars = []
+            for bar in raw['bars']:
+                t.append(pd.Timestamp(bar['time']))
+                o.append(bar['open'])
+                h.append(bar['high'])
+                l.append(bar['low'])
+                c.append(bar['close'])
+                v.append(bar['volume'])
+                bars.append(Bar(bar))
+            self._bars = bars
+        return self._bars
 
 
 class Quote(Entity):

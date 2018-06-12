@@ -8,7 +8,7 @@ please see the online API document.
 ## Install
 
 ```bash
-$ pip install alpaca-trade-api-python
+$ pip install alpaca-trade-api
 ```
 
 ## Example

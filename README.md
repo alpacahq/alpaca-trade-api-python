@@ -8,22 +8,21 @@ please see the online API document.
 ## Install
 
 ```bash
-$ pip install alpaca-trade-api-python
+$ pip install alpaca-trade-api
 ```
 
 ## Example
 
 In order to call Alpaca's trade API, you need to obtain API key pairs.
-Replace <key_id> and <secret_key> with what you get from the
-web console.
+Replace <key_id> and <secret_key> with what you get from the web console.
 
 ### REST example
 ```python
 import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST('<key_id>', '<secret_key>')
-account = api.list_accounts()[0]
-account.list_positions()
+account = api.get_account()
+api.list_positions()
 ```
 
 ### Streaming example
@@ -88,7 +87,8 @@ account.status
 ```
 
 The `Entity` class also converts timestamp string field to a pandas.Timestamp
-object.
+object.  Its `_raw` property returns the original raw primitive data unmarshaled
+from the response JSON text.
 
 ### REST.get_account()
 Calls `GET /account` and returns an `Account` entity.
@@ -96,7 +96,7 @@ Calls `GET /account` and returns an `Account` entity.
 ### REST.list_orders(status=None)
 Calls `GET /orders` and returns a list of `Order` entities.
 
-### REST.submit_order(symbol, shares, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
+### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
 Calls `POST /orders` and returns an `Order` entity.
 
 ### REST.get_order_by_client_order_id(client_order_id)
@@ -142,6 +142,8 @@ in the ISO8601 string format.
 Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
 entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
 
+### AssetBars.df
+Returns a DataFrame constructed from the Bars response.  The property is cached.
 
 ## StreamConn
 

@@ -2,7 +2,7 @@ import json
 import re
 import websocket
 from .common import get_base_url, get_credentials
-from .rest import REST, Account, AssetBars, Quote, Entity
+from .rest import Account, AssetBars, Quote, Entity
 
 
 class StreamConn(object):

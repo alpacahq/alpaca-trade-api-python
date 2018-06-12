@@ -74,19 +74,19 @@ class REST(object):
         resp = self.get('/orders', params)
         return [Order(o) for o in resp]
 
-    def submit_order(self, symbol, shares, side, type, time_in_force,
+    def submit_order(self, symbol, qty, side, type, time_in_force,
                      limit_price=None, stop_price=None, client_order_id=None):
         '''Request a new order'''
         params = {
             'symbol': symbol,
-            'shares': shares,
+            'qty': qty,
             'side': side,
             'type': type,
             'time_in_force': time_in_force,
         }
-        if limit_price is None:
+        if limit_price is not None:
             params['limit_price'] = limit_price
-        if stop_price is None:
+        if stop_price is not None:
             params['stop_price'] = stop_price
         if client_order_id is not None:
             params['client_order_id'] = client_order_id
@@ -95,10 +95,9 @@ class REST(object):
 
     def get_order_by_client_order_id(self, client_order_id):
         '''Get an order by client order id'''
-        resp = self.get('/orders', data={
+        resp = self.get('/orders:by_client_order_id', {
             'client_order_id': client_order_id,
-        },
-        )
+        })
         return Order(resp)
 
     def get_order(self, order_id):
@@ -258,35 +257,39 @@ class Bar(Entity):
 
 
 class AssetBars(Entity):
-    def __init__(self, raw):
-        super().__init__(raw)
-        t = []
-        o = []
-        h = []
-        l = []
-        c = []
-        v = []
-        bars = []
-        for bar in raw['bars']:
-            t.append(pd.Timestamp(bar['time']))
-            o.append(bar['open'])
-            h.append(bar['high'])
-            l.append(bar['low'])
-            c.append(bar['close'])
-            v.append(bar['volume'])
-            bars.append(Bar(bar))
-        raw['bars'] = bars
-        self._df = pd.DataFrame(dict(
-            open=o,
-            high=h,
-            low=l,
-            close=c,
-            volume=v,
-        ), index=t)
 
     @property
     def df(self):
+        if not hasattr(self, '_df'):
+            df = pd.DataFrame(self._raw['bars'])
+            if len(df.columns) == 0:
+                df.columns = ('time', 'open', 'high', 'low', 'close', 'volume')
+            df = df.set_index('time')
+            df.index = pd.to_datetime(df.index)
+            self._df = df
         return self._df
+
+    @property
+    def bars(self):
+        if not hasattr(self, '_bars'):
+            raw = self._raw
+            t = []
+            o = []
+            h = []
+            l = []
+            c = []
+            v = []
+            bars = []
+            for bar in raw['bars']:
+                t.append(pd.Timestamp(bar['time']))
+                o.append(bar['open'])
+                h.append(bar['high'])
+                l.append(bar['low'])
+                c.append(bar['close'])
+                v.append(bar['volume'])
+                bars.append(Bar(bar))
+            self._bars = bars
+        return self._bars
 
 
 class Quote(Entity):

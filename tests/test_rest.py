@@ -132,21 +132,21 @@ def test_orders(reqmock):
     "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-    "shares": 15,
+    "qty": "15",
     "side": "buy",
     "type": "market",
     "timeinforce": "day",
     "limit_price": "107.00",
     "stop_price": "106.00",
-    "filled_price": "107.00",
-    "status": "ordering",
+    "filled_avg_price": "107.00",
+    "status": "new",
     "created_at": "2018-03-09T19:05:27Z",
     "updated_at": "2018-03-09T19:05:27Z",
     "cancelled_at": "2018-03-09T19:05:27Z",
     "expired_at": "2018-03-09T19:05:27Z",
     "filled_at": "2018-03-09T19:05:27Z",
     "failed_at": "2018-03-09T19:05:27Z",
-    "filled_shares": 0,
+    "filled_qty": "0",
     "failured_reason": "string",
     "cancel_requested_at": "2018-03-09T19:05:27Z",
     "submitted_at": "2018-03-09T19:05:27Z"
@@ -163,41 +163,41 @@ def test_orders(reqmock):
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "shares": 15,
+  "qty": "15",
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
   "limit_price": "107.00",
   "stop_price": "106.00",
-  "filled_price": "107.00",
-  "status": "ordering",
+  "filled_avg_price": "107.00",
+  "status": "new",
   "created_at": "2018-03-09T19:05:27Z",
   "updated_at": "2018-03-09T19:05:27Z",
   "cancelled_at": "2018-03-09T19:05:27Z",
   "expired_at": "2018-03-09T19:05:27Z",
   "filled_at": "2018-03-09T19:05:27Z",
   "failed_at": "2018-03-09T19:05:27Z",
-  "filled_shares": 0,
+  "filled_qty": "0",
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T19:05:27Z",
   "submitted_at": "2018-03-09T19:05:27Z"
 }''')
     order = api.submit_order(
         symbol='904837e3-3b76-47ec-b432-046db621571b',
-        shares=15,
+        qty=15,
         side='buy',
         type='market',
         time_in_force='day',
         limit_price='107.00',
         stop_price='106.00',
     )
-    assert order.shares == 15
+    assert order.qty == "15"
     assert order.created_at.hour == 19
 
     # Get an order by client order id
     client_order_id = 'client-order-id'
     reqmock.get(
-        'https://api.alpaca.markets/v1/orders?client_order_id={}'.format(
+        'https://api.alpaca.markets/v1/orders:by_client_order_id?client_order_id={}'.format(
             client_order_id,
         ),
         text='''{
@@ -205,21 +205,21 @@ def test_orders(reqmock):
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "shares": 15,
+  "qty": "15",
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
   "limit_price": "107.00",
   "stop_price": "106.00",
-  "filled_price": "107.00",
-  "status": "ordering",
+  "filled_avg_price": "107.00",
+  "status": "new",
   "created_at": "2018-03-09T05:50:50Z",
   "updated_at": "2018-03-09T05:50:50Z",
   "cancelled_at": "2018-03-09T05:50:50Z",
   "expired_at": "2018-03-09T05:50:50Z",
   "filled_at": "2018-03-09T05:50:50Z",
   "failed_at": "2018-03-09T05:50:50Z",
-  "filled_shares": 0,
+  "filled_qty": "0",
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T05:50:50Z",
   "submitted_at": "2018-03-09T05:50:50Z"
@@ -237,21 +237,21 @@ def test_orders(reqmock):
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "shares": 15,
+  "qty": 15,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
   "limit_price": "107.00",
   "stop_price": "106.00",
-  "filled_price": "107.00",
-  "status": "ordering",
+  "filled_avg_price": "107.00",
+  "status": "new",
   "created_at": "2018-03-09T05:50:50Z",
   "updated_at": "2018-03-09T05:50:50Z",
   "cancelled_at": "2018-03-09T05:50:50Z",
   "expired_at": "2018-03-09T05:50:50Z",
   "filled_at": "2018-03-09T05:50:50Z",
   "failed_at": "2018-03-09T05:50:50Z",
-  "filled_shares": 0,
+  "filled_qty": "0",
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T05:50:50Z",
   "submitted_at": "2018-03-09T05:50:50Z"
@@ -281,7 +281,7 @@ def test_positions(reqmock):
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
     "entry_price": "100.0",
-    "shares": 5,
+    "qty": "5",
     "side": "long",
     "market_value": "600.0",
     "cost_basis": "500.0",
@@ -300,7 +300,7 @@ def test_positions(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "entry_price": "100.0",
-  "shares": 5,
+  "qty": "5",
   "side": "long",
   "market_value": "600.0",
   "cost_basis": "500.0",
@@ -335,6 +335,8 @@ def test_assets(reqmock):
     )
     abars = api.get_bars('AAPL', '1D')
     assert abars.bars[0].open == 120.4
+    assert abars.df.shape == (1, 5)
+    assert abars.df.index[0].day == 1
 
     # Quote
     reqmock.get(

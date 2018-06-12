@@ -120,6 +120,12 @@ Calls `GET /assets` and returns a list of `Asset` entities.
 ### REST.get_asset(symbol)
 Calls `GET /assets/{symbol}` and returns an `Asset` entity.
 
+### REST.get_clock()
+Calls `GET /clock` and returns a `Clock` entity.
+
+### REST.get_calendar(start=None, end=None)
+Calls `GET /calendar` and returns a `Calendar` entity.
+
 ### REST.list_quotes(symbols)
 Calls `GET /quotes` with symbols and returns a list of `Quote` entities.  If `symbols` is not a string, it is concatenated with commas.
 

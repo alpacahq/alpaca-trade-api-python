@@ -1,4 +1,3 @@
-import dateutil.parser
 import pandas as pd
 import pprint
 import re
@@ -206,6 +205,19 @@ class REST(object):
         resp = self.get('/assets/{}/bars'.format(symbol), params)
         return AssetBars(resp)
 
+    def get_clock(self):
+        resp = self.get('/clock')
+        return Clock(resp)
+
+    def get_calendar(self, start=None, end=None):
+        params = {}
+        if start is not None:
+            params['start'] = start
+        if end is not None:
+            params['end'] = end
+        resp = self.get('/calendar', data=params)
+        return [Calendar(o) for o in resp]
+
 
 class Entity(object):
     '''This helper class provides property access (the "dot notation")
@@ -224,7 +236,7 @@ class Entity(object):
                      key.endswith('_timestamp') or
                      key.endswith('_time')) and
                     ISO8601YMD.match(val)):
-                return dateutil.parser.parse(val)
+                return pd.Timestamp(val)
             else:
                 return val
         return getattr(super(), key)
@@ -298,3 +310,27 @@ class Quote(Entity):
 
 class Fundamental(Entity):
     pass
+
+
+class Clock(Entity):
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if key in ('timestamp', 'next_open', 'next_close'):
+                return pd.Timestamp(val)
+            else:
+                return val
+        return getattr(super(), key)
+
+
+class Calendar(Entity):
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if key in ('date',):
+                return pd.Timestamp(val)
+            elif key in ('open', 'close'):
+                return pd.Timestamp(val).time()
+            else:
+                return val
+        return getattr(super(), key)

@@ -197,10 +197,9 @@ def test_orders(reqmock):
     # Get an order by client order id
     client_order_id = 'client-order-id'
     reqmock.get(
-        'https://api.alpaca.markets/v1/orders:by_client_order_id?client_order_id={}'.format(
-            client_order_id,
-        ),
-        text='''{
+        'https://api.alpaca.markets/v1/orders:by_client_order_id?'
+        'client_order_id={}'.format(
+            client_order_id, ), text='''{
   "id": "904837e3-3b76-47ec-b432-046db621571b",
   "client_order_id": "904837e3-3b76-47ec-b432-046db621571b",
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
@@ -223,8 +222,7 @@ def test_orders(reqmock):
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T05:50:50Z",
   "submitted_at": "2018-03-09T05:50:50Z"
-}'''
-    )
+}''')
     order = api.get_order_by_client_order_id(client_order_id)
     assert order.submitted_at.minute == 50
 
@@ -309,6 +307,39 @@ def test_positions(reqmock):
     )
     position = api.get_position(asset_id)
     assert position.cost_basis == '500.0'
+
+
+def test_chronos(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key')
+
+    # clock
+    reqmock.get(
+        'https://api.alpaca.markets/v1/clock',
+        text='''{
+  "timestamp": "2018-04-01T12:00:00.000Z",
+  "is_open": true,
+  "next_open": "2018-04-01T12:00:00.000Z",
+  "next_close": "2018-04-01T12:00:00.000Z"
+}'''
+    )
+    clock = api.get_clock()
+    assert clock.is_open
+    assert clock.next_open.day == 1
+
+    # calendar
+    reqmock.get(
+        'https://api.alpaca.markets/v1/calendar?start=2018-01-03',
+        text='''[
+  {
+    "date": "2018-01-03",
+    "open": "09:30",
+    "close": "16:00"
+  }
+]'''
+    )
+    calendar = api.get_calendar(start='2018-01-03')
+    assert calendar[0].date.day == 3
+    assert calendar[0].open.minute == 30
 
 
 def test_assets(reqmock):

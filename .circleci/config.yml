@@ -36,10 +36,10 @@ jobs:
 
   build-python36:
     docker:
-      - image: python:3.6.1
+      - image: python:3.6.4
     working_directory: ~/repo
     steps:
-      - run: echo "hello python 3.6.1"
+      - run: echo "hello python 3.6.4"
       - checkout
  
       # Download and cache dependencies
@@ -61,12 +61,12 @@ jobs:
 
       - save_cache:
           paths:
-            - ./venv
+            - ./eggs
           key: v1-dependencies-{{ checksum "setup.py" }}
 
       - store_artifacts:
-          path: test-reports3.6.1
-          destination: test-reports3.6.1
+          path: test-reports3.6.4
+          destination: test-reports3.6.4
 
 workflows:
   version: 2

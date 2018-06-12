@@ -336,6 +336,7 @@ def test_assets(reqmock):
     abars = api.get_bars('AAPL', '1D')
     assert abars.bars[0].open == 120.4
     assert abars.df.shape == (1, 5)
+    assert abars.df.index[0].day == 1
 
     # Quote
     reqmock.get(

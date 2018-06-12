@@ -261,7 +261,12 @@ class AssetBars(Entity):
     @property
     def df(self):
         if not hasattr(self, '_df'):
-            self._df = pd.DataFrame(self._raw['bars']).set_index('time')
+            df = pd.DataFrame(self._raw['bars'])
+            if len(df.columns) == 0:
+                df.columns = ('time', 'open', 'high', 'low', 'close', 'volume')
+            df = df.set_index('time')
+            df.index = pd.to_datetime(df.index)
+            self._df = df
         return self._df
 
     @property

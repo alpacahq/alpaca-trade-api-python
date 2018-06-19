@@ -1,11 +1,19 @@
 import pandas as pd
 import pprint
+import logging
+import os
 import re
 import requests
 from requests.exceptions import HTTPError
+import time
 from .common import get_base_url, get_credentials
 
 ISO8601YMD = re.compile(r'\d{4}-\d{2}-\d{2}T')
+logger = logging.getLogger(__name__)
+
+
+class RetryException(Exception):
+    pass
 
 
 class APIError(Exception):
@@ -23,6 +31,8 @@ class REST(object):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
+        self._retry = int(os.environ.get('APCA_RETRY_COUNT', 3))
+        self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
 
     def _request(self, method, path, data=None, prefix='/v1'):
         url = self._base_url + prefix + path
@@ -37,10 +47,37 @@ class REST(object):
             opts['params'] = data
         else:
             opts['json'] = data
+
+        retry = self._retry
+        if retry < 0:
+            retry = 0
+        while retry >= 0:
+            try:
+                return self._one_request(method, url, opts, retry)
+            except RetryException:
+                retry_wait = self._retry_wait
+                logger.warn(
+                    'sleep {} seconds and retrying {} '
+                    '{} more time(s)...'.format(
+                        retry_wait, url, retry))
+                time.sleep(retry_wait)
+                retry -= 1
+                continue
+
+    def _one_request(self, method, url, opts, retry):
+        '''
+        Perform one request, possibly raising RetryException in the case
+        the response is 429. Otherwise, if error text contain "code" string,
+        then it decodes to json object and returns APIError.
+        Returns the body json in the 200 status.
+        '''
         resp = self._session.request(method, url, **opts)
         try:
             resp.raise_for_status()
-        except HTTPError as exc:
+        except HTTPError:
+            # retry if we hit Rate Limit
+            if resp.status_code == 429 and retry > 0:
+                raise RetryException()
             if 'code' in resp.text:
                 error = resp.json()
                 if 'code' in error:

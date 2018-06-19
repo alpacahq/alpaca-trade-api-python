@@ -90,6 +90,13 @@ The `Entity` class also converts timestamp string field to a pandas.Timestamp
 object.  Its `_raw` property returns the original raw primitive data unmarshaled
 from the response JSON text.
 
+When a REST API call sees the 429 status code, this library retries 3 times
+by default, with 3 seconds apart between each call. These are configurable with
+the following environment variables.
+
+- APCA_MAX_RETRY: the number of subsequent API calls to retry, defaults to 3
+- APCA_RETRY_WAIT: seconds to wait between each call, defaults to 3
+
 ### REST.get_account()
 Calls `GET /account` and returns an `Account` entity.
 

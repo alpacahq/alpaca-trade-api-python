@@ -1,4 +1,5 @@
 import alpaca_trade_api as tradeapi
+from alpaca_trade_api.rest import APIError
 
 import os
 import pytest
@@ -37,6 +38,7 @@ def test_api(reqmock):
 
     account = api.get_account()
     assert account.status == 'ACTIVE'
+    assert 'Account(' in str(account)
 
     # Get a list of assets
     reqmock.get('https://api.alpaca.markets/v1/assets', text='''[
@@ -152,7 +154,7 @@ def test_orders(reqmock):
     "submitted_at": "2018-03-09T19:05:27Z"
   }
 ]''')
-    orders = api.list_orders()
+    orders = api.list_orders('all')
     assert orders[0].type == 'market'
 
     # Create an order
@@ -190,6 +192,7 @@ def test_orders(reqmock):
         time_in_force='day',
         limit_price='107.00',
         stop_price='106.00',
+        client_order_id='904837e3-3b76-47ec-b432-046db621571b',
     )
     assert order.qty == "15"
     assert order.created_at.hour == 19
@@ -414,3 +417,61 @@ def test_assets(reqmock):
     )
     fundamental = api.get_fundamental('AAPL')
     assert fundamental.pe_ratio == 17.42
+
+
+def test_errors(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key')
+
+    api._retry = 1
+    api._retry_wait = 0
+
+    api._do_error = True
+
+    def callback_429(request, context):
+        if api._do_error:
+            api._do_error = False
+            context.status_code = 429
+            return 'Too Many Requests'
+        else:
+            context.status_code = 200
+            return '''
+    {
+      "id": "904837e3-3b76-47ec-b432-046db621571b",
+      "status": "ACTIVE",
+      "currency": "USD",
+      "cash": "4000.32",
+      "cash_withdrawable": "4000.32",
+      "portfolio_value": "4321.98",
+      "pattern_day_trader": false,
+      "trading_blocked": false,
+      "transfers_blocked": false,
+      "account_blocked": false,
+      "created_at": "2018-05-03T06:17:56Z"
+    }
+'''
+    # Too Many Requests
+    reqmock.get(
+        'https://api.alpaca.markets/v1/account',
+        text=callback_429,
+    )
+
+    account = api.get_account()
+    assert account.cash == '4000.32'
+
+    # General API Error
+    reqmock.post(
+        'https://api.alpaca.markets/v1/orders',
+        status_code=403,
+        text='''
+    {"code": 10041, "message": "Order failed"}
+'''
+    )
+
+    with pytest.raises(APIError):
+        api.submit_order(
+            symbol='AAPL',
+            side='buy',
+            qty='3',
+            type='market',
+            time_in_force='day',
+        )

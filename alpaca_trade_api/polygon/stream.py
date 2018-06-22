@@ -44,6 +44,9 @@ class Stream(object):
         self._ssids = []
         
 
+    async def close(self):
+        await self._nc.close()
+
     async def _dispatch(self, msg):
         subject = msg.subject
         data = json.loads(msg.data.decode())

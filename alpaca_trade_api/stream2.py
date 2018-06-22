@@ -14,6 +14,7 @@ class StreamConn(object):
         self._endpoint = base_url + '/stream'
         self._handlers = {}
         self._base_url = base_url
+        self._ws = None
         self.polygon = None
 
     async def _connect(self):
@@ -42,6 +43,11 @@ class StreamConn(object):
         self.polygon.register(r'.*', self._dispatch_nats)
         await self.polygon.connect()
 
+    async def _ensure_ws(self):
+        if self._ws is not None:
+            return
+        self._ws = await self._connect()
+
     async def subscribe(self, streams):
         ws_channels = []
         nats_channels = []
@@ -55,24 +61,32 @@ class StreamConn(object):
             await self._ensure_nats()
             await self.polygon.subscribe(nats_channels)
 
-        await self._ws.send(json.dumps({
-            'action': 'listen',
-            'data': {
-                'streams': ws_channels,
-            }
-        }))
+        if len(ws_channels) > 0:
+            await self._ensure_ws()
+            await self._ws.send(json.dumps({
+                'action': 'listen',
+                'data': {
+                    'streams': ws_channels,
+                }
+            }))
 
     async def run(self):
-        ws = await self._connect()
         try:
             while True:
-                r = await ws.recv()
-                msg = json.loads(r)
-                stream = msg.get('stream')
-                if stream is not None:
-                    await self._dispatch(stream, msg)
+                ws = self._ws
+                if ws is not None:
+                    r = await ws.recv()
+                    msg = json.loads(r)
+                    stream = msg.get('stream')
+                    if stream is not None:
+                        await self._dispatch(stream, msg)
+                else:
+                    asyncio.sleep(1)
         finally:
-            await ws.close()
+            if self._ws is not None:
+                await self._ws.close()
+            if self.polygon is not None:
+                await self.polygon.close()
 
     def _cast(self, stream, msg):
         if stream == 'account_updates':

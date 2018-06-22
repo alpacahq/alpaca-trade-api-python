@@ -25,11 +25,13 @@ setup(
     keywords='financial,timeseries,api,trade',
     packages=['alpaca_trade_api', ],
     install_requires=[
+        'asyncio-nats-client',
         'pandas',
         'python-dateutil',
         'requests',
         'urllib3',
         'websocket-client',
+        'websockets',
     ],
     tests_require=[
         'pytest',

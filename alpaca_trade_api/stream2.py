@@ -31,6 +31,19 @@ class StreamConn(object):
         # TODO: check unauthorized
         self._ws = ws
         await self._dispatch('authenticated', msg)
+
+        async def consume_msg():
+            try:
+                while True:
+                    r = await ws.recv()
+                    msg = json.loads(r)
+                    stream = msg.get('stream')
+                    if stream is not None:
+                        await self._dispatch(stream, msg)
+            finally:
+                await ws.close()
+                self._ws = None
+        asyncio.ensure_future(consume_msg())
         return ws
 
     async def _dispatch_nats(self, conn, subject, data):
@@ -56,10 +69,6 @@ class StreamConn(object):
                 nats_channels.append(s)
             else:
                 ws_channels.append(s)
-        
-        if len(nats_channels) > 0:
-            await self._ensure_nats()
-            await self.polygon.subscribe(nats_channels)
 
         if len(ws_channels) > 0:
             await self._ensure_ws()
@@ -70,23 +79,23 @@ class StreamConn(object):
                 }
             }))
 
-    async def run(self):
+        if len(nats_channels) > 0:
+            await self._ensure_nats()
+            await self.polygon.subscribe(nats_channels)
+
+    def run(self, initial_channels=[]):
+        loop = asyncio.get_event_loop()
         try:
-            while True:
-                ws = self._ws
-                if ws is not None:
-                    r = await ws.recv()
-                    msg = json.loads(r)
-                    stream = msg.get('stream')
-                    if stream is not None:
-                        await self._dispatch(stream, msg)
-                else:
-                    asyncio.sleep(1)
+            loop.run_until_complete(self.subscribe(initial_channels))
+            loop.run_forever()
         finally:
-            if self._ws is not None:
-                await self._ws.close()
-            if self.polygon is not None:
-                await self.polygon.close()
+            loop.run_until_complete(self.close())
+
+    async def close(self):
+        if self._ws is not None:
+            await self._ws.close()
+        if self.polygon is not None:
+            await self.polygon.close()
 
     def _cast(self, stream, msg):
         if stream == 'account_updates':

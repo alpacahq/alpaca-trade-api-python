@@ -8,6 +8,7 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 import json
 import time
 
+
 class Stream(object):
 
     def __init__(self, api_key):
@@ -42,7 +43,6 @@ class Stream(object):
             ssid = await self._nc.subscribe(topic, cb=self._dispatch)
             ssids.append(ssid)
         self._ssids = []
-        
 
     async def close(self):
         await self._nc.close()

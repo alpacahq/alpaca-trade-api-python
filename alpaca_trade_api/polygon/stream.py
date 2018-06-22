@@ -42,7 +42,7 @@ class Stream(object):
         for topic in topics:
             ssid = await self._nc.subscribe(topic, cb=self._dispatch)
             ssids.append(ssid)
-        self._ssids = []
+        self._ssids = ssids
 
     async def close(self):
         await self._nc.close()

@@ -24,6 +24,8 @@ def test_polygon(reqmock):
     exchanges = cli.exchanges()
     assert exchanges[0].id == 0
     assert 'Exchange(' in str(exchanges[0])
+    with pytest.raises(AttributeError):
+        exchanges[0].foo
 
     # Symbol Type Map
     reqmock.get(endpoint('/meta/symbol-types'), text='''
@@ -132,6 +134,9 @@ def test_polygon(reqmock):
     assert len(quotes) == 1
     assert quotes.df.iloc[0].bidprice == 173.13
 
+    with pytest.raises(AttributeError):
+        quotes[0].foo
+
     # Historic Aggregates
     reqmock.get(
         endpoint('/historic/agg/minute/AAPL') +
@@ -148,7 +153,7 @@ def test_polygon(reqmock):
     "v": "volume"
   },
   "status": "success",
-  "aggType": "minute",
+  "aggType": "min",
   "symbol": "AAPL",
   "ticks": [
     {
@@ -168,6 +173,46 @@ def test_polygon(reqmock):
                             limit=100)
     assert aggs[0].open == 173.15
     assert aggs[0].timestamp.day == 1
+    assert len(aggs) == 1
+    assert aggs.df.iloc[0].high == 173.21
+    with pytest.raises(AttributeError):
+        aggs[0].foo
+
+    reqmock.get(
+        endpoint('/historic/agg/day/AAPL') +
+        '&from=2018-2-2&to=2018-2-5&limit=100',
+        text='''
+{
+  "map": {
+    "a": "average",
+    "c": "close",
+    "h": "high",
+    "l": "low",
+    "o": "open",
+    "d": "day",
+    "v": "volume"
+  },
+  "status": "success",
+  "aggType": "day",
+  "symbol": "AAPL",
+  "ticks": [
+    {
+      "o": 173.15,
+      "c": 173.2,
+      "l": 173.15,
+      "h": 173.21,
+      "v": 1800,
+      "d": "2018-02-02"
+    }
+  ]
+}''')
+
+    aggs = cli.historic_agg('day', 'AAPL',
+                            _from='2018-2-2',
+                            to='2018-2-5',
+                            limit=100)
+    assert aggs[0].open == 173.15
+    assert aggs[0].day.day == 2
     assert len(aggs) == 1
     assert aggs.df.iloc[0].high == 173.21
 

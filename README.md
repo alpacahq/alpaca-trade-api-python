@@ -241,36 +241,36 @@ Alpaca's API key ID can be used to access Polygon API whose document is found [h
 This python SDK wraps their API service and seamlessly integrates with Alpaca API.
 `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
 
-## polygon.REST(api_key)
+## polygon/REST
 It is initialized through alpaca `REST` object.
 
-### polygon.REST.exchanges()
+### polygon/REST.exchanges()
 Returns a list of `Exchange` entity.
 
-### polygon.REST.symbol_type_map()
+### polygon/REST.symbol_type_map()
 Returns a `SymbolTypeMap` object.
 
-### polygon.REST.historic_trades(symbol, date, offset=None, limit=None)
+### polygon/REST.historic_trades(symbol, date, offset=None, limit=None)
 Returns a `Trades` which is a list of `Trade` entities.
 
 - `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
 - `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
 - `limit` is an integer for the number of ticks to return.  Default and max is 30000.
 
-### polygon.Trades.df
+### polygon/Trades.df
 Returns a pandas DataFrame object with the ticks returned by the `historic_trades`.
 
-### polygon.REST.historic_quotes(symbol, date, offset=None, limit=None)
+### polygon/REST.historic_quotes(symbol, date, offset=None, limit=None)
 Returns a `Quotes` which is a list of `Quote` entities.  
 
 - `date` is a date string such as '2018-2-2'. The returned quotes are from this day only.
 - `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
 - `limit` is an integer for the number of ticks to return.  Default and max is 30000.
 
-### polygon.Quotes.df
+### polygon/Quotes.df
 Returns a pandas DataFrame object with the ticks returned by the `historic_quotes`.
 
-### polygon.REST.historic_agg(size, symbol, _from=None, to=None, limit=None)
+### polygon/REST.historic_agg(size, symbol, _from=None, to=None, limit=None)
 Returns an `Aggs` which is a list of `Agg` entities. `Aggs.df` gives you the DataFrame
 object.
 
@@ -285,14 +285,14 @@ use only the `limit` or no parameters, the result is returned from the latest po
 The returned entities have fields relabeled with the longer name instead of shorter ones.
 For example, the `o` field is renamed to `open`.
 
-### polygon.Aggs.df
+### polygon/Aggs.df
 Returns a pandas DataFrame object with the ticks returned by the `hitoric_agg`.
 
-### poylgon.REST.last_trade(symbol)
+### poylgon/REST.last_trade(symbol)
 Returns a `Trade` entity representing the last trade for the symbol.
 
-### polygon.REST.last_quote(symbol)
+### polygon/REST.last_quote(symbol)
 Returns a `Quote` entity representing the last quote for the symbol.
 
-### polygon.REST.condition_map(ticktype='trades')
+### polygon/REST.condition_map(ticktype='trades')
 Returns a `ConditionMap` entity.

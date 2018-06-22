@@ -46,9 +46,6 @@ class StreamConn(object):
         asyncio.ensure_future(consume_msg())
         return ws
 
-    async def _dispatch_nats(self, conn, subject, data):
-        return await self._dispatch(subject, dict(data=data))
-
     async def _ensure_nats(self):
         if self.polygon is not None:
             return
@@ -61,14 +58,17 @@ class StreamConn(object):
             return
         self._ws = await self._connect()
 
-    async def subscribe(self, streams):
+    async def subscribe(self, channels):
+        '''Start subscribing channels.
+        If the necessary connection isn't open yet, it opens now.
+        '''
         ws_channels = []
         nats_channels = []
-        for s in streams:
-            if s.startswith(('Q.', 'T.', 'A.', 'AM.',)):
-                nats_channels.append(s)
+        for c in channels:
+            if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
+                nats_channels.append(c)
             else:
-                ws_channels.append(s)
+                ws_channels.append(c)
 
         if len(ws_channels) > 0:
             await self._ensure_ws()
@@ -84,6 +84,9 @@ class StreamConn(object):
             await self.polygon.subscribe(nats_channels)
 
     def run(self, initial_channels=[]):
+        '''Run forever and block until exception is rasised.
+        initial_channels is the channels to start with.
+        '''
         loop = asyncio.get_event_loop()
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
@@ -92,6 +95,7 @@ class StreamConn(object):
             loop.run_until_complete(self.close())
 
     async def close(self):
+        '''Close any of open connections'''
         if self._ws is not None:
             await self._ws.close()
         if self.polygon is not None:
@@ -105,6 +109,12 @@ class StreamConn(object):
         elif re.match(r'^quotes/', stream):
             return Quote(msg)
         return Entity(msg)
+
+    async def _dispatch_nats(self, conn, subject, data):
+        for pat, handler in self._handlers.items():
+            if pat.match(subject):
+                await handler(self, subject, data)
+        return await self._dispatch(subject, dict(data=data))
 
     async def _dispatch(self, stream, msg):
         for pat, handler in self._handlers.items():

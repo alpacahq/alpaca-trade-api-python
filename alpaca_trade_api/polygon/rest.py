@@ -1,7 +1,6 @@
 import requests
-import pandas as pd
 from .entity import (
-    Agg, Aggs,
+    Aggs,
     Trade, Trades,
     Quote, Quotes,
     Exchange, SymbolTypeMap, ConditionMap,
@@ -10,14 +9,14 @@ from .entity import (
 
 class REST(object):
 
-    def __init__(self, key_id):
-        self._key_id = key_id
+    def __init__(self, api_key):
+        self._api_key = api_key
         self._session = requests.Session()
 
     def _request(self, method, path, params=None):
         url = 'https://api.polygon.io/v1' + path
         params = params or {}
-        params['apiKey'] = self._key_id
+        params['apiKey'] = self._api_key
         resp = self._session.request(method, url, params=params)
         resp.raise_for_status()
         return resp.json()
@@ -75,7 +74,7 @@ class REST(object):
         return Trade(raw['last'])
 
     def last_quote(self, symbol):
-        path = '/last_quotes/{}'.format(symbol)
+        path = '/last_quote/stocks/{}'.format(symbol)
         raw = self.get(path)
         # TODO status check
         return Quote(raw['last'])

@@ -1,8 +1,11 @@
 import asyncio
 import re
-
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
+
+from .entity import (
+    Quote, Trade, Agg, Entity,
+)
 
 
 import json
@@ -25,7 +28,7 @@ class Stream(object):
         ]
 
         # TODO:
-        def error_callback(exc):
+        async def error_callback(exc):
             import traceback
             traceback.print_exc()
 
@@ -47,13 +50,59 @@ class Stream(object):
     async def close(self):
         await self._nc.close()
 
+    def _cast(self, subject, data):
+        if subject.startswith('T.'):
+            map = {
+                "sym": "symbol",
+                "c": "conditions",
+                "x": "exchange",
+                "p": "price",
+                "s": "size",
+                "t": "timestamp"
+            }
+            ent = Trade({map[k]: v for k, v in data.items()})
+        elif subject.startswith('Q.'):
+            map = {
+                "sym": "symbol",
+                "ax": "askexchange",
+                "ap": "askprice",
+                "as": "asksize",
+                "bx": "bidexchange",
+                "bp": "bidprice",
+                "bs": "bidsize",
+                "c": "condition",
+                "t": "timestamp"
+            }
+            ent = Quote({map[k]: v for k, v in data.items()})
+        elif subject.startswith('AM.'):
+            map = {
+                "sym": "symbol",
+                "a": "average",
+                "c": "close",
+                "h": "high",
+                "k": "transactions",
+                "l": "low",
+                "o": "open",
+                "t": "totalvalue",
+                "x": "exchange",
+                "v": "volume",
+                "s": "start",
+                "e": "end",
+            }
+            print(data)
+            ent = Agg({map[k]: v for k, v in data.items()})
+        else:
+            ent = Entity(data)
+        return ent
+
     async def _dispatch(self, msg):
         subject = msg.subject
         data = json.loads(msg.data.decode())
 
         for pat, handler in self._handlers.items():
             if pat.match(subject):
-                await handler(self, subject, data)
+                ent = self._cast(subject, data)
+                await handler(self, subject, ent)
 
     def on(self, subject_pat):
         def decorator(func):

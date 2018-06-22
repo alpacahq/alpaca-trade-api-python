@@ -33,7 +33,7 @@ def test_stream(NATS):
 
     @s.on('subject')
     async def on_subject(stream, subject, data):
-        assert data['flag']
+        assert data.flag
 
     msg = mock.Mock(subject='subject', data=b'{"flag": true}')
     _run(s._dispatch(msg))

@@ -27,7 +27,7 @@ class Agg(Entity):
             val = self._raw[key]
             if key == 'day':
                 return pd.Timestamp(val, tz=NY)
-            elif key == 'timestamp':
+            elif key in ('timestamp', 'start', 'end'):
                 return pd.Timestamp(val, tz=NY, unit='ms')
             return val
         return getattr(super(), key)

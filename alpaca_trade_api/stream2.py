@@ -114,7 +114,6 @@ class StreamConn(object):
         for pat, handler in self._handlers.items():
             if pat.match(subject):
                 await handler(self, subject, data)
-        return await self._dispatch(subject, dict(data=data))
 
     async def _dispatch(self, stream, msg):
         for pat, handler in self._handlers.items():

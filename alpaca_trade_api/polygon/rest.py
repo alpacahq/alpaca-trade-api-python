@@ -1,5 +1,9 @@
 import requests
 import pandas as pd
+from .entity import (
+    Agg, Aggs,
+    Trade, Quote
+)
 
 
 class REST(object):
@@ -45,26 +49,15 @@ class REST(object):
             params['limit'] = limit
         raw = self.get(path, params)
 
-        # polygon doesn't return in ascending order
-        # Do not rely on df.sort_values() as this library
-        # may be used with older pandas
-        df = pd.DataFrame(sorted(raw['ticks'], key=lambda d: d['d']), columns=(
-            'o', 'h', 'l', 'c', 'v', 'd'))
-        df.columns = [raw['map'][c] for c in df.columns]
-        if size == 'minute':
-            df.set_index('timestamp', inplace=True)
-            # astype is necessary to deal with empty result
-            df.index = pd.to_datetime(df.index.astype('int64') * 1000000, utc=True).tz_convert('America/New_York')
-        else:
-            df.set_index('day', inplace=True)
-            df.index = pd.to_datetime(df.index, utc=True).tz_convert('America/New_York')
-        df._raw = raw
-        return df
+        return Aggs(raw)
 
     def last_trade(self, symbol):
         path = '/last/stocks/{}'.format(symbol)
-        return self.get(path)
+        raw = self.get(path)
+        return Trade(raw['last'])
 
     def last_quote(self, symbol):
         path = '/last_quotes/{}'.format(symbol)
-        return self.get(path)
+        raw = self.get(path)
+        # TODO status check
+        return Quote(raw['last'])

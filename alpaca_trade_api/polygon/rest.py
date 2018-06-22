@@ -2,7 +2,9 @@ import requests
 import pandas as pd
 from .entity import (
     Agg, Aggs,
-    Trade, Quote
+    Trade, Trades,
+    Quote, Quotes,
+    Exchange, SymbolTypeMap, ConditionMap,
 )
 
 
@@ -23,6 +25,25 @@ class REST(object):
     def get(self, path, params=None):
         return self._request('GET', path, params=params)
 
+    def exchanges(self):
+        path = '/meta/exchanges'
+        return [Exchange(o) for o in self.get(path)]
+
+    def symbol_type_map(self):
+        path = '/meta/symbol-types'
+        return SymbolTypeMap(self.get(path))
+
+    def historic_trades(self, symbol, date, offset=None, limit=None):
+        path = '/historic/trades/{}/{}'.format(symbol, date)
+        params = {}
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        raw = self.get(path, params)
+
+        return Trades(raw)
+
     def historic_quotes(self, symbol, date, offset=None, limit=None):
         path = '/historic/quotes/{}/{}'.format(symbol, date)
         params = {}
@@ -32,13 +53,10 @@ class REST(object):
             params['limit'] = limit
         raw = self.get(path, params)
 
-        df = pd.DataFrame(sorted(raw['ticks'], key=lambda d: d['t']), columns=('t', 'c', 'bE', 'aE', 'aP', 'bP', 'bS', 'aS'))
-        df.columns = [raw['map'][c] for c in df.columns]
-        df.set_index('timestamp', inplace=True)
-        df.index = pd.to_datetime(df.index.astype('int64') * 1000000, utc=True).tz_convert('America/New_York')
-        return df
+        return Quotes(raw)
 
-    def historic_agg(self, size, symbol, _from=None, to=None, limit=None):
+    def historic_agg(self, size, symbol,
+                     _from=None, to=None, limit=None):
         path = '/historic/agg/{}/{}'.format(size, symbol)
         params = {}
         if _from is not None:
@@ -61,3 +79,7 @@ class REST(object):
         raw = self.get(path)
         # TODO status check
         return Quote(raw['last'])
+
+    def condition_map(self, ticktype='trades'):
+        path = '/meta/conditions/{}'.format(ticktype)
+        return ConditionMap(self.get(path))

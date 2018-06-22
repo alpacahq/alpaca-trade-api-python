@@ -23,27 +23,26 @@ class Entity(object):
 class Agg(Entity):
     def __getattr__(self, key):
         lkey = key.lower()
-        if lkey in ((
-            'open', 'low', 'high', 'close',
-            'volume')):
-            key = lkey[0]
-        elif lkey == 'timestamp' or lkey == 'day':
-            key = 'd'
         if key in self._raw:
             val = self._raw[key]
-            if key == 'd':
-                if isinstance(val, str):
-                    return pd.Timestamp(val, tz=NY)
-                return pd.Timestamp(
-                    val, unit='ms', tz=NY)
+            if key == 'day':
+                return pd.Timestamp(val, tz=NY)
+            elif key == 'timestamp':
+                return pd.Timestamp(val, tz=NY, unit='ms')
             return val
         return getattr(super(), key)
 
 
 class Aggs(list):
     def __init__(self, raw):
+        def rename_keys(tick, map):
+            return {
+                map[k]: v for k, v in tick.items()
+            }
+
         super().__init__([
-            Agg(tick) for tick in raw['ticks']
+            Agg(rename_keys(tick, raw['map']))
+            for tick in raw['ticks']
         ])
         self._raw = raw
 
@@ -77,13 +76,78 @@ class Aggs(list):
         return self._df
 
 
-class Trade(Entity):
-    pass
+class _TradeOrQuote(object):
+    '''Mixin for Trade and Quote'''
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if key == 'timestamp':
+                return pd.Timestamp(val, tz=NY, unit='ms')
+            return val
+        return getattr(super(), key)
 
 
-class Quote(Entity):
-    pass
+class _TradesOrQuotes(object):
+    '''Mixin for Trades and Quotes'''
 
-class Quotes(list):
     def __init__(self, raw):
-        pass
+        def rename_keys(tick, map):
+            return {
+                map[k]: v for k, v in tick.items()
+            }
+
+        unit_class = self.__class__._unit
+        super().__init__([
+            unit_class(rename_keys(tick, raw['map']))
+            for tick in raw['ticks']
+        ])
+        self._raw = raw
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            raw = self._raw
+            columns = self.__class__._columns
+            df = pd.DataFrame(
+                sorted(raw['ticks'], key=lambda d: d['t']),
+                columns=columns,
+            )
+            df.columns = [raw['map'][c] for c in df.columns]
+            df.set_index('timestamp', inplace=True)
+            df.index = pd.to_datetime(
+                df.index.astype('int64') * 1000000,
+                utc=True,
+                ).tz_convert(NY)
+
+            self._df = df
+        return self._df
+
+
+
+class Trade(_TradeOrQuote, Entity):
+    pass
+
+
+class Trades(_TradesOrQuotes, list):
+    _columns = ('p', 's', 'e', 't', 'c1', 'c2', 'c3', 'c4')
+    _unit = Trade
+
+
+class Quote(_TradeOrQuote, Entity):
+    pass
+
+
+class Quotes(_TradesOrQuotes, list):
+    _columns = ('t', 'c', 'bE', 'aE', 'aP', 'bP', 'bS', 'aS')
+    _unit = Quote
+
+
+class Exchange(Entity):
+    pass
+
+
+class SymbolTypeMap(Entity):
+    pass
+
+class ConditionMap(Entity):
+    pass

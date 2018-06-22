@@ -7,6 +7,7 @@ import requests
 from requests.exceptions import HTTPError
 import time
 from .common import get_base_url, get_credentials
+from . import polygon
 
 ISO8601YMD = re.compile(r'\d{4}-\d{2}-\d{2}T')
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class REST(object):
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_MAX_RETRY', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
+        self.polygon = polygon.REST(self._key_id)
 
     def _request(self, method, path, data=None, prefix='/v1'):
         url = self._base_url + prefix + path

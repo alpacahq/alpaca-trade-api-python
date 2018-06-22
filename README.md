@@ -134,29 +134,43 @@ Calls `GET /clock` and returns a `Clock` entity.
 Calls `GET /calendar` and returns a `Calendar` entity.
 
 ### REST.list_quotes(symbols)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /quotes` with symbols and returns a list of `Quote` entities.  If `symbols` is not a string, it is concatenated with commas.
 
 ### REST.get_quote(symbol)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /assets/{symbol}/quote` and returns a `Quote` entity.
 
 ### REST.list_fundamentals(symbols)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /fundamentals` with symbols and returns a list of `Fundamental` entities.
 If `symbols` is not a string, it is concatenated with commas.
 
 ### REST.get_fundamental(symbol)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /assets/{symbol}/fundamental` and returns a `Fundamental` entity.
 
 ### REST.list_bars(symbols, timeframe, start_dt=None, end_dt=None, limit=None)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /bars` and returns a list of `AssetBars` entities. If `symbols` is
 not a string, it is concatenated with commas. `start_dt` and `end_dt` should be
 in the ISO8601 string format.
 
 ### REST.get_bars(symbol, timeframe, start_dt=None, end_dt=None, limit=None)
+\*** The method is being deprecated. Use Polygon API
+
 Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
 entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
 
 ### AssetBars.df
 Returns a DataFrame constructed from the Bars response.  The property is cached.
+
+---
 
 ## StreamConn
 
@@ -224,3 +238,67 @@ Alpaca's customer support.
 
 New features, as well as bug fixes, by sending pull request is always
 welcomed.
+
+
+---
+# Polygon API Service
+
+Alpaca's API key ID can be used to access Polygon API whose document is found [here](https://polygon.io/docs).
+This python SDK wraps their API service and seamlessly integrates with Alpaca API.
+`alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
+
+## polygon/REST
+It is initialized through alpaca `REST` object.
+
+### polygon/REST.exchanges()
+Returns a list of `Exchange` entity.
+
+### polygon/REST.symbol_type_map()
+Returns a `SymbolTypeMap` object.
+
+### polygon/REST.historic_trades(symbol, date, offset=None, limit=None)
+Returns a `Trades` which is a list of `Trade` entities.
+
+- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
+- `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
+- `limit` is an integer for the number of ticks to return.  Default and max is 30000.
+
+### polygon/Trades.df
+Returns a pandas DataFrame object with the ticks returned by the `historic_trades`.
+
+### polygon/REST.historic_quotes(symbol, date, offset=None, limit=None)
+Returns a `Quotes` which is a list of `Quote` entities.  
+
+- `date` is a date string such as '2018-2-2'. The returned quotes are from this day only.
+- `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
+- `limit` is an integer for the number of ticks to return.  Default and max is 30000.
+
+### polygon/Quotes.df
+Returns a pandas DataFrame object with the ticks returned by the `historic_quotes`.
+
+### polygon/REST.historic_agg(size, symbol, _from=None, to=None, limit=None)
+Returns an `Aggs` which is a list of `Agg` entities. `Aggs.df` gives you the DataFrame
+object.
+
+- `_from` is an Eastern Time timestamp string that filters the result for the lower bound, inclusive.
+- `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive.
+- `limit` is an integer to limit the number of results.  3000 is the default and max value.
+
+Specify the `_from` parameter if you specify the `to` parameter since when `to` is
+specified `_from` is assumed to be the beginning of history.  Otherwise, when you
+use only the `limit` or no parameters, the result is returned from the latest point.
+
+The returned entities have fields relabeled with the longer name instead of shorter ones.
+For example, the `o` field is renamed to `open`.
+
+### polygon/Aggs.df
+Returns a pandas DataFrame object with the ticks returned by the `hitoric_agg`.
+
+### poylgon/REST.last_trade(symbol)
+Returns a `Trade` entity representing the last trade for the symbol.
+
+### polygon/REST.last_quote(symbol)
+Returns a `Quote` entity representing the last quote for the symbol.
+
+### polygon/REST.condition_map(ticktype='trades')
+Returns a `ConditionMap` entity.

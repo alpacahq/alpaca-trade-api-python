@@ -3,7 +3,7 @@ import json
 import re
 import websockets
 from .common import get_base_url, get_credentials
-from .rest import Account, AssetBars, Quote, Entity
+from .entity import Account, AssetBars, Quote, Entity
 from . import polygon
 
 
@@ -32,19 +32,21 @@ class StreamConn(object):
         self._ws = ws
         await self._dispatch('authenticated', msg)
 
-        async def consume_msg():
-            try:
-                while True:
-                    r = await ws.recv()
-                    msg = json.loads(r)
-                    stream = msg.get('stream')
-                    if stream is not None:
-                        await self._dispatch(stream, msg)
-            finally:
-                await ws.close()
-                self._ws = None
-        asyncio.ensure_future(consume_msg())
+        asyncio.ensure_future(self._consume_msg())
         return ws
+
+    async def _consume_msg(self):
+        ws = self._ws
+        try:
+            while True:
+                r = await ws.recv()
+                msg = json.loads(r)
+                stream = msg.get('stream')
+                if stream is not None:
+                    await self._dispatch(stream, msg)
+        finally:
+            await ws.close()
+            self._ws = None
 
     async def _ensure_nats(self):
         if self.polygon is not None:

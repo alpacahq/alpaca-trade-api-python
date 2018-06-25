@@ -103,12 +103,12 @@ class StreamConn(object):
         if self.polygon is not None:
             await self.polygon.close()
 
-    def _cast(self, stream, msg):
-        if stream == 'account_updates':
+    def _cast(self, channel, msg):
+        if channel == 'account_updates':
             return Account(msg)
-        elif re.match(r'^bars/', stream):
+        elif re.match(r'^bars/', channel):
             return AssetBars(msg)
-        elif re.match(r'^quotes/', stream):
+        elif re.match(r'^quotes/', channel):
             return Quote(msg)
         return Entity(msg)
 
@@ -117,27 +117,27 @@ class StreamConn(object):
             if pat.match(subject):
                 await handler(self, subject, data)
 
-    async def _dispatch(self, stream, msg):
+    async def _dispatch(self, channel, msg):
         for pat, handler in self._handlers.items():
-            if pat.match(stream):
-                ent = self._cast(stream, msg['data'])
-                await handler(self, stream, ent)
+            if pat.match(channel):
+                ent = self._cast(channel, msg['data'])
+                await handler(self, channel, ent)
 
-    def on(self, stream_pat):
+    def on(self, channel_pat):
         def decorator(func):
-            self.register(stream_pat, func)
+            self.register(channel_pat, func)
             return func
 
         return decorator
 
-    def register(self, stream_pat, func):
+    def register(self, channel_pat, func):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
-        if isinstance(stream_pat, str):
-            stream_pat = re.compile(stream_pat)
-        self._handlers[stream_pat] = func
+        if isinstance(channel_pat, str):
+            channel_pat = re.compile(channel_pat)
+        self._handlers[channel_pat] = func
 
-    def deregister(self, stream_pat):
-        if isinstance(stream_pat, str):
-            stream_pat = re.compile(stream_pat)
-        del self._handlers[stream_pat]
+    def deregister(self, channel_pat):
+        if isinstance(channel_pat, str):
+            channel_pat = re.compile(channel_pat)
+        del self._handlers[channel_pat]

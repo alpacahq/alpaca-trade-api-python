@@ -174,20 +174,27 @@ Returns a DataFrame constructed from the Bars response.  The property is cached.
 
 ## StreamConn
 
-The `StreamConn` class provides WebSocket-based event-driven
+The `StreamConn` class provides WebSocket/NATS-based event-driven
 interfaces.  Using the `on` decorator of the instance, you can
 define custom event handlers that are called when the pattern
-is matched on the stream name.  Once event handlers are set up,
+is matched on the channel name.  Once event handlers are set up,
 call the `run` method which runs forever until a critical exception
 is raised. This module itself does not provide any threading
 capability, so if you need to consume the messages pushed from the
 server, you need to run it in a background thread.
 
-The `run` method routine starts from establishing the WebSocket
-connection, immediately followed by the authentication
-handshake. The `authenticated` event is called right after authentication
-is done, where it is the best time to start subscribing to particular
-streams you are interested in, by calling the `subscribe` method.
+This class provides a unique interface to the two interfaces, both
+Alpaca's account/trade updates events and Polygon's price updates.
+One connection is established when the `subscribe()` is called with
+the corresponding channel names.  For example, if you subscribe to
+`account_updates`, a WebSocket connects to Alpaca stream API, and
+if `AM.*` given to the `subscribe()` method, a NATS connection is
+established to Polygon's interface.
+
+The `run` method is a short-cut to start subscribing to channels and
+runnnig forever.  The call will be blocked forever until a critical
+exception is raised, and each event handler is called asynchronously
+upon the message arrivals.
 
 The `run` method tries to reconnect to the server in the event of
 connection failure.  In this case you may want to reset your state
@@ -198,34 +205,47 @@ event loop.
 The `msg` object passed to each handler is wrapped by the entity
 helper class if the message is from the server.
 
+Each event handler has to be a marked as `async`.  Otherwise,
+a `ValueError` is raised when registering it as an event handler.
+
 ```python
-@conn.on(r'quotes/')
-def on_quotes(conn, stream, quote):
-    print('quotes', quote)
+conn = StreamConn()
+
+@conn.on(r'account_updates')
+async def on_account_updates(conn, channel, account):
+    print('account', account)
+
+
+@conn.on(r'^AM.')
+def on_bars(conn, channel, bar):
+    print('bars', bar)
+
+
+# blocks forever
+conn.run(['account_updates', 'AM.*'])
 
 ```
 
 You will likely call the `run` method in a thread since it will keep runnig
 unless an exception is raised.
 
-### StreamConn.subscribe(streams)
-Request "listen" to the server.  `streams` must be a list of string stream names.
-A "listening" response will be triggered if server responses to this request.
+### StreamConn.subscribe(channels)
+Request "listen" to the server.  `channels` must be a list of string channel names.
 
-### StreamConn.run()
+### StreamConn.run(channels)
 Goes into an infinite loop and awaits for messages from the server.  You should
 set up event listeners using the `on` or `register` method before calling `run`.
 
-### StreamConn.on(stream_pat)
+### StreamConn.on(channel_pat)
 As in the above example, this is a decorator method to add an event handler function.
-`stream_pat` is used as a regular expression pattern to filter stream names.
+`channel_pat` is used as a regular expression pattern to filter stream names.
 
-### StreamConn.register(stream_pat, func)
+### StreamConn.register(channel_pat, func)
 Registers a function as an event handler that is triggered by the stream events
-that match with `stream_path` regular expression. Calling this method with the
-same `stream_pat` will overwrite the old handler.
+that match with `channel_path` regular expression. Calling this method with the
+same `channel_pat` will overwrite the old handler.
 
-### StreamConn.deregister(stream_pat)
+### StreamConn.deregister(channel_pat)
 Deregisters the event handler function that was previously registered via `on` or
 `register` method.
 

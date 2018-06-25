@@ -1,4 +1,4 @@
-import alpaca_trade_api as tradeapi
+from alpaca_trade_api.stream import StreamConn
 import json
 import pytest
 try:
@@ -79,7 +79,7 @@ def test_stream(WebSocket):
     ws = WebSocket()
     ws.send.side_effect = fake.send
     ws.recv.side_effect = fake.recv
-    conn = tradeapi.StreamConn('account_id', 'api_key')
+    conn = StreamConn('account_id', 'api_key')
 
     @conn.on('authenticated')
     def on_auth(conn, stream, msg):

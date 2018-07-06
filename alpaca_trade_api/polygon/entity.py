@@ -69,8 +69,7 @@ class Aggs(list):
             else:
                 df.set_index('day', inplace=True)
                 df.index = pd.to_datetime(
-                    df.index, utc=True,
-                ).tz_convert(NY)
+                    df.index).tz_localize(NY)
             self._df = df
 
         return self._df

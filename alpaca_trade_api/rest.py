@@ -35,7 +35,7 @@ class REST(object):
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_MAX_RETRY', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
-        self.polygon = polygon.REST(self._key_id)
+        self.polygon = polygon.REST(self._key_id, True if 'staging' in base_url else False)
 
     def _request(self, method, path, data=None, prefix='/v1'):
         url = self._base_url + prefix + path
@@ -74,6 +74,8 @@ class REST(object):
         then it decodes to json object and returns APIError.
         Returns the body json in the 200 status.
         '''
+        if 'staging' in url:
+            url = url + '?staging=true'
         resp = self._session.request(method, url, **opts)
         try:
             resp.raise_for_status()

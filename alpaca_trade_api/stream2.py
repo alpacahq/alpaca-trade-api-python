@@ -51,7 +51,8 @@ class StreamConn(object):
     async def _ensure_nats(self):
         if self.polygon is not None:
             return
-        self.polygon = polygon.Stream(self._key_id)
+        key_id = self._key_id+"-staging" if 'staging' in self._base_url else self._key_id
+        self.polygon = polygon.Stream(key_id)
         self.polygon.register(r'.*', self._dispatch_nats)
         await self.polygon.connect()
 
@@ -89,7 +90,8 @@ class StreamConn(object):
         '''Run forever and block until exception is rasised.
         initial_channels is the channels to start with.
         '''
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
             loop.run_forever()

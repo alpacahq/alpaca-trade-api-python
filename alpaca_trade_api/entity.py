@@ -74,7 +74,7 @@ class AssetBars(Entity):
             t = []
             o = []
             h = []
-            l = []
+            l = []  # noqa: E741
             c = []
             v = []
             bars = []

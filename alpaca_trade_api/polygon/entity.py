@@ -3,6 +3,7 @@ import pprint
 
 NY = 'America/New_York'
 
+
 class Entity(object):
     def __init__(self, raw):
         self._raw = raw
@@ -22,7 +23,6 @@ class Entity(object):
 
 class Agg(Entity):
     def __getattr__(self, key):
-        lkey = key.lower()
         if key in self._raw:
             val = self._raw[key]
             if key == 'day':
@@ -77,6 +77,7 @@ class Aggs(list):
 
 class _TradeOrQuote(object):
     '''Mixin for Trade and Quote'''
+
     def __getattr__(self, key):
         if key in self._raw:
             val = self._raw[key]
@@ -116,11 +117,10 @@ class _TradesOrQuotes(object):
             df.index = pd.to_datetime(
                 df.index.astype('int64') * 1000000,
                 utc=True,
-                ).tz_convert(NY)
+            ).tz_convert(NY)
 
             self._df = df
         return self._df
-
 
 
 class Trade(_TradeOrQuote, Entity):
@@ -147,6 +147,7 @@ class Exchange(Entity):
 
 class SymbolTypeMap(Entity):
     pass
+
 
 class ConditionMap(Entity):
     pass

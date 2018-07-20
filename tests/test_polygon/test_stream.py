@@ -25,6 +25,7 @@ def NATS():
 def _run(coro):
     return asyncio.get_event_loop().run_until_complete(coro)
 
+
 def test_stream(NATS):
     NATS().connect = AsyncMock()
     s = stream.Stream('api-key')
@@ -42,7 +43,6 @@ def test_stream(NATS):
 
     with pytest.raises(ValueError):
         s.register('illegal', lambda x: x)
-
 
     NATS().subscribe = AsyncMock(return_value=1)
     NATS().unsubscribe = AsyncMock()

@@ -35,7 +35,8 @@ class REST(object):
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_MAX_RETRY', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
-        self.polygon = polygon.REST(self._key_id)
+        self.polygon = polygon.REST(
+            self._key_id, 'staging' in self._base_url)
 
     def _request(self, method, path, data=None, prefix='/v1'):
         url = self._base_url + prefix + path

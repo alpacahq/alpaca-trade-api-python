@@ -1,15 +1,12 @@
 import asyncio
 import re
 from nats.aio.client import Client as NATS
-from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 from .entity import (
     Quote, Trade, Agg, Entity,
 )
 
-
 import json
-import time
 
 
 class Stream(object):
@@ -60,7 +57,7 @@ class Stream(object):
                 "s": "size",
                 "t": "timestamp"
             }
-            ent = Trade({map[k]: v for k, v in data.items()})
+            ent = Trade({map[k]: v for k, v in data.items() if k in map})
         elif subject.startswith('Q.'):
             map = {
                 "sym": "symbol",
@@ -73,7 +70,7 @@ class Stream(object):
                 "c": "condition",
                 "t": "timestamp"
             }
-            ent = Quote({map[k]: v for k, v in data.items()})
+            ent = Quote({map[k]: v for k, v in data.items() if k in map})
         elif subject.startswith('AM.'):
             map = {
                 "sym": "symbol",
@@ -90,7 +87,7 @@ class Stream(object):
                 "e": "end",
             }
             print(data)
-            ent = Agg({map[k]: v for k, v in data.items()})
+            ent = Agg({map[k]: v for k, v in data.items() if k in map})
         else:
             ent = Entity(data)
         return ent

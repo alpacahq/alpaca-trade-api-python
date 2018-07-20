@@ -23,6 +23,7 @@ jobs:
       - run:
           name: run tests
           command: |
+            flake8 **/*.py
             python setup.py test
 
       - save_cache:
@@ -58,6 +59,7 @@ jobs:
           name: run tests
           command: |
             python setup.py install
+            flake8 **/*.py
             python setup.py test
 
       - save_cache:

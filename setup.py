@@ -38,7 +38,8 @@ setup(
         'pytest-cov',
         'requests-mock',
         'coverage>=4.4.1',
-        'mock>=1.0.1'
+        'mock>=1.0.1',
+        'flake8',
     ],
     setup_requires=['pytest-runner', 'flake8'],
 )

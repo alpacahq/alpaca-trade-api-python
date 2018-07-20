@@ -51,7 +51,10 @@ class StreamConn(object):
     async def _ensure_nats(self):
         if self.polygon is not None:
             return
-        self.polygon = polygon.Stream(self._key_id)
+        key_id = self._key_id
+        if 'staging' in self._base_url:
+            key_id += '-staging'
+        self.polygon = polygon.Stream(key_id)
         self.polygon.register(r'.*', self._dispatch_nats)
         await self.polygon.connect()
 

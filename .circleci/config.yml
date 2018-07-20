@@ -23,7 +23,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            flake8 **/*.py
+            pip install flake8 && flake8 alpaca_trade_api tests
             python setup.py test
 
       - save_cache:
@@ -59,7 +59,7 @@ jobs:
           name: run tests
           command: |
             python setup.py install
-            flake8 **/*.py
+            pip install flake8 && flake8 alpaca_trade_api tests
             python setup.py test
 
       - save_cache:

@@ -23,7 +23,6 @@ class Entity(object):
 
 class Agg(Entity):
     def __getattr__(self, key):
-        lkey = key.lower()
         if key in self._raw:
             val = self._raw[key]
             if key == 'day':

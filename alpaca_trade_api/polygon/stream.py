@@ -1,15 +1,12 @@
 import asyncio
 import re
 from nats.aio.client import Client as NATS
-from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 
 from .entity import (
     Quote, Trade, Agg, Entity,
 )
 
-
 import json
-import time
 
 
 class Stream(object):

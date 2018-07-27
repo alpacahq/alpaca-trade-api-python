@@ -70,6 +70,8 @@ class Aggs(list):
                 df.set_index('day', inplace=True)
                 df.index = pd.to_datetime(
                     df.index).tz_localize(NY)
+
+            df.sort_index(inplace=True)
             self._df = df
 
         return self._df
@@ -119,7 +121,9 @@ class _TradesOrQuotes(object):
                 utc=True,
             ).tz_convert(NY)
 
+            df.sort_index(inplace=True)
             self._df = df
+
         return self._df
 
 

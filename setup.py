@@ -27,7 +27,6 @@ setup(
     install_requires=[
         'asyncio-nats-client',
         'pandas',
-        'python-dateutil',
         'requests',
         'urllib3',
         'websocket-client',

@@ -270,6 +270,15 @@ Alpaca's API key ID can be used to access Polygon API whose document is found [h
 This python SDK wraps their API service and seamlessly integrates with Alpaca API.
 `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
 
+The example below gives AAPL daily OHLCV data in a DataFrame format.
+
+```py
+import alpaca_trade_api as tradeapi
+
+api = tradeapi.REST()
+aapl = api.polygon.historic_agg('day', 'AAPL', limit=1000).df
+```
+
 ## polygon/REST
 It is initialized through alpaca `REST` object.
 

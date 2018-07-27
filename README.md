@@ -5,10 +5,13 @@ It allows rapid trading algo development easily, with support for the
 both REST and streaming interfaces. For details of each API behavior,
 please see the online API document.
 
+Note this module supports only python version 3.5 and above, due to
+the async/await keyword use.
+
 ## Install
 
 ```bash
-$ pip install alpaca-trade-api
+$ pip3 install alpaca-trade-api
 ```
 
 ## Example

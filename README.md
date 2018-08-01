@@ -266,7 +266,7 @@ welcomed.
 ---
 # Polygon API Service
 
-Alpaca's API key ID can be used to access Polygon API whose document is found [here](https://polygon.io/docs).
+Alpaca's API key ID can be used to access Polygon API whose document is found [here](https://polygon.io/docs/).
 This python SDK wraps their API service and seamlessly integrates with Alpaca API.
 `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
 

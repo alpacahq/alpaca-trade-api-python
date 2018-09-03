@@ -467,7 +467,7 @@ def test_errors(reqmock):
 '''
     )
 
-    with pytest.raises(APIError):
+    try:
         api.submit_order(
             symbol='AAPL',
             side='buy',
@@ -475,3 +475,10 @@ def test_errors(reqmock):
             type='market',
             time_in_force='day',
         )
+    except APIError as err:
+        assert err.code == 10041
+        assert err.status_code == 403
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
+    else:
+        assert False

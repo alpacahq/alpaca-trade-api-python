@@ -19,13 +19,34 @@ class RetryException(Exception):
 
 
 class APIError(Exception):
-    def __init__(self, error):
+    '''Represent API related error.
+    error.status_code will have http status code.
+    '''
+
+    def __init__(self, error, http_error=None):
         super().__init__(error['message'])
         self._error = error
+        self._http_error = http_error
 
     @property
     def code(self):
         return self._error['code']
+
+    @property
+    def status_code(self):
+        http_error = self._http_error
+        if http_error is not None and hasattr(http_error, 'response'):
+            return http_error.response.status_code
+
+    @property
+    def request(self):
+        if self._http_error is not None:
+            return self._http_error.request
+
+    @property
+    def response(self):
+        if self._http_error is not None:
+            return self._http_error.response
 
 
 class REST(object):
@@ -33,8 +54,10 @@ class REST(object):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
-        self._retry = int(os.environ.get('APCA_MAX_RETRY', 3))
+        self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
+        self._retry_codes = [int(o)for o in os.environ.get(
+            'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
 
@@ -75,17 +98,18 @@ class REST(object):
         then it decodes to json object and returns APIError.
         Returns the body json in the 200 status.
         '''
+        retry_codes = self._retry_codes
         resp = self._session.request(method, url, **opts)
         try:
             resp.raise_for_status()
-        except HTTPError:
+        except HTTPError as http_error:
             # retry if we hit Rate Limit
-            if resp.status_code == 429 and retry > 0:
+            if resp.status_code in retry_codes and retry > 0:
                 raise RetryException()
             if 'code' in resp.text:
                 error = resp.json()
                 if 'code' in error:
-                    raise APIError(error)
+                    raise APIError(error, http_error)
             else:
                 raise
         if resp.text != '':

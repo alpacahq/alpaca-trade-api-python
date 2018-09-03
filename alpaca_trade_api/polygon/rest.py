@@ -4,7 +4,12 @@ from .entity import (
     Trade, Trades,
     Quote, Quotes,
     Exchange, SymbolTypeMap, ConditionMap,
+    Company, Dividends, Splits, Earnings, Financials, NewsList
 )
+
+
+def _is_list_like(o):
+    return isinstance(o, (list, set, tuple))
 
 
 class REST(object):
@@ -85,3 +90,40 @@ class REST(object):
     def condition_map(self, ticktype='trades'):
         path = '/meta/conditions/{}'.format(ticktype)
         return ConditionMap(self.get(path))
+
+    def company(self, symbol):
+        return self._get_symbol(symbol, 'company', Company)
+
+    def _get_symbol(self, symbol, resource, entity):
+        multi = _is_list_like(symbol)
+        symbols = symbol if multi else [symbol]
+        if len(symbols) > 50:
+            raise ValueError('too many symbols: {}'.format(len(symbols)))
+        params = {
+            'symbols': ','.join(symbols),
+        }
+        path = '/meta/symbols/{}'.format(resource)
+        res = self.get(path, params=params)
+        if isinstance(res, list):
+            res = {o['symbol']: o for o in res}
+        retmap = {sym: entity(res[sym]) for sym in symbols if sym in res}
+        if not multi:
+            return retmap.get(symbol)
+        return retmap
+
+    def dividends(self, symbol):
+        return self._get_symbol(symbol, 'dividends', Dividends)
+
+    def splits(self, symbol):
+        path = '/meta/symbols/{}/splits'.format(symbol)
+        return Splits(self.get(path))
+
+    def earnings(self, symbol):
+        return self._get_symbol(symbol, 'earnings', Earnings)
+
+    def financials(self, symbol):
+        return self._get_symbol(symbol, 'financials', Financials)
+
+    def news(self, symbol):
+        path = '/meta/symbols/{}/news'.format(symbol)
+        return NewsList(self.get(path))

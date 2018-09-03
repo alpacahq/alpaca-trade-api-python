@@ -9,8 +9,8 @@ def reqmock():
         yield m
 
 
-def endpoint(path):
-    return 'https://api.polygon.io/v1{}?apiKey=key-id'.format(path)
+def endpoint(path, params=''):
+    return 'https://api.polygon.io/v1{}?apiKey=key-id&{}'.format(path, params)
 
 
 def test_polygon(reqmock):
@@ -274,3 +274,63 @@ def test_polygon(reqmock):
 
     cmap = cli.condition_map()
     assert cmap._raw['1'] == 'Regular'
+
+    # Company
+    reqmock.get(
+        endpoint('/meta/symbols/company', 'symbols=AAPL'),
+        text='''[{"symbol": "AAPL"}]''',
+    )
+
+    ret = cli.company('AAPL')
+    assert ret.symbol == 'AAPL'
+    ret = cli.company(['AAPL'])
+    assert ret['AAPL'].symbol == 'AAPL'
+
+    # Dividends
+    reqmock.get(
+        endpoint('/meta/symbols/dividends', 'symbols=AAPL'),
+        text='''{"AAPL": [{"qualified": "Q"}]}''',
+    )
+    ret = cli.dividends('AAPL')
+    assert ret[0].qualified == 'Q'
+    ret = cli.dividends(['AAPL'])
+    assert ret['AAPL'][0].qualified == 'Q'
+
+    # Splits
+    reqmock.get(
+        endpoint('/meta/symbols/AAPL/splits'),
+        text='''[{"forfactor": 1}]''',
+    )
+    ret = cli.splits('AAPL')
+    assert ret[0].forfactor == 1
+
+    # Earnings
+    reqmock.get(
+        endpoint('/meta/symbols/earnings', 'symbols=AAPL'),
+        text='''{"AAPL": [{"actualEPS": 1}]}''',
+    )
+    ret = cli.earnings('AAPL')
+    assert ret[0].actualEPS == 1
+    ret = cli.earnings(['AAPL'])
+    assert ret['AAPL'][0].actualEPS == 1
+
+    # Financials
+    reqmock.get(
+        endpoint('/meta/symbols/financials', 'symbols=AAPL'),
+        text='''{"AAPL": [{"reportDateStr": "2018-09-01"}]}''',
+    )
+    ret = cli.financials('AAPL')
+    assert ret[0].reportDateStr == '2018-09-01'
+    ret = cli.financials(['AAPL'])
+    assert ret['AAPL'][0].reportDateStr == '2018-09-01'
+
+    # News
+    reqmock.get(
+        endpoint('/meta/symbols/AAPL/news'),
+        text='''[{"title": "Apple News"}]''',
+    )
+    ret = cli.news('AAPL')
+    assert ret[0].title == 'Apple News'
+
+    with pytest.raises(ValueError):
+        cli.company(['AAPL'] * 51)

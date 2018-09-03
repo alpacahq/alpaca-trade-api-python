@@ -28,33 +28,6 @@ account = api.get_account()
 api.list_positions()
 ```
 
-### Streaming example
-```python
-import alpaca_trade_api as tradeapi
-
-conn = tradeapi.StreamConn('<key_id>', '<secret_key>')
-
-# Setup event handlers
-@conn.on('authenticated')
-def on_auth(conn, stream, msg):
-    conn.subscribe([
-        'account_updates',
-        'trade_updates',
-        'quotes/AAPL',
-        ])
-
-@conn.on(r'quotes/')
-def on_quotes(conn, stream, msg):
-    print('quotes', msg)
-
-@conn.on(r'account_updates')
-def on_account(conn, stream, msg):
-    print('account', msg)
-
-# blocks forever
-conn.run()
-```
-
 ## API Document
 
 The HTTP API document is located in https://docs.alpaca.markets/
@@ -68,6 +41,13 @@ follows.
 
 - APCA_API_KEY_ID: key ID
 - APCA_API_SECRET_KEY: secret key
+
+## Base URL
+
+The base URL for API calls defaults to `https://api.alpaca.markets/`. This endpoint
+is for live trading, and for paper trading and other purposes, you can to change
+the base URL. You can pass it as an argument `REST()`, or using the environment
+variable, `APCA_API_BASE_URL`.
 
 ## REST
 
@@ -93,12 +73,22 @@ The `Entity` class also converts timestamp string field to a pandas.Timestamp
 object.  Its `_raw` property returns the original raw primitive data unmarshaled
 from the response JSON text.
 
-When a REST API call sees the 429 status code, this library retries 3 times
+When a REST API call sees the 429 or 504 status code, this library retries 3 times
 by default, with 3 seconds apart between each call. These are configurable with
 the following environment variables.
 
-- APCA_MAX_RETRY: the number of subsequent API calls to retry, defaults to 3
+- APCA_RETRY_MAX: the number of subsequent API calls to retry, defaults to 3
 - APCA_RETRY_WAIT: seconds to wait between each call, defaults to 3
+- APCA_RETRY_CODES: comma-separated HTTP status code for which retry is attempted
+
+If the retry exceeds, or other API error is returned, `alpaca_trade_api.rest.APIError` is raised.
+You can access the following information through this object.
+
+- the API error code: `.code` property
+- the API error message: `str(error)`
+- the original request object: `.request` property
+- the original response objecgt: `.response` property
+- the HTTP status code: `.status_code` property
 
 ### REST.get_account()
 Calls `GET /account` and returns an `Account` entity.
@@ -135,43 +125,6 @@ Calls `GET /clock` and returns a `Clock` entity.
 
 ### REST.get_calendar(start=None, end=None)
 Calls `GET /calendar` and returns a `Calendar` entity.
-
-### REST.list_quotes(symbols)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /quotes` with symbols and returns a list of `Quote` entities.  If `symbols` is not a string, it is concatenated with commas.
-
-### REST.get_quote(symbol)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/quote` and returns a `Quote` entity.
-
-### REST.list_fundamentals(symbols)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /fundamentals` with symbols and returns a list of `Fundamental` entities.
-If `symbols` is not a string, it is concatenated with commas.
-
-### REST.get_fundamental(symbol)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/fundamental` and returns a `Fundamental` entity.
-
-### REST.list_bars(symbols, timeframe, start_dt=None, end_dt=None, limit=None)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /bars` and returns a list of `AssetBars` entities. If `symbols` is
-not a string, it is concatenated with commas. `start_dt` and `end_dt` should be
-in the ISO8601 string format.
-
-### REST.get_bars(symbol, timeframe, start_dt=None, end_dt=None, limit=None)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
-entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
-
-### AssetBars.df
-Returns a DataFrame constructed from the Bars response.  The property is cached.
 
 ---
 

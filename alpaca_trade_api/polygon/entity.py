@@ -155,3 +155,55 @@ class SymbolTypeMap(Entity):
 
 class ConditionMap(Entity):
     pass
+
+
+class Company(Entity):
+    pass
+
+
+class EntityList(list):
+    def __init__(self, raw):
+        super().__init__([
+            self._entity_class(o) for o in raw
+        ])
+        self._raw = raw
+
+
+class Dividend(Entity):
+    pass
+
+
+class Dividends(EntityList):
+    _entity_class = Dividend
+
+
+class Split(Entity):
+    pass
+
+
+class Splits(EntityList):
+    _entity_class = Split
+
+
+class Earning(Entity):
+    pass
+
+
+class Earnings(EntityList):
+    _entity_class = Earning
+
+
+class Financial(Entity):
+    pass
+
+
+class Financials(EntityList):
+    _entity_class = Financial
+
+
+class News(Entity):
+    pass
+
+
+class NewsList(EntityList):
+    _entity_class = News

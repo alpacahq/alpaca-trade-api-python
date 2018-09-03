@@ -109,43 +109,6 @@ Calls `GET /clock` and returns a `Clock` entity.
 ### REST.get_calendar(start=None, end=None)
 Calls `GET /calendar` and returns a `Calendar` entity.
 
-### REST.list_quotes(symbols)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /quotes` with symbols and returns a list of `Quote` entities.  If `symbols` is not a string, it is concatenated with commas.
-
-### REST.get_quote(symbol)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/quote` and returns a `Quote` entity.
-
-### REST.list_fundamentals(symbols)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /fundamentals` with symbols and returns a list of `Fundamental` entities.
-If `symbols` is not a string, it is concatenated with commas.
-
-### REST.get_fundamental(symbol)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/fundamental` and returns a `Fundamental` entity.
-
-### REST.list_bars(symbols, timeframe, start_dt=None, end_dt=None, limit=None)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /bars` and returns a list of `AssetBars` entities. If `symbols` is
-not a string, it is concatenated with commas. `start_dt` and `end_dt` should be
-in the ISO8601 string format.
-
-### REST.get_bars(symbol, timeframe, start_dt=None, end_dt=None, limit=None)
-\*** The method is being deprecated. Use Polygon API
-
-Calls `GET /assets/{symbol}/bars` with parameters and returns an `AssetBars`
-entity.  `start_dt` and `end_dt` should be in the ISO8601 string format.
-
-### AssetBars.df
-Returns a DataFrame constructed from the Bars response.  The property is cached.
-
 ---
 
 ## StreamConn

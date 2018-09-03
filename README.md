@@ -28,33 +28,6 @@ account = api.get_account()
 api.list_positions()
 ```
 
-### Streaming example
-```python
-import alpaca_trade_api as tradeapi
-
-conn = tradeapi.StreamConn('<key_id>', '<secret_key>')
-
-# Setup event handlers
-@conn.on('authenticated')
-def on_auth(conn, stream, msg):
-    conn.subscribe([
-        'account_updates',
-        'trade_updates',
-        'quotes/AAPL',
-        ])
-
-@conn.on(r'quotes/')
-def on_quotes(conn, stream, msg):
-    print('quotes', msg)
-
-@conn.on(r'account_updates')
-def on_account(conn, stream, msg):
-    print('account', msg)
-
-# blocks forever
-conn.run()
-```
-
 ## API Document
 
 The HTTP API document is located in https://docs.alpaca.markets/

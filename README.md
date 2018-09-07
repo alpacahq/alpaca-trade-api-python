@@ -108,7 +108,7 @@ Calls `GET /orders/{order_id}` and returns an `Order` entity.
 ### REST.cancel_order(order_id)
 Calls `DELETE /orders/{order_id}`.
 
-### REST.list_position()
+### REST.list_positions()
 Calls `GET /positions` and returns a list of `Position` entities.
 
 ### REST.get_position(symbol)
@@ -206,16 +206,6 @@ Deregisters the event handler function that was previously registered via `on` o
 `register` method.
 
 
-## Support and Contribution
-
-For technical issues particular to this module, please report the
-issue on this GitHub repository. Any API issues can be reported through
-Alpaca's customer support.
-
-New features, as well as bug fixes, by sending pull request is always
-welcomed.
-
-
 ---
 # Polygon API Service
 
@@ -287,3 +277,35 @@ Returns a `Quote` entity representing the last quote for the symbol.
 
 ### polygon/REST.condition_map(ticktype='trades')
 Returns a `ConditionMap` entity.
+
+### polygon/REST.company(symbol)
+Returns a `Company` entity if `symbol` is string, or a
+dict[symbol -> `Company`] if `symbol` is a list of string.
+
+### polygon/REST.dividends(symbol)
+Returns a `Dividends` entity if `symbol` is string, or a
+dict[symbol -> `Dividends`] if `symbol is a list of string.
+
+### polygon/REST.splits(symbol)
+Returns a `Splits` entity for the symbol.
+
+## polygon/REST.earnings(symbol)
+Returns an `Earnings` entity if `symbol` is string, or a
+dict[symbol -> `Earnings`] if `symbol` is a list of string.
+
+## polygon/REST.financials(symbol)
+Returns an `Financials` entity if `symbol` is string, or a
+dict[symbol -> `Financials`] if `symbol` is a list of string.
+
+### polygon/REST.news(symbol)
+Returns a `NewsList` entity for the symbol.
+
+
+## Support and Contribution
+
+For technical issues particular to this module, please report the
+issue on this GitHub repository. Any API issues can be reported through
+Alpaca's customer support.
+
+New features, as well as bug fixes, by sending pull request is always
+welcomed.

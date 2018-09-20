@@ -86,7 +86,6 @@ class Stream(object):
                 "s": "start",
                 "e": "end",
             }
-            print(data)
             ent = Agg({map[k]: v for k, v in data.items() if k in map})
         else:
             ent = Entity(data)

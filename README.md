@@ -182,7 +182,7 @@ conn.run(['account_updates', 'AM.*'])
 
 ```
 
-You will likely call the `run` method in a thread since it will keep runnig
+You will likely call the `run` method in a thread since it will keep running
 unless an exception is raised.
 
 ### StreamConn.subscribe(channels)

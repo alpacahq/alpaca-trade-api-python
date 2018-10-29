@@ -93,8 +93,9 @@ You can access the following information through this object.
 ### REST.get_account()
 Calls `GET /account` and returns an `Account` entity.
 
-### REST.list_orders(status=None)
+### REST.list_orders(status=None, limit=None, after=None, until=None, direction=None)
 Calls `GET /orders` and returns a list of `Order` entities.
+`after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()`
 
 ### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None)
 Calls `POST /orders` and returns an `Order` entity.

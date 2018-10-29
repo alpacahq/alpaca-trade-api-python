@@ -130,9 +130,22 @@ class REST(object):
         resp = self.get('/account')
         return Account(resp)
 
-    def list_orders(self, status=None):
-        '''Get a list of orders'''
-        params = dict()
+    def list_orders(self, status=None, limit=None, after=None, until=None,
+                    direction=None, params=None):
+        '''
+        Get a list of orders
+        https://docs.alpaca.markets/web-api/orders/#get-a-list-of-orders
+        '''
+        if params is None:
+            params = dict()
+        if limit is not None:
+            params['limit'] = limit
+        if after is not None:
+            params['after'] = after
+        if until is not None:
+            params['until'] = until
+        if direction is not None:
+            params['direction'] = direction
         if status is not None:
             params['status'] = status
         resp = self.get('/orders', params)

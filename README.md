@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/alpaca-trade-api.svg)](https://badge.fury.io/py/alpaca-trade-api)
+[![CircleCI](https://circleci.com/gh/alpacahq/alpaca-trade-api-python.svg?style=shield)](https://circleci.com/gh/alpacahq/alpaca-trade-api-python)
+
 # alpaca-trade-api-python
 
 `alpaca-trade-api-python` is a python library for the Alpaca trade API.

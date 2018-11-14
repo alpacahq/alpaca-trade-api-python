@@ -293,11 +293,11 @@ dict[symbol -> `Dividends`] if `symbol is a list of string.
 ### polygon/REST.splits(symbol)
 Returns a `Splits` entity for the symbol.
 
-## polygon/REST.earnings(symbol)
+### polygon/REST.earnings(symbol)
 Returns an `Earnings` entity if `symbol` is string, or a
 dict[symbol -> `Earnings`] if `symbol` is a list of string.
 
-## polygon/REST.financials(symbol)
+### polygon/REST.financials(symbol)
 Returns an `Financials` entity if `symbol` is string, or a
 dict[symbol -> `Financials`] if `symbol` is a list of string.
 

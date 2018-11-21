@@ -69,6 +69,7 @@ class REST(object):
         }
         opts = {
             'headers': headers,
+            'allow_redirects': False
         }
         if method.upper() == 'GET':
             opts['params'] = data

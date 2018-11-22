@@ -69,7 +69,7 @@ class REST(object):
         }
         opts = {
             'headers': headers,
-            'allow_redirects': False
+            'allow_redirects': False  # Error on non-https requests.
         }
         if method.upper() == 'GET':
             opts['params'] = data

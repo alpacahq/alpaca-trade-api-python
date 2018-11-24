@@ -69,7 +69,7 @@ class REST(object):
         }
         opts = {
             'headers': headers,
-            # since we allow users to set endpoint URL via env var,
+            # Since we allow users to set endpoint URL via env var,
             # human error to put non-SSL endpoint could exploit
             # uncanny issues in non-GET request in http->https rediect.
             # It's better to fail early if the URL isn't right.

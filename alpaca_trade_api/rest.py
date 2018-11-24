@@ -69,7 +69,11 @@ class REST(object):
         }
         opts = {
             'headers': headers,
-            'allow_redirects': False  # Error on non-https requests.
+            # since we allow users to set endpoint URL vis env var,
+            # human error to put non-SSL endpoint could exploit
+            # uncanny issue in non-GET requestin http->https rediect.
+            # It's better to fail if the URL isn't right.
+            'allow_redirects': False,
         }
         if method.upper() == 'GET':
             opts['params'] = data

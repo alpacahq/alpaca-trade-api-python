@@ -69,6 +69,11 @@ class REST(object):
         }
         opts = {
             'headers': headers,
+            # Since we allow users to set endpoint URL via env var,
+            # human error to put non-SSL endpoint could exploit
+            # uncanny issues in non-GET request redirecting http->https.
+            # It's better to fail early if the URL isn't right.
+            'allow_redirects': False,
         }
         if method.upper() == 'GET':
             opts['params'] = data

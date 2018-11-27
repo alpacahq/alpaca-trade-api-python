@@ -6,6 +6,11 @@ def get_base_url():
         'APCA_API_BASE_URL', 'https://api.alpaca.markets').rstrip('/')
 
 
+def get_data_url():
+    return os.environ.get(
+        'APCA_API_DATA_URL', 'https://data.alpaca.markets').rstrip('/')
+
+
 def get_credentials(key_id=None, secret_key=None):
     key_id = key_id or os.environ.get('APCA_API_KEY_ID')
     if key_id is None:

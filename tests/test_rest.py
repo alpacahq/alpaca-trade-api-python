@@ -70,57 +70,6 @@ def test_api(reqmock):
     asset = api.get_asset(asset_id)
     assert asset.name == 'Apple inc.'
 
-    # Get a list of quotes
-    symbols = 'asset_1,asset_2'
-    reqmock.get('https://api.alpaca.markets/v1/quotes?symbols={}'.format(
-        symbols,
-    ),
-        text='''[
-  {
-    "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-    "bid": 120.4,
-    "bid_timestamp": "2018-02-28T21:16:58.704+0000",
-    "ask": 120.4,
-    "ask_timestamp": "2018-02-28T21:16:58.704+0000",
-    "last": 120.4,
-    "last_timestamp": "2018-02-28T21:16:58.704+0000",
-    "day_change": 0.008050799
-  }
-]''')
-    quotes = api.list_quotes(symbols)
-    assert quotes[0].ask == 120.4
-
-    # Get a list of fundamentals
-    reqmock.get(
-        'https://api.alpaca.markets/v1/fundamentals?symbols={}'.format(
-            symbols,
-        ), text='''[
-  {
-    "symbol": "string",
-    "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-    "full_name": "Apple inc.",
-    "industry_name": "Electronic Equipment",
-    "sector": "Consumer Goods",
-    "pe_ratio": 17.42,
-    "peg_ratio": 1.49,
-    "beta": 1.21,
-    "eps": 10.22,
-    "market_cap": 910710000000,
-    "shares_outstanding": 5110000000,
-    "avg_vol": 35330000,
-    "ex_div_date": "2017/12/12",
-    "div_rate": 1.41,
-    "roa": 13.8,
-    "roe": 37.4,
-    "roi": 18.3,
-    "ps": 3.81,
-    "pc": 11.8,
-    "gross_margin": 38.4
-  }
-]''')
-    fundamentals = api.list_fundamentals(symbols)
-    assert fundamentals[0].full_name == 'Apple inc.'
-
 
 def test_orders(reqmock):
     api = tradeapi.REST('key-id', 'secret-key')
@@ -345,78 +294,42 @@ def test_chronos(reqmock):
     assert calendar[0].open.minute == 30
 
 
-def test_assets(reqmock):
+def test_data(reqmock):
     api = tradeapi.REST('key-id', 'secret-key')
     # Bars
     reqmock.get(
-        'https://api.alpaca.markets/v1/assets/AAPL/bars?timeframe=1D',
-        text='''{
-  "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "symbol": "AAPL",
-  "exchange": "NASDAQ",
-  "asset_class": "us_equity",
-  "bars": [
-    {
-      "open": 120.4,
-      "high": 120.4,
-      "low": 120.4,
-      "close": 120.4,
-      "volume": 1000,
-      "time": "2018-04-01T12:00:00.000Z"
-    }
-  ]
-}''',
+        'https://data.alpaca.markets/v1/bars/1D?symbols=AAPL,TSLA&limit=2',
+        text='''
+        {   "AAPL": [   {   "c": 172.29,
+                    "h": 176.595,
+                    "l": 172.1,
+                    "o": 174.94,
+                    "t": 1542949200,
+                    "v": 23623972},
+                {   "c": 174.62,
+                    "h": 174.95,
+                    "l": 170.26,
+                    "o": 174.24,
+                    "t": 1543208400,
+                    "v": 44998520}],
+            "TSLA": [   {   "c": 325.83,
+                    "h": 337.5,
+                    "l": 325.55,
+                    "o": 334.345,
+                    "t": 1542949200,
+                    "v": 4202642},
+                {   "c": 346,
+                    "h": 346.22,
+                    "l": 325,
+                    "o": 325,
+                    "t": 1543208400,
+                    "v": 7992141}]}''',
     )
-    abars = api.get_bars('AAPL', '1D')
-    assert abars.bars[0].open == 120.4
-    assert abars.df.shape == (1, 5)
-    assert abars.df.index[0].day == 1
-
-    # Quote
-    reqmock.get(
-        'https://api.alpaca.markets/v1/assets/AAPL/quote',
-        text='''{
-  "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "bid": 120.4,
-  "bid_timestamp": "2018-02-28T21:16:58.704+0000",
-  "ask": 120.4,
-  "ask_timestamp": "2018-02-28T21:16:58.704+0000",
-  "last": 120.4,
-  "last_timestamp": "2018-02-28T21:16:58.704+0000",
-  "day_change": 0.008050799
-}''',
-    )
-    quote = api.get_quote('AAPL')
-    assert quote.last_timestamp.minute == 16
-
-    # Fundamental
-    reqmock.get(
-        'https://api.alpaca.markets/v1/assets/AAPL/fundamental',
-        text='''{
-  "symbol": "string",
-  "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
-  "full_name": "Apple inc.",
-  "industry_name": "Electronic Equipment",
-  "sector": "Consumer Goods",
-  "pe_ratio": 17.42,
-  "peg_ratio": 1.49,
-  "beta": 1.21,
-  "eps": 10.22,
-  "market_cap": 910710000000,
-  "shares_outstanding": 5110000000,
-  "avg_vol": 35330000,
-  "ex_div_date": "2017/12/12",
-  "div_rate": 1.41,
-  "roa": 13.8,
-  "roe": 37.4,
-  "roi": 18.3,
-  "ps": 3.81,
-  "pc": 11.8,
-  "gross_margin": 38.4
-}''',
-    )
-    fundamental = api.get_fundamental('AAPL')
-    assert fundamental.pe_ratio == 17.42
+    barset = api.get_barset('AAPL,TSLA', '1D', limit=2)
+    assert barset['AAPL'][0].o == 174.94
+    assert barset['TSLA'][1].h == 346.22
+    assert barset['AAPL'][0].t.day == 23
+    assert barset['AAPL'].df.index[0].day == 23
 
 
 def test_errors(reqmock):

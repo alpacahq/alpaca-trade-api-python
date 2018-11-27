@@ -3,11 +3,14 @@ import os
 import requests
 from requests.exceptions import HTTPError
 import time
-from .common import get_base_url, get_credentials
+from .common import (
+    get_base_url,
+    get_data_url,
+    get_credentials,
+)
 from .entity import (
     Account, Asset, Order, Position,
-    AssetBars, Quote, Fundamental,
-    Clock, Calendar,
+    BarSet, Clock, Calendar,
 )
 from . import polygon
 
@@ -61,8 +64,9 @@ class REST(object):
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
 
-    def _request(self, method, path, data=None, prefix='/v1'):
-        url = self._base_url + prefix + path
+    def _request(self, method, path, data=None, prefix='/v1', base_url=None):
+        base_url = base_url or self._base_url
+        url = base_url + prefix + path
         headers = {
             'APCA-API-KEY-ID': self._key_id,
             'APCA-API-SECRET-KEY': self._secret_key,
@@ -83,7 +87,7 @@ class REST(object):
                 return self._one_request(method, url, opts, retry)
             except RetryException:
                 retry_wait = self._retry_wait
-                logger.warn(
+                logger.warning(
                     'sleep {} seconds and retrying {} '
                     '{} more time(s)...'.format(
                         retry_wait, url, retry))
@@ -124,6 +128,10 @@ class REST(object):
 
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
+
+    def data_get(self, path, data=None):
+        base_url = get_data_url()
+        return self._request('GET', path, data, base_url=base_url)
 
     def get_account(self):
         '''Get the account'''
@@ -210,78 +218,36 @@ class REST(object):
         resp = self.get('/assets/{}'.format(symbol))
         return Asset(resp)
 
-    def list_quotes(self, symbols):
-        '''Get a list of quotes'''
+    def get_barset(self,
+                   symbols,
+                   timeframe,
+                   limit=None,
+                   start=None,
+                   end=None,
+                   after=None,
+                   until=None):
+        '''Get BarSet(dict[str]->list[Bar])
+        The parameter symbols can be either a comma-split string
+        or a list of string. Each symbol becomes the key of
+        the returned value.
+        '''
         if not isinstance(symbols, str):
             symbols = ','.join(symbols)
         params = {
             'symbols': symbols,
         }
-        resp = self.get('/quotes', params)
-        return [Quote(o) for o in resp]
-
-    def get_quote(self, symbol):
-        '''Get a quote'''
-        resp = self.get('/assets/{}/quote'.format(symbol))
-        return Quote(resp)
-
-    def list_fundamentals(self, symbols):
-        '''Get a list of fundamentals'''
-        if not isinstance(symbols, str):
-            symbols = ','.join(symbols)
-        params = {
-            'symbols': symbols,
-        }
-        resp = self.get('/fundamentals', params)
-        return [Fundamental(o) for o in resp]
-
-    def get_fundamental(self, symbol):
-        '''Get a fundamental'''
-        resp = self.get('/assets/{}/fundamental'.format(symbol))
-        return Fundamental(resp)
-
-    def list_bars(
-            self,
-            symbols,
-            timeframe,
-            start_dt=None,
-            end_dt=None,
-            limit=None):
-        '''Get a list of bars'''
-        if not isinstance(symbols, str):
-            symbols = ','.join(symbols)
-        params = {
-            'symbols': symbols,
-            'timeframe': timeframe,
-        }
-        if start_dt is not None:
-            params['start_dt'] = start_dt
-        if end_dt is not None:
-            params['end_dt'] = end_dt
         if limit is not None:
             params['limit'] = limit
-        resp = self.get('/bars', params)
-        return [AssetBars(o) for o in resp]
-
-    def get_bars(
-            self,
-            symbol,
-            timeframe,
-            start_dt=None,
-            end_dt=None,
-            limit=None):
-        '''Get bars'''
-        params = {
-            'timeframe': timeframe,
-        }
-        if start_dt is not None:
-            params['start_dt'] = start_dt
-        if end_dt is not None:
-            params['end_dt'] = end_dt
-        if limit is not None:
-            params['limit'] = limit
-        resp = self.get('/assets/{}/bars'.format(symbol), params)
-        return AssetBars(resp)
+        if start is not None:
+            params['start'] = start
+        if end is not None:
+            params['end'] = end
+        if after is not None:
+            params['after'] = after
+        if until is not None:
+            params['until'] = until
+        resp = self.data_get('/bars/{}'.format(timeframe), params)
+        return BarSet(resp)
 
     def get_clock(self):
         resp = self.get('/clock')

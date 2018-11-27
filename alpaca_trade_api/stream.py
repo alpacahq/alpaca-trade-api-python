@@ -2,7 +2,7 @@ import json
 import re
 import websocket
 from .common import get_base_url, get_credentials
-from .entity import Account, AssetBars, Quote, Entity
+from .entity import Account, Entity
 
 
 class StreamConn(object):
@@ -55,10 +55,6 @@ class StreamConn(object):
     def _cast(self, stream, msg):
         if stream == 'account_updates':
             return Account(msg)
-        elif re.match(r'^bars/', stream):
-            return AssetBars(msg)
-        elif re.match(r'^quotes/', stream):
-            return Quote(msg)
         return Entity(msg)
 
     def _dispatch(self, stream, msg):

@@ -3,7 +3,7 @@ import json
 import re
 import websockets
 from .common import get_base_url, get_credentials
-from .entity import Account, AssetBars, Quote, Entity
+from .entity import Account, Entity
 from . import polygon
 
 
@@ -109,10 +109,6 @@ class StreamConn(object):
     def _cast(self, channel, msg):
         if channel == 'account_updates':
             return Account(msg)
-        elif re.match(r'^bars/', channel):
-            return AssetBars(msg)
-        elif re.match(r'^quotes/', channel):
-            return Quote(msg)
         return Entity(msg)
 
     async def _dispatch_nats(self, conn, subject, data):

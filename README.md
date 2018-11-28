@@ -52,11 +52,15 @@ is for live trading, and for paper trading and other purposes, you can to change
 the base URL. You can pass it as an argument `REST()`, or using the environment
 variable, `APCA_API_BASE_URL`.
 
+The environment variable `APCA_API_DATA_URL` can also be changed to configure the
+endpoint for returning data from the `/bars` endpoint. By default, it will use
+`https://data.alpaca.markets`.
+
 ## REST
 
 The `REST` class is the entry point for the API request.  The instance of this
 class provides all REST API calls such as account, orders, positions,
-bars, quotes and fundamentals.
+and bars.
 
 Each returned object is wrapped by a subclass of `Entity` class (or a list of it).
 This helper class provides property access (the "dot notation") to the
@@ -123,6 +127,15 @@ Calls `GET /assets` and returns a list of `Asset` entities.
 
 ### REST.get_asset(symbol)
 Calls `GET /assets/{symbol}` and returns an `Asset` entity.
+
+### REST.get_barset(symbols, timeframe, limit, start=None, end=None, after=None, until=None)
+Calls `GET /bars/{timeframe}` for the given symbols, and returns a Barset with `limit` Bar objects
+for each of the the requested symbols.
+`timeframe` can be one of `minute`, `1Min`, `5Min`, `15Min`, `day` or `1D`. `minute` is an alias
+of `1Min`. Similarly, `day` is an alias of `1D`.
+`start`, `end`, `after`, and `until` need to be string format, which you can obtain with
+`pd.Timestamp().isoformat()`
+`after` cannot be used with `start` and `until` cannot be used with `end`.
 
 ### REST.get_clock()
 Calls `GET /clock` and returns a `Clock` entity.
@@ -246,7 +259,7 @@ Returns a `Trades` which is a list of `Trade` entities.
 Returns a pandas DataFrame object with the ticks returned by the `historic_trades`.
 
 ### polygon/REST.historic_quotes(symbol, date, offset=None, limit=None)
-Returns a `Quotes` which is a list of `Quote` entities.  
+Returns a `Quotes` which is a list of `Quote` entities.
 
 - `date` is a date string such as '2018-2-2'. The returned quotes are from this day only.
 - `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.

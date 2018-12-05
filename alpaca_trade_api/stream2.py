@@ -27,6 +27,8 @@ class StreamConn(object):
             }
         }))
         r = await ws.recv()
+        if isinstance(r, bytes):
+            r = r.decode('utf-8')
         msg = json.loads(r)
         # TODO: check unauthorized
         self._ws = ws
@@ -40,6 +42,8 @@ class StreamConn(object):
         try:
             while True:
                 r = await ws.recv()
+                if isinstance(r, bytes):
+                    r = r.decode('utf-8')
                 msg = json.loads(r)
                 stream = msg.get('stream')
                 if stream is not None:

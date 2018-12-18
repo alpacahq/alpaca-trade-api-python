@@ -45,10 +45,6 @@ follows.
 - APCA_API_KEY_ID: key ID
 - APCA_API_SECRET_KEY: secret key
 
-Optionally you can provide a distinct key ID (`polygon_key_id`) to be used for Polygon API.  Left unspecified, the same APCA `key_id` will be used.
-
-- POLYGON_API_KEY_ID: key ID
-
 ## Base URL
 
 The base URL for API calls defaults to `https://api.alpaca.markets/`. This endpoint

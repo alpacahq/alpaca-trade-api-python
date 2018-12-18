@@ -2,15 +2,14 @@ import asyncio
 import json
 import re
 import websockets
-from .common import get_base_url, get_credentials, get_polygon_credentials
+from .common import get_base_url, get_credentials
 from .entity import Account, Entity
 from . import polygon
 
 
 class StreamConn(object):
-    def __init__(self, key_id=None, secret_key=None, base_url=None, polygon_key_id=None):
+    def __init__(self, key_id=None, secret_key=None, base_url=None):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
-        self._polygon_key_id = polygon_key_id or get_polygon_credentials(self._key_id)
         base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
         self._endpoint = base_url + '/stream'
         self._handlers = {}
@@ -59,7 +58,7 @@ class StreamConn(object):
     async def _ensure_nats(self):
         if self.polygon is not None:
             return
-        key_id = self._polygon_key_id
+        key_id = self._key_id
         if 'staging' in self._base_url:
             key_id += '-staging'
         self.polygon = polygon.Stream(key_id)

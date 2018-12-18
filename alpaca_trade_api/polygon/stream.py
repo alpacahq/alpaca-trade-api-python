@@ -71,7 +71,7 @@ class Stream(object):
                 "t": "timestamp"
             }
             ent = Quote({map[k]: v for k, v in data.items() if k in map})
-        elif subject.startswith('AM.'):
+        elif subject.startswith('AM.') or subject.startswith('A.'):
             map = {
                 "sym": "symbol",
                 "a": "average",
@@ -85,6 +85,9 @@ class Stream(object):
                 "v": "volume",
                 "s": "start",
                 "e": "end",
+                "vw": "vwap",
+                "av": "totalvolume",
+                "op": "dailyopen",    # depricated? stream often has 0 for op
             }
             ent = Agg({map[k]: v for k, v in data.items() if k in map})
         else:

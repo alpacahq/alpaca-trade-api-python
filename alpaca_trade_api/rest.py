@@ -7,6 +7,7 @@ from .common import (
     get_base_url,
     get_data_url,
     get_credentials,
+    get_polygon_credentials
 )
 from .entity import (
     Account, Asset, Order, Position,
@@ -53,8 +54,9 @@ class APIError(Exception):
 
 
 class REST(object):
-    def __init__(self, key_id=None, secret_key=None, base_url=None):
+    def __init__(self, key_id=None, secret_key=None, base_url=None, polygon_key_id=None):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
+        self._polygon_key_id = polygon_key_id or get_polygon_credentials(self._key_id)
         self._base_url = base_url or get_base_url()
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
@@ -62,7 +64,7 @@ class REST(object):
         self._retry_codes = [int(o)for o in os.environ.get(
             'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
-            self._key_id, 'staging' in self._base_url)
+            self._polygon_key_id, 'staging' in self._base_url)
 
     def _request(self, method, path, data=None, prefix='/v1', base_url=None):
         base_url = base_url or self._base_url

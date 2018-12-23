@@ -54,9 +54,11 @@ class Aggs(list):
             # polygon doesn't return in ascending order
             # Do not rely on df.sort_values() as this library
             # may be used with older pandas
+            keycol = 't' if size[0] == 'm' else 'd'
+            columns = ('o', 'h', 'l', 'c', 'v', keycol)
             df = pd.DataFrame(
-                sorted(raw['ticks'], key=lambda d: d['d']),
-                columns=('o', 'h', 'l', 'c', 'v', 'd'),
+                sorted(raw['ticks'], key=lambda d: d[keycol]),
+                columns=columns,
             )
             df.columns = [raw['map'][c] for c in df.columns]
             if size[0] == 'm':

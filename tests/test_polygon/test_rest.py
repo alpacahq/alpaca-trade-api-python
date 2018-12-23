@@ -149,7 +149,7 @@ def test_polygon(reqmock):
     "h": "high",
     "l": "low",
     "o": "open",
-    "d": "timestamp",
+    "t": "timestamp",
     "v": "volume"
   },
   "status": "success",
@@ -162,7 +162,7 @@ def test_polygon(reqmock):
       "l": 173.15,
       "h": 173.21,
       "v": 1800,
-      "d": 1517529605000
+      "t": 1517529605000
     }
   ]
 }''')

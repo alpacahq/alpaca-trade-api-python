@@ -31,8 +31,11 @@ class StreamConn(object):
             r = r.decode('utf-8')
         msg = json.loads(r)
 
-        if not 'data' in msg or msg['data']['status'] != 'authorized':
-            raise ValueError("Invalid Alpaca API credentials, Failed to authenticate: {}".format(msg))
+        if 'data' not in msg or msg['data']['status'] != 'authorized':
+            raise ValueError(
+                ("Invalid Alpaca API credentials, Failed to authenticate: {}"
+                    .format(msg))
+            )
 
         self._ws = ws
         await self._dispatch('authenticated', msg)

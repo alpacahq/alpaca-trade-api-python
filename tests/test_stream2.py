@@ -38,21 +38,21 @@ def test_stream(websockets):
     ws.recv = AsyncMock(return_value=json.dumps({
         'stream': 'authentication',
         'data': {
-                        'status': 'authenticated',
+                        'status': 'authorized',
                         }
     }).encode())
 
     conn = StreamConn('key-id', 'secret-key')
     conn._consume_msg = AsyncMock()
 
-    @conn.on('authenticated')
+    @conn.on('authorized')
     async def on_auth(conn, stream, msg):
         on_auth.msg = msg
     _run(conn._connect())
-    assert on_auth.msg.status == 'authenticated'
+    assert on_auth.msg.status == 'authorized'
     assert conn._consume_msg.mock.called
 
-    conn.deregister('authenticated')
+    conn.deregister('authorized')
     assert len(conn._handlers) == 0
 
     with pytest.raises(ValueError):

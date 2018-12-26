@@ -80,9 +80,14 @@ class Bars(list):
             }
             df.columns = [alias[c] for c in df.columns]
             df.set_index('time', inplace=True)
-            df.index = pd.to_datetime(
-                df.index * 1e9, utc=True,
-            ).tz_convert(NY)
+            if not df.empty:
+                df.index = pd.to_datetime(
+                    df.index * 1e9, utc=True,
+                ).tz_convert(NY)
+            else:
+                df.index = pd.to_datetime(
+                    df.index, utc=True
+                )
             self._df = df
         return self._df
 

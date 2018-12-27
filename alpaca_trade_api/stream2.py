@@ -97,7 +97,7 @@ class StreamConn(object):
         for c in channels:
             if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
                 nats_channels.append(c)
-            elif c.startswith('bars/', 'iex/', 'sip/'):
+            elif c.startswith(('bars/', 'iex/', 'sip/',)):
                 data_channels.append(c)
             else:
                 ws_channels.append(c)

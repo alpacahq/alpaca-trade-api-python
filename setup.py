@@ -26,7 +26,7 @@ setup(
     packages=['alpaca_trade_api', 'alpaca_trade_api.polygon'],
     install_requires=[
         'asyncio-nats-client',
-        'pandas',
+        'pandas<0.24',
         'requests',
         'urllib3',
         'websocket-client',

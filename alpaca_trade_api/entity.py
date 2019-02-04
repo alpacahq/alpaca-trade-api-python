@@ -82,7 +82,7 @@ class Bars(list):
             df.set_index('time', inplace=True)
             if not df.empty:
                 df.index = pd.to_datetime(
-                    df.index * 1e9, utc=True,
+                    (df.index * 1e9).astype('int64'), utc=True,
                 ).tz_convert(NY)
             else:
                 df.index = pd.to_datetime(

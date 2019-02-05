@@ -4,7 +4,7 @@ from .entity import (
     Trade, Trades,
     Quote, Quotes,
     Exchange, SymbolTypeMap, ConditionMap,
-    Company, Dividends, Splits, Earnings, Financials, NewsList
+    Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker
 )
 
 
@@ -19,8 +19,8 @@ class REST(object):
         self._staging = staging
         self._session = requests.Session()
 
-    def _request(self, method, path, params=None):
-        url = 'https://api.polygon.io/v1' + path
+    def _request(self, method, path, params=None, version='v1'):
+        url = 'https://api.polygon.io/' + version + path
         params = params or {}
         params['apiKey'] = self._api_key
         if self._staging:
@@ -29,8 +29,8 @@ class REST(object):
         resp.raise_for_status()
         return resp.json()
 
-    def get(self, path, params=None):
-        return self._request('GET', path, params=params)
+    def get(self, path, params=None, version='v1'):
+        return self._request('GET', path, params=params, version=version)
 
     def exchanges(self):
         path = '/meta/exchanges'
@@ -127,3 +127,14 @@ class REST(object):
     def news(self, symbol):
         path = '/meta/symbols/{}/news'.format(symbol)
         return NewsList(self.get(path))
+
+    def all_tickers(self):
+        path = '/snapshot/locale/us/markets/stocks/tickers'
+        return [
+            Ticker(ticker) for ticker in
+            self.get(path, version='v2')['tickers']
+        ]
+
+    def snapshot(self, symbol):
+        path = '/snapshot/locale/us/markets/stocks/tickers/{}'.format(symbol)
+        return Ticker(self.get(path, version='v2'))

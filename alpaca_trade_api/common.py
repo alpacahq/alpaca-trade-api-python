@@ -22,6 +22,7 @@ def get_credentials(key_id=None, secret_key=None):
 
     return key_id, secret_key
 
+
 def get_api_version(api_version):
     api_version = api_version or os.environ.get('APCA_API_VERSION')
     if api_version is None:

@@ -7,6 +7,7 @@ from .common import (
     get_base_url,
     get_data_url,
     get_credentials,
+    get_api_version,
 )
 from .entity import (
     Account, Asset, Order, Position,
@@ -58,11 +59,11 @@ class REST(object):
         key_id=None,
         secret_key=None,
         base_url=None,
-        api_version='v1'
+        api_version=None
     ):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
-        self._api_version = api_version
+        self._api_version = get_api_version(api_version)
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))

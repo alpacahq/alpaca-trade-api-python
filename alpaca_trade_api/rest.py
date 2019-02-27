@@ -53,7 +53,13 @@ class APIError(Exception):
 
 
 class REST(object):
-    def __init__(self, key_id=None, secret_key=None, base_url=None, api_version='v1'):
+    def __init__(
+        self,
+        key_id=None,
+        secret_key=None,
+        base_url=None,
+        api_version='v1'
+    ):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._api_version = api_version

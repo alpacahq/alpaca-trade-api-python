@@ -7,6 +7,7 @@ from .common import (
     get_base_url,
     get_data_url,
     get_credentials,
+    get_api_version,
 )
 from .entity import (
     Account, Asset, Order, Position,
@@ -53,9 +54,16 @@ class APIError(Exception):
 
 
 class REST(object):
-    def __init__(self, key_id=None, secret_key=None, base_url=None):
+    def __init__(
+        self,
+        key_id=None,
+        secret_key=None,
+        base_url=None,
+        api_version=None
+    ):
         self._key_id, self._secret_key = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
+        self._api_version = get_api_version(api_version)
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
@@ -64,9 +72,9 @@ class REST(object):
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
 
-    def _request(self, method, path, data=None, prefix='/v1', base_url=None):
+    def _request(self, method, path, data=None, base_url=None):
         base_url = base_url or self._base_url
-        url = base_url + prefix + path
+        url = base_url + '/' + self._api_version + path
         headers = {
             'APCA-API-KEY-ID': self._key_id,
             'APCA-API-SECRET-KEY': self._secret_key,

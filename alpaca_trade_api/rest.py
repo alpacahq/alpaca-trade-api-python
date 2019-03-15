@@ -207,6 +207,11 @@ class REST(object):
         '''Cancel an order'''
         self.delete('/orders/{}'.format(order_id))
 
+    def cancel_order_by_client_order_id(self, client_order_id):
+        '''Cancel an order by client order id'''
+        order_id = self.get_order_by_client_order_id(client_order_id).id
+        self.cancel_order(order_id)
+
     def list_positions(self):
         '''Get a list of open positions'''
         resp = self.get('/positions')

@@ -66,8 +66,8 @@ class Aggs(list):
                 # astype is necessary to deal with empty result
                 df.index = pd.to_datetime(
                     df.index.astype('int64') * 1000000,
-                    utc=True,
-                ).tz_convert(NY)
+                    utc=False,
+                ).tz_localize(NY)
             else:
                 df.set_index('day', inplace=True)
                 df.index = pd.to_datetime(

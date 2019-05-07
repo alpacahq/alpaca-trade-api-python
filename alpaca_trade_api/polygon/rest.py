@@ -87,7 +87,6 @@ class REST(object):
         raw = self.get(path, params, version='v2')
         return Aggsv2(raw)
 
-
     def last_trade(self, symbol):
         path = '/last/stocks/{}'.format(symbol)
         raw = self.get(path)

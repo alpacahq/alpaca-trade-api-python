@@ -1,6 +1,6 @@
 import requests
 from .entity import (
-    Aggs,
+    Aggs, Aggsv2,
     Trade, Trades,
     Quote, Quotes,
     Exchange, SymbolTypeMap, ConditionMap,
@@ -75,6 +75,18 @@ class REST(object):
         raw = self.get(path, params)
 
         return Aggs(raw)
+
+    def historic_agg_v2(self, symbol, multiplier, timespan, _from, to,
+                        unadjusted=False):
+        path = '/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
+            symbol, multiplier, timespan, _from, to
+        )
+        params = {}
+        params['unadjusted'] = unadjusted
+        print(path)
+        raw = self.get(path, params, version='v2')
+        return Aggsv2(raw)
+
 
     def last_trade(self, symbol):
         path = '/last/stocks/{}'.format(symbol)

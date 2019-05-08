@@ -17,7 +17,7 @@ def reqmock():
 
 
 def test_api(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
     # Get a list of accounts
     reqmock.get('https://api.alpaca.markets/v1/account', text='''
@@ -72,7 +72,7 @@ def test_api(reqmock):
 
 
 def test_orders(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
     # Get a list of orders
     reqmock.get(
@@ -221,7 +221,7 @@ def test_orders(reqmock):
 
 
 def test_positions(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
     # Get a list of positions
     reqmock.get(
@@ -262,7 +262,7 @@ def test_positions(reqmock):
 
 
 def test_chronos(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
     # clock
     reqmock.get(
@@ -295,7 +295,7 @@ def test_chronos(reqmock):
 
 
 def test_data(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
     # Bars
     reqmock.get(
         'https://data.alpaca.markets/v1/bars/1D?symbols=AAPL,TSLA&limit=2',
@@ -333,7 +333,7 @@ def test_data(reqmock):
 
 
 def test_errors(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
     api._retry = 1
     api._retry_wait = 0

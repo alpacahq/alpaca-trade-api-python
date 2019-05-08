@@ -79,6 +79,41 @@ class Aggs(list):
         return self._df
 
 
+class Aggsv2(list):
+    def __init__(self, raw):
+        super().__init__(
+            Agg(tick) for tick in raw['results']
+        )
+        self._raw = raw
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            results = self._raw['results']
+            columns = ('o', 'h', 'l', 'c', 'v', 't')
+            df = pd.DataFrame(
+                results, columns=columns
+            )
+            df.set_index('t', inplace=True)
+            self._df = df
+
+        return self._df
+
+
+class Aggsv2Set(dict):
+    def __init__(self, raw):
+        ticker_ticks = {}
+        for tick in raw['results']:
+            if ticker_ticks.get(tick['T']):
+                ticker_ticks[tick['T']].append(tick)
+            else:
+                ticker_ticks[tick['T']] = [tick]
+        super().__init__({
+            ticker: Aggsv2({'results': ticks})
+            for ticker, ticks in ticker_ticks.items()
+        })
+
+
 class _TradeOrQuote(object):
     '''Mixin for Trade and Quote'''
 

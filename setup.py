@@ -28,7 +28,7 @@ setup(
         'asyncio-nats-client',
         'pandas',
         'requests',
-        'urllib3',
+        'urllib3<1.25',
         'websocket-client',
         'websockets',
     ],

@@ -1,6 +1,6 @@
 import requests
 from .entity import (
-    Aggs, Aggsv2,
+    Aggs, Aggsv2, Aggsv2Set,
     Trade, Trades,
     Quote, Quotes,
     Exchange, SymbolTypeMap, ConditionMap,
@@ -83,9 +83,15 @@ class REST(object):
         )
         params = {}
         params['unadjusted'] = unadjusted
-        print(path)
         raw = self.get(path, params, version='v2')
         return Aggsv2(raw)
+
+    def grouped_daily(self, date, unadjusted=False):
+        path = '/aggs/grouped/locale/US/market/STOCKS/{}'.format(date)
+        params = {}
+        params['unadjusted'] = unadjusted
+        raw = self.get(path, params, version='v2')
+        return Aggsv2Set(raw)
 
     def last_trade(self, symbol):
         path = '/last/stocks/{}'.format(symbol)

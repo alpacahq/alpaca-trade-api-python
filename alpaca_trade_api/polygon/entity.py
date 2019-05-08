@@ -81,7 +81,9 @@ class Aggs(list):
 
 class Aggsv2(list):
     def __init__(self, raw):
-        super().__init__(Agg(tick) for tick in raw['results'])
+        super().__init__(
+            Agg(tick) for tick in raw['results']
+        )
         self._raw = raw
 
     @property
@@ -96,6 +98,20 @@ class Aggsv2(list):
             self._df = df
 
         return self._df
+
+
+class Aggsv2Set(dict):
+    def __init__(self, raw):
+        ticker_ticks = {}
+        for tick in raw['results']:
+            if ticker_ticks.get(tick['T']):
+                ticker_ticks[tick['T']].append(tick)
+            else:
+                ticker_ticks[tick['T']] = [tick]
+        super().__init__({
+            ticker: Aggsv2({'results': ticks})
+            for ticker, ticks in ticker_ticks.items()
+        })
 
 
 class _TradeOrQuote(object):

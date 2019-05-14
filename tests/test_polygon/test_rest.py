@@ -9,8 +9,10 @@ def reqmock():
         yield m
 
 
-def endpoint(path, params=''):
-    return 'https://api.polygon.io/v1{}?apiKey=key-id&{}'.format(path, params)
+def endpoint(path, params='', api_version='v1'):
+    return 'https://api.polygon.io/{}{}?{}&apiKey=key-id'.format(
+      api_version, path, params
+    )
 
 
 def test_polygon(reqmock):
@@ -215,6 +217,42 @@ def test_polygon(reqmock):
     assert aggs[0].day.day == 2
     assert len(aggs) == 1
     assert aggs.df.iloc[0].high == 173.21
+
+# Historic Aggregates V2
+    reqmock.get(
+        endpoint(
+          '/aggs/ticker/AAPL/range/1/day/2018-2-2/2018-2-5',
+          params='unadjusted=False', api_version='v2'
+        ),
+        text='''
+{
+  "ticker": "AAPL",
+  "status": "OK",
+  "adjusted": true,
+  "queryCount": 55,
+  "resultsCount": 2,
+  "results": [
+    {
+      "o": 173.15,
+      "c": 173.2,
+      "l": 173.15,
+      "h": 173.21,
+      "v": 1800,
+      "t": 1517529605000
+    }
+  ]
+}''')
+
+    aggs = cli.historic_agg_v2(
+      'AAPL', 1, 'day',
+      _from='2018-2-2',
+      to='2018-2-5'
+    )
+    assert aggs[0].o == 173.15
+    assert len(aggs) == 1
+    assert aggs.df.iloc[0].h == 173.21
+    with pytest.raises(AttributeError):
+        aggs[0].foo
 
     # Last Trade
     reqmock.get(

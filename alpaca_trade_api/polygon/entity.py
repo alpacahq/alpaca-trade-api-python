@@ -81,8 +81,9 @@ class Aggs(list):
 
 class Aggsv2(list):
     def __init__(self, raw):
+        results = raw['results'] if raw.get('results') else []
         super().__init__(
-            Agg(tick) for tick in raw['results']
+            [Agg(tick) for tick in results]
         )
         self._raw = raw
 

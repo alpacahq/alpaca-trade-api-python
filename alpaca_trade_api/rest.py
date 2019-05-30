@@ -173,7 +173,8 @@ class REST(object):
         return [Order(o) for o in resp]
 
     def submit_order(self, symbol, qty, side, type, time_in_force,
-                     limit_price=None, stop_price=None, client_order_id=None):
+                     limit_price=None, stop_price=None, client_order_id=None,
+                     extended_hours=None):
         '''Request a new order'''
         params = {
             'symbol': symbol,
@@ -188,6 +189,8 @@ class REST(object):
             params['stop_price'] = stop_price
         if client_order_id is not None:
             params['client_order_id'] = client_order_id
+        if extended_hours is not None:
+            params['extended_hours'] = extended_hours
         resp = self.post('/orders', params)
         return Order(resp)
 

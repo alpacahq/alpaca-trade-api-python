@@ -2,6 +2,8 @@ import asyncio
 import json
 import re
 import websockets
+import logging
+import io
 from .common import get_base_url, get_credentials
 from .entity import Account, Entity
 from . import polygon
@@ -98,12 +100,44 @@ class StreamConn(object):
             await self._ensure_nats()
             await self.polygon.subscribe(nats_channels)
 
+    async def test(self, poll_delay=1, max_buffer_length=1000, reconnect_delay=10, initial_channels=[]):
+        buffer = io.StringIO()
+        logger = logging.getLogger('websockets')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(logging.StreamHandler(stream=buffer))
+
+        while True:
+            await asyncio.sleep(poll_delay)
+            buffer_text = buffer.getvalue()
+            if 'CLOSED' in buffer_text:
+                print('stream closed')
+                while True:
+                    try:
+                        print('attempting to reconnect...', end='\r')
+                        # self._ws = await self._connect()
+                        self._ws = None
+                        await self.subscribe(initial_channels)
+                        break
+                    except:
+                        await asyncio.sleep(reconnect_delay)
+                        pass
+                
+                print('\nstream re-established')
+                buffer.seek(0)
+                buffer.truncate(0)
+            
+            if len(buffer_text) > max_buffer_length:
+                # print('buffer flush')
+                buffer.seek(0)
+                buffer.truncate(0)
+
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is rasised.
         initial_channels is the channels to start with.
         '''
         loop = asyncio.get_event_loop()
         try:
+            loop.create_task(self.test(initial_channels=initial_channels))
             loop.run_until_complete(self.subscribe(initial_channels))
             loop.run_forever()
         finally:

@@ -72,7 +72,14 @@ class REST(object):
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
 
-    def _request(self, method, path, data=None, base_url=None, api_version=None):
+    def _request(
+        self,
+        method,
+        path,
+        data=None,
+        base_url=None,
+        api_version=None
+    ):
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
         url = base_url + '/' + version + path
@@ -145,7 +152,9 @@ class REST(object):
 
     def data_get(self, path, data=None):
         base_url = get_data_url()
-        return self._request('GET', path, data, base_url=base_url, api_version='v1')
+        return self._request(
+            'GET', path, data, base_url=base_url, api_version='v1'
+        )
 
     def get_account(self):
         '''Get the account'''

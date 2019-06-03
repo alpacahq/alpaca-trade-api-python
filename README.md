@@ -48,7 +48,8 @@ follows.
 ## Base URL
 
 The base URL for API calls defaults to `https://api.alpaca.markets/`. This endpoint
-is for live trading. You can to change the base URL to 'https://paper-api.alpaca.markets' for paper trading. You can change by passing a url as `base_url` input to `REST()`, or using the environment variable, `APCA_API_BASE_URL` in you env file.
+is for live trading. You can change the base URL to `https://paper-api.alpaca.markets`
+for paper trading. You can specify the API URL with the environment variable, `APCA_API_BASE_URL`.
 
 The environment variable `APCA_API_DATA_URL` can also be changed to configure the
 endpoint for returning data from the `/bars` endpoint. By default, it will use

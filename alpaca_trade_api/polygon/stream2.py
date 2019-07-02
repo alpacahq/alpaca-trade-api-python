@@ -2,43 +2,37 @@ import asyncio
 import json
 import re
 import websockets
-from .common import get_base_url, get_credentials
-from .entity import Account, Entity
-from . import polygon
+from .entity import (
+    Quote, Trade, Agg, Entity,
+)
 
 
 class StreamConn(object):
-    def __init__(self, key_id=None, secret_key=None, base_url=None):
-        self._key_id, self._secret_key = get_credentials(key_id, secret_key)
-        base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
-        self._endpoint = base_url + '/stream'
+    def __init__(self, key_id=None):
+        self._key_id = 'X'
+        self._endpoint = 'X'
         self._handlers = {}
-        self._base_url = base_url
         self._ws = None
-        self.polygon = None
 
     async def _connect(self):
+        print('connecting to polygon')
         ws = await websockets.connect(self._endpoint)
         await ws.send(json.dumps({
-            'action': 'authenticate',
-            'data': {
-                'key_id': self._key_id,
-                'secret_key': self._secret_key,
-            }
+            'action': 'auth',
+            'params': self._key_id
         }))
         r = await ws.recv()
         if isinstance(r, bytes):
             r = r.decode('utf-8')
         msg = json.loads(r)
-
-        if 'data' not in msg or msg['data']['status'] != 'authorized':
+        if msg[0].get('status') != 'connected':
             raise ValueError(
-                ("Invalid Alpaca API credentials, Failed to authenticate: {}"
+                ("Invalid Polygon credentials, Failed to authenticate: {}"
                     .format(msg))
             )
 
         self._ws = ws
-        await self._dispatch('authorized', msg)
+        await self._dispatch('authorized', msg[0])
 
         asyncio.ensure_future(self._consume_msg())
         return ws
@@ -51,22 +45,13 @@ class StreamConn(object):
                 if isinstance(r, bytes):
                     r = r.decode('utf-8')
                 msg = json.loads(r)
-                stream = msg.get('stream')
-                if stream is not None:
-                    await self._dispatch(stream, msg)
+                for update in msg:
+                    stream = update.get('ev')
+                    if stream is not None:
+                        await self._dispatch(stream, update)
         finally:
             await ws.close()
             self._ws = None
-
-    async def _ensure_polygon(self):
-        if self.polygon is not None:
-            return
-        key_id = self._key_id
-        if 'staging' in self._base_url:
-            key_id += '-staging'
-        self.polygon = polygon.StreamConn(key_id)
-        self.polygon.register(r'.*', self._dispatch_polygon)
-        await self.polygon._connect()
 
     async def _ensure_ws(self):
         if self._ws is not None:
@@ -77,26 +62,15 @@ class StreamConn(object):
         '''Start subscribing channels.
         If the necessary connection isn't open yet, it opens now.
         '''
-        ws_channels = []
-        polygon_channels = []
-        for c in channels:
-            if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
-                polygon_channels.append(c)
-            else:
-                ws_channels.append(c)
-
-        if len(ws_channels) > 0:
+        if len(channels) > 0:
             await self._ensure_ws()
+            # Join channel list to string
+            s = 'c'
+            s = s.join(channels)
             await self._ws.send(json.dumps({
-                'action': 'listen',
-                'data': {
-                    'streams': ws_channels,
-                }
+                'action': 'subscribe',
+                'params': s
             }))
-
-        if len(polygon_channels) > 0:
-            await self._ensure_polygon()
-            await self.polygon.subscribe(polygon_channels)
 
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is rasised.
@@ -113,23 +87,58 @@ class StreamConn(object):
         '''Close any of open connections'''
         if self._ws is not None:
             await self._ws.close()
-        if self.polygon is not None:
-            await self.polygon.close()
 
-    def _cast(self, channel, msg):
-        if channel == 'account_updates':
-            return Account(msg)
-        return Entity(msg)
-
-    async def _dispatch_polygon(self, conn, subject, data):
-        for pat, handler in self._handlers.items():
-            if pat.match(subject):
-                await handler(self, subject, data)
+    def _cast(self, subject, data):
+        if subject == 'T':
+            map = {
+                "sym": "symbol",
+                "c": "conditions",
+                "x": "exchange",
+                "p": "price",
+                "s": "size",
+                "t": "timestamp"
+            }
+            ent = Trade({map[k]: v for k, v in data.items() if k in map})
+        elif subject == 'Q':
+            map = {
+                "sym": "symbol",
+                "ax": "askexchange",
+                "ap": "askprice",
+                "as": "asksize",
+                "bx": "bidexchange",
+                "bp": "bidprice",
+                "bs": "bidsize",
+                "c": "condition",
+                "t": "timestamp"
+            }
+            ent = Quote({map[k]: v for k, v in data.items() if k in map})
+        elif subject == 'AM' or subject == 'A':
+            map = {
+                "sym": "symbol",
+                "a": "average",
+                "c": "close",
+                "h": "high",
+                "k": "transactions",
+                "l": "low",
+                "o": "open",
+                "t": "totalvalue",
+                "x": "exchange",
+                "v": "volume",
+                "s": "start",
+                "e": "end",
+                "vw": "vwap",
+                "av": "totalvolume",
+                "op": "dailyopen",    # depricated? stream often has 0 for op
+            }
+            ent = Agg({map[k]: v for k, v in data.items() if k in map})
+        else:
+            ent = Entity(data)
+        return ent
 
     async def _dispatch(self, channel, msg):
         for pat, handler in self._handlers.items():
             if pat.match(channel):
-                ent = self._cast(channel, msg['data'])
+                ent = self._cast(channel, msg)
                 await handler(self, channel, ent)
 
     def on(self, channel_pat):

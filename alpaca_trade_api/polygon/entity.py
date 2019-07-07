@@ -41,8 +41,7 @@ class Aggs(list):
             }
 
         super().__init__([
-            Agg(rename_keys(tick, raw['map']))
-            for tick in raw['ticks']
+            Agg(rename_keys(tick, raw['map'])) for tick in raw['ticks']
         ])
         self._raw = raw
 
@@ -65,7 +64,8 @@ class Aggs(list):
                 df.set_index('timestamp', inplace=True)
                 # astype is necessary to deal with empty result
                 df.index = pd.to_datetime(
-                    df.index.astype('int64') * 1000000,
+                    df.index.astype('int64'),
+                    unit='ms',
                     utc=True,
                 ).tz_convert(NY)
             else:
@@ -80,22 +80,46 @@ class Aggs(list):
 
 
 class Aggsv2(list):
+
     def __init__(self, raw):
-        results = raw['results'] if raw.get('results') else []
-        super().__init__(
-            [Agg(tick) for tick in results]
-        )
+
         self._raw = raw
+        super().__init__([
+            Agg(tick) for tick in self.rename_keys()
+        ])
+
+    def _raw_results(self):
+        return self._raw.get('results', [])
+
+    def rename_keys(self):
+        colmap = {
+                "o": "open",
+                "h": "high",
+                "l": "low",
+                "c": "close",
+                "v": "volume",
+                "t": "timestamp",
+            }
+
+        return [
+            {colmap.get(k, k): v for k, v in tick.items()}
+            for tick in self._raw_results()
+        ]
 
     @property
     def df(self):
         if not hasattr(self, '_df'):
-            results = self._raw['results']
-            columns = ('o', 'h', 'l', 'c', 'v', 't')
+            columns = ('timestamp', 'open', 'high', 'low', 'close', 'volume')
             df = pd.DataFrame(
-                results, columns=columns
+                self.rename_keys(),
+                columns=columns
             )
-            df.set_index('t', inplace=True)
+            df.set_index('timestamp', inplace=True)
+            df.index = pd.to_datetime(
+                df.index.astype('int64'),
+                unit='ms', utc=True
+            ).tz_convert(NY)
+
             self._df = df
 
         return self._df

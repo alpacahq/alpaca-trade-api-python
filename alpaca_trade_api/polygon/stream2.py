@@ -1,6 +1,7 @@
 import asyncio
 import json
 import re
+import os
 import websockets
 from .entity import (
     Quote, Trade, Agg, Entity,
@@ -9,8 +10,11 @@ from .entity import (
 
 class StreamConn(object):
     def __init__(self, key_id=None):
-        self._key_id = 'X'
-        self._endpoint = 'X'
+        self._key_id = key_id
+        self._endpoint = os.environ.get(
+            'POLYGON_WS_URL',
+            'wss://alpaca.socket.polygon.io/stocks'
+        ).rstrip('/')
         self._handlers = {}
         self._ws = None
 

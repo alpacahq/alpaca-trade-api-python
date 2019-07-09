@@ -248,9 +248,9 @@ def test_polygon(reqmock):
       _from='2018-2-2',
       to='2018-2-5'
     )
-    assert aggs[0].o == 173.15
+    assert aggs[0].open == 173.15
     assert len(aggs) == 1
-    assert aggs.df.iloc[0].h == 173.21
+    assert aggs.df.iloc[0].high == 173.21
     with pytest.raises(AttributeError):
         aggs[0].foo
 

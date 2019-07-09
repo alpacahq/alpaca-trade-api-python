@@ -58,14 +58,14 @@ class StreamConn(object):
             await ws.close()
             self._ws = None
 
-    async def _ensure_nats(self):
+    async def _ensure_polygon(self):
         if self.polygon is not None:
             return
         key_id = self._key_id
         if 'staging' in self._base_url:
             key_id += '-staging'
-        self.polygon = polygon.Stream(key_id)
-        self.polygon.register(r'.*', self._dispatch_nats)
+        self.polygon = polygon.StreamConn(key_id)
+        self.polygon.register(r'.*', self._dispatch_polygon)
         await self.polygon.connect()
 
     async def _ensure_ws(self):
@@ -78,10 +78,10 @@ class StreamConn(object):
         If the necessary connection isn't open yet, it opens now.
         '''
         ws_channels = []
-        nats_channels = []
+        polygon_channels = []
         for c in channels:
             if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
-                nats_channels.append(c)
+                polygon_channels.append(c)
             else:
                 ws_channels.append(c)
 
@@ -94,9 +94,9 @@ class StreamConn(object):
                 }
             }))
 
-        if len(nats_channels) > 0:
-            await self._ensure_nats()
-            await self.polygon.subscribe(nats_channels)
+        if len(polygon_channels) > 0:
+            await self._ensure_polygon()
+            await self.polygon.subscribe(polygon_channels)
 
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is rasised.
@@ -121,7 +121,7 @@ class StreamConn(object):
             return Account(msg)
         return Entity(msg)
 
-    async def _dispatch_nats(self, conn, subject, data):
+    async def _dispatch_polygon(self, conn, subject, data):
         for pat, handler in self._handlers.items():
             if pat.match(subject):
                 await handler(self, subject, data)

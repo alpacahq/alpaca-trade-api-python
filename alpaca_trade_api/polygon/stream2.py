@@ -18,7 +18,7 @@ class StreamConn(object):
         self._handlers = {}
         self._ws = None
 
-    async def _connect(self):
+    async def connect(self):
         print('connecting to polygon')
         ws = await websockets.connect(self._endpoint)
         await ws.send(json.dumps({
@@ -60,7 +60,7 @@ class StreamConn(object):
     async def _ensure_ws(self):
         if self._ws is not None:
             return
-        self._ws = await self._connect()
+        self._ws = await self.connect()
 
     async def subscribe(self, channels):
         '''Start subscribing channels.

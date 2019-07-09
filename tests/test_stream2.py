@@ -81,11 +81,11 @@ def test_stream(websockets):
         _run(conn._consume_msg())
     assert ws.close.mock.called
 
-    # _ensure_nats
+    # _ensure_polygon
     conn = StreamConn('key-id', 'secret-key')
     with mock.patch('alpaca_trade_api.stream2.polygon') as polygon:
-        polygon.Stream().connect = AsyncMock()
-        _run(conn._ensure_nats())
+        polygon.StreamConn().connect = AsyncMock()
+        _run(conn._ensure_polygon())
         assert conn.polygon is not None
         assert conn.polygon.connect.mock.called
 
@@ -133,5 +133,5 @@ def test_stream(websockets):
     async def on_q(conn, subject, data):
         on_q.data = data
 
-    _run(conn._dispatch_nats(conn, 'Q.SPY', PolyEntity({'key': 'value'})))
+    _run(conn._dispatch_polygon(conn, 'Q.SPY', PolyEntity({'key': 'value'})))
     assert on_q.data.key == 'value'

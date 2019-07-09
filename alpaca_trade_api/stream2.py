@@ -66,7 +66,7 @@ class StreamConn(object):
             key_id += '-staging'
         self.polygon = polygon.StreamConn(key_id)
         self.polygon.register(r'.*', self._dispatch_polygon)
-        await self.polygon._connect()
+        await self.polygon.connect()
 
     async def _ensure_ws(self):
         if self._ws is not None:

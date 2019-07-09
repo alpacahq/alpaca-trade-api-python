@@ -69,11 +69,10 @@ class StreamConn(object):
         if len(channels) > 0:
             await self._ensure_ws()
             # Join channel list to string
-            s = 'c'
-            s = s.join(channels)
+            streams = ','.join(channels)
             await self._ws.send(json.dumps({
                 'action': 'subscribe',
-                'params': s
+                'params': streams
             }))
 
     def run(self, initial_channels=[]):

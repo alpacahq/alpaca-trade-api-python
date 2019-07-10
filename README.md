@@ -3,13 +3,13 @@
 
 # alpaca-trade-api-python
 
-`alpaca-trade-api-python` is a python library for the Alpaca trade API.
+`alpaca-trade-api-python` is a python library for the [Alpaca Commission Free Trading API](https://alpaca.markets).
 It allows rapid trading algo development easily, with support for the
-both REST and streaming interfaces. For details of each API behavior,
-please see the online API document.
+both REST and streaming data interfaces. For details of each API behavior,
+please see the online [API document](https://docs.alpaca.markets).
 
-Note this module supports only python version 3.5 and above, due to
-the async/await keyword use.
+Note this module supports only python version 3.6 and above, due to
+the async/await and websockets module dependency.
 
 ## Install
 
@@ -19,41 +19,47 @@ $ pip3 install alpaca-trade-api
 
 ## Example
 
-In order to call Alpaca's trade API, you need to obtain API key pairs.
-Replace <key_id> and <secret_key> with what you get from the web console.
+In order to call Alpaca's trade API, you need to sign up for a account and obtain API key pairs. Replace <key_id> and <secret_key> with what you get from the web console.
 
 ### REST example
 ```python
 import alpaca_trade_api as tradeapi
 
-api = tradeapi.REST('<key_id>', '<secret_key>')
+api = tradeapi.REST('<key_id>', '<secret_key>', api_version='v2') # or use ENV Vars shown below
 account = api.get_account()
 api.list_positions()
 ```
 
 ## API Document
 
-The HTTP API document is located in https://docs.alpaca.markets/
+The HTTP API document is located at https://docs.alpaca.markets/
+
+## API Version
+
+API Version now defaults to 'v2', however if you still have a 'v1' account, you may need to specify api_version='v1' to properly use the API until you migrate.
 
 ## Authentication
 
 The Alpaca API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can pass `key_id` and `secret_key` to the initializers of
 `REST` or `StreamConn` as arguments, or set up environment variables as
-follows.
+outlined below.
 
-- APCA_API_KEY_ID: key ID
-- APCA_API_SECRET_KEY: secret key
+## Alpaca Environment Variables
 
-## Base URL
+The Alpaca SDK will check the environment for a number of variables which can be used rather than hard-coding these into your scripts.
 
-The base URL for API calls defaults to `https://api.alpaca.markets/`. This endpoint
-is for live trading. You can change the base URL to `https://paper-api.alpaca.markets`
-for paper trading. You can specify the API URL with the environment variable `APCA_API_BASE_URL`.
+| Environment | default | Description |
+| ----------- | ------- | ----------- |
+| APCA_API_KEY_ID=<key_id> | | Your API Key |
+| APCA_API_SECRET_KEY=<secret_key> | | Your API Secret Key |
+| APCA_API_BASE_URL=url | https://api.alpaca.markets (for live)<br/>https://paper-api.alpaca.markets (for paper) | Specify the URL for API calls, *Default is live, you must specify this to switch to paper endpoint!* |
+| APCA_API_DATA_URL=url | https://data.alpaca.markets | Endpoint for data API |
+| APCA_RETRY_MAX=3 | 3 | The number of subsequent API calls to retry on timeouts |
+| APCA_RETRY_WAIT=3 | 3 | seconds to wait between each retry attempt |
+| APCA_RETRY_CODES=429,504 | 429,504 | comma-separated HTTP status code for which retry is attempted |
+| POLYGON_WS_URL | wss://alpaca.socket.polygon.io/stocks | Endpoint for streaming polygon data.  You likely don't need to change this unless you want to proxy it for example |
 
-The environment variable `APCA_API_DATA_URL` can also be changed to configure the
-endpoint for returning data from the `/bars` endpoint. By default, it will use
-`https://data.alpaca.markets`.
 
 ## REST
 
@@ -79,15 +85,9 @@ The `Entity` class also converts timestamp string field to a pandas.Timestamp
 object.  Its `_raw` property returns the original raw primitive data unmarshaled
 from the response JSON text.
 
-When a REST API call sees the 429 or 504 status code, this library retries 3 times
-by default, with 3 seconds apart between each call. These are configurable with
-the following environment variables.
+Please note that the API is throttled, currently 200 requests per minute, per account.  If your client exceeds this number, a 429 Too many requests status will be returned and this library will retry according to the retry environment variables as configured.
 
-- APCA_RETRY_MAX: the number of subsequent API calls to retry, defaults to 3
-- APCA_RETRY_WAIT: seconds to wait between each call, defaults to 3
-- APCA_RETRY_CODES: comma-separated HTTP status code for which retry is attempted
-
-If the retry exceeds, or other API error is returned, `alpaca_trade_api.rest.APIError` is raised.
+If the retries are exceeded, or other API error is returned, `alpaca_trade_api.rest.APIError` is raised.
 You can access the following information through this object.
 
 - the API error code: `.code` property
@@ -146,7 +146,7 @@ Calls `GET /calendar` and returns a `Calendar` entity.
 
 ## StreamConn
 
-The `StreamConn` class provides WebSocket/NATS-based event-driven
+The `StreamConn` class provides WebSocket-based event-driven
 interfaces.  Using the `on` decorator of the instance, you can
 define custom event handlers that are called when the pattern
 is matched on the channel name.  Once event handlers are set up,
@@ -160,7 +160,7 @@ Alpaca's account/trade updates events and Polygon's price updates.
 One connection is established when the `subscribe()` is called with
 the corresponding channel names.  For example, if you subscribe to
 `account_updates`, a WebSocket connects to Alpaca stream API, and
-if `AM.*` given to the `subscribe()` method, a NATS connection is
+if `AM.*` given to the `subscribe()` method, a WebSocket connection is
 established to Polygon's interface.
 
 The `run` method is a short-cut to start subscribing to channels and
@@ -183,12 +183,12 @@ a `ValueError` is raised when registering it as an event handler.
 ```python
 conn = StreamConn()
 
-@conn.on(r'account_updates')
+@conn.on(r'^account_updates$')
 async def on_account_updates(conn, channel, account):
     print('account', account)
 
 
-@conn.on(r'^AM.')
+@conn.on(r'^AM$')
 def on_bars(conn, channel, bar):
     print('bars', bar)
 

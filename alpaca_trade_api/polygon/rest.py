@@ -77,12 +77,14 @@ class REST(object):
         return Aggs(raw)
 
     def historic_agg_v2(self, symbol, multiplier, timespan, _from, to,
-                        unadjusted=False):
+                        unadjusted=False, limit=None):
         path = '/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
             symbol, multiplier, timespan, _from, to
         )
         params = {}
         params['unadjusted'] = unadjusted
+        if limit:
+            params['limit'] = limit
         raw = self.get(path, params, version='v2')
         return Aggsv2(raw)
 

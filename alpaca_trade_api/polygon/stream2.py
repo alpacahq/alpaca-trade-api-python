@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import re
 import os
 import websockets
@@ -17,10 +18,17 @@ class StreamConn(object):
         ).rstrip('/')
         self._handlers = {}
         self._ws = None
+        self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
+        self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
+        self._retries = 0
 
     async def connect(self):
-        print('connecting to polygon')
+        await self._dispatch('status',
+                             {'ev': 'status',
+                              'status': 'connecting',
+                              'message': 'Connecting to Polygon'})
         ws = await websockets.connect(self._endpoint)
+
         await ws.send(json.dumps({
             'action': 'auth',
             'params': self._key_id
@@ -35,14 +43,16 @@ class StreamConn(object):
                     .format(msg))
             )
 
+        self._retries = 0
         self._ws = ws
         await self._dispatch('authorized', msg[0])
 
         asyncio.ensure_future(self._consume_msg())
-        return ws
 
     async def _consume_msg(self):
         ws = self._ws
+        if not ws:
+            return
         try:
             while True:
                 r = await ws.recv()
@@ -53,14 +63,31 @@ class StreamConn(object):
                     stream = update.get('ev')
                     if stream is not None:
                         await self._dispatch(stream, update)
+        except websockets.exceptions.ConnectionClosedError:
+            await self._dispatch('status',
+                                 {'ev': 'status',
+                                  'status': 'disconnected',
+                                  'message':
+                                  'Polygon Disconnected Unexpectedly'})
         finally:
-            await ws.close()
+            if self._ws is not None:
+                await self._ws.close()
             self._ws = None
+            asyncio.ensure_future(self._ensure_ws())
 
     async def _ensure_ws(self):
         if self._ws is not None:
             return
-        self._ws = await self.connect()
+        try:
+            await self.connect()
+        except Exception:
+            self._ws = None
+            self._retries += 1
+            time.sleep(self._retry_wait)
+            if self._retries <= self._retry:
+                asyncio.ensure_future(self._ensure_ws())
+            else:
+                raise ConnectionError("Max Retries Exceeded")
 
     async def subscribe(self, channels):
         '''Start subscribing channels.

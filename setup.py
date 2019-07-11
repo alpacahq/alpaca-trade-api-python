@@ -30,7 +30,7 @@ setup(
         'requests',
         'urllib3<1.25',
         'websocket-client',
-        'websockets',
+        'websockets>=8.0',
     ],
     tests_require=[
         'pytest',

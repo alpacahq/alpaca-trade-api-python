@@ -63,13 +63,12 @@ class StreamConn(object):
                     stream = update.get('ev')
                     if stream is not None:
                         await self._dispatch(stream, update)
-        except websockets.exceptions.ConnectionClosedError:
+        except websockets.exceptions.ConnectionClosedError as e:
             await self._dispatch('status',
                                  {'ev': 'status',
                                   'status': 'disconnected',
                                   'message':
-                                  'Polygon Disconnected Unexpectedly'})
-        finally:
+                                  f'Polygon Disconnected Unexpectedly ({e})'})
             if self._ws is not None:
                 await self._ws.close()
             self._ws = None
@@ -78,16 +77,21 @@ class StreamConn(object):
     async def _ensure_ws(self):
         if self._ws is not None:
             return
-        try:
-            await self.connect()
-        except Exception:
-            self._ws = None
-            self._retries += 1
-            time.sleep(self._retry_wait)
-            if self._retries <= self._retry:
-                asyncio.ensure_future(self._ensure_ws())
-            else:
-                raise ConnectionError("Max Retries Exceeded")
+
+        while self._retries <= self._retry:
+            try:
+                await self.connect()
+            except (ConnectionRefusedError, ConnectionError) as e:
+                await self._dispatch('status',
+                                     {'ev': 'status',
+                                      'status': 'connect failed',
+                                      'message':
+                                      f'Connection Failed ({e})'})
+                self._ws = None
+                self._retries += 1
+                time.sleep(self._retry_wait * self._retry)
+        else:
+            raise ConnectionError("Max Retries Exceeded")
 
     async def subscribe(self, channels):
         '''Start subscribing channels.

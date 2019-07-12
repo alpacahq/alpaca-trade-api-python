@@ -7,11 +7,12 @@ import websockets
 from .entity import (
     Quote, Trade, Agg, Entity,
 )
+import logging
 
 
 class StreamConn(object):
     def __init__(self, key_id=None):
-        self._key_id = key_id
+        self._key_id = key_id or os.environ.get('APCA_API_KEY_ID')
         self._endpoint = os.environ.get(
             'POLYGON_WS_URL',
             'wss://alpaca.socket.polygon.io/stocks'
@@ -23,6 +24,7 @@ class StreamConn(object):
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
         self._retries = 0
+        self.loop = asyncio.get_event_loop()
 
     async def connect(self):
         await self._dispatch({'ev': 'status',
@@ -85,6 +87,9 @@ class StreamConn(object):
                 msg = json.loads(r)
                 for update in msg:
                     yield update
+        except websockets.exceptions.ConnectionClosed:
+            # Ignore, occurs on self.close() such as after KeyboardInterrupt
+            pass
         except websockets.exceptions.ConnectionClosedError as e:
             await self._dispatch({'ev': 'status',
                                   'status': 'disconnected',
@@ -165,12 +170,15 @@ class StreamConn(object):
         '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
-        loop = asyncio.get_event_loop()
+        loop = self.loop
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
             loop.run_forever()
+        except KeyboardInterrupt:
+            logging.info("Exiting on Interrupt")
         finally:
             loop.run_until_complete(self.close())
+            loop.close()
 
     async def close(self):
         '''Close any open connections'''

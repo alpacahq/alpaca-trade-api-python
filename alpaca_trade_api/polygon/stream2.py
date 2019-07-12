@@ -21,9 +21,6 @@ class StreamConn(object):
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
-        self._retry_backoff_wait = int(
-                        os.environ.get('APCA_RETRY_BACKOFF_WAIT', 30))
-        self._retry_backoff = 0
         self._retries = 0
 
     async def connect(self):
@@ -36,7 +33,7 @@ class StreamConn(object):
         msg = await self._next()
         if msg.get('status') != 'connected':
             raise ValueError(
-                ("Invalid response on Polygon websocket  connection: {}"
+                ("Invalid response on Polygon websocket connection: {}"
                     .format(msg))
             )
         await self._dispatch(msg)
@@ -63,7 +60,6 @@ class StreamConn(object):
                 and status == 'success'):
             # reset retries only after we successfully authenticated
             self._retries = 0
-            self._retry_backoff = 0
             await self._dispatch(data)
             return True
         else:
@@ -97,15 +93,17 @@ class StreamConn(object):
             asyncio.ensure_future(self._ensure_ws())
 
     async def _consume_msg(self):
-        ws = self._ws
-        if not ws:
-            return
         async for data in self._stream:
             stream = data.get('ev')
             if stream:
                 await self._dispatch(data)
-                if stream == 'status' and data.get('status') == 'disconnected':
-                    self._retry_backoff = self._retry_backoff_wait
+            elif data.get('status') == 'disconnected':
+                # Polygon returns this on an empty 'ev' id..
+                data['ev'] = 'status'
+                await self._dispatch(data)
+                raise ConnectionResetError(
+                        'Polygon terminated connection: '
+                        f'({data.get("message")})')
 
     async def _ensure_ws(self):
         if self._ws is not None:
@@ -125,8 +123,7 @@ class StreamConn(object):
                                       f'Connection Failed ({e})'})
                 self._ws = None
                 self._retries += 1
-                sleepfor = self._retry_wait * self._retry + self._retry_backoff
-                time.sleep(sleepfor)
+                time.sleep(self._retry_wait * self._retry)
         else:
             raise ConnectionError("Max Retries Exceeded")
 

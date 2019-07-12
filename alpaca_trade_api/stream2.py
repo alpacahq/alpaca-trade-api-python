@@ -100,6 +100,28 @@ class StreamConn(object):
             await self._ensure_polygon()
             await self.polygon.subscribe(polygon_channels)
 
+    async def unsubscribe(self, channels):
+        '''Handle un-subscribing from channels.
+        '''
+        if not self._ws:
+            return
+
+        ws_channels = []
+        polygon_channels = []
+        for c in channels:
+            if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
+                polygon_channels.append(c)
+            else:
+                ws_channels.append(c)
+
+        if len(ws_channels) > 0:
+            # Currently our streams don't support unsubscribe
+            # not as useful with our feeds
+            pass
+
+        if len(polygon_channels) > 0:
+            await self.polygon.unsubscribe(polygon_channels)
+
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is rasised.
         initial_channels is the channels to start with.

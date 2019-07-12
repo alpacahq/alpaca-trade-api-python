@@ -18,93 +18,151 @@ class StreamConn(object):
         ).rstrip('/')
         self._handlers = {}
         self._handler_symbols = {}
+        self._streams = set([])
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
         self._retries = 0
 
     async def connect(self):
-        await self._dispatch('status',
-                             {'ev': 'status',
+        await self._dispatch({'ev': 'status',
                               'status': 'connecting',
                               'message': 'Connecting to Polygon'})
-        ws = await websockets.connect(self._endpoint)
+        self._ws = await websockets.connect(self._endpoint)
+        self._stream = self._recv()
+
+        msg = await self._next()
+        if msg.get('status') != 'connected':
+            raise ValueError(
+                ("Invalid response on Polygon websocket connection: {}"
+                    .format(msg))
+            )
+        await self._dispatch(msg)
+        if await self.authenticate():
+            asyncio.ensure_future(self._consume_msg())
+        else:
+            await self.close()
+
+    async def authenticate(self):
+        ws = self._ws
+        if not ws:
+            return False
 
         await ws.send(json.dumps({
             'action': 'auth',
             'params': self._key_id
         }))
-        r = await ws.recv()
-        if isinstance(r, bytes):
-            r = r.decode('utf-8')
-        msg = json.loads(r)
-        if msg[0].get('status') != 'connected':
-            raise ValueError(
-                ("Invalid Polygon credentials, Failed to authenticate: {}"
-                    .format(msg))
-            )
+        data = await self._next()
+        stream = data.get('ev')
+        msg = data.get('message')
+        status = data.get('status')
+        if (stream == 'status'
+                and msg == 'authenticated'
+                and status == 'success'):
+            # reset retries only after we successfully authenticated
+            self._retries = 0
+            await self._dispatch(data)
+            return True
+        else:
+            raise ValueError('Invalid Polygon credentials, '
+                             f'Failed to authenticate: {data}')
 
-        self._retries = 0
-        self._ws = ws
-        await self._dispatch('authorized', msg[0])
+    async def _next(self):
+        '''Returns the next message available
+        '''
+        return await self._stream.__anext__()
 
-        asyncio.ensure_future(self._consume_msg())
+    async def _recv(self):
+        '''Function used to recieve and parse all messages from websocket stream.
 
-    async def _consume_msg(self):
-        ws = self._ws
-        if not ws:
-            return
+        This generator yields one message per each call.
+        '''
         try:
             while True:
-                r = await ws.recv()
+                r = await self._ws.recv()
                 if isinstance(r, bytes):
                     r = r.decode('utf-8')
                 msg = json.loads(r)
                 for update in msg:
-                    stream = update.get('ev')
-                    if stream is not None:
-                        await self._dispatch(stream, update)
-        except websockets.exceptions.ConnectionClosedError:
-            await self._dispatch('status',
-                                 {'ev': 'status',
+                    yield update
+        except websockets.exceptions.ConnectionClosedError as e:
+            await self._dispatch({'ev': 'status',
                                   'status': 'disconnected',
                                   'message':
-                                  'Polygon Disconnected Unexpectedly'})
-        finally:
-            if self._ws is not None:
-                await self._ws.close()
-            self._ws = None
+                                  f'Polygon Disconnected Unexpectedly ({e})'})
+            await self.close()
             asyncio.ensure_future(self._ensure_ws())
+
+    async def _consume_msg(self):
+        async for data in self._stream:
+            stream = data.get('ev')
+            if stream:
+                await self._dispatch(data)
+            elif data.get('status') == 'disconnected':
+                # Polygon returns this on an empty 'ev' id..
+                data['ev'] = 'status'
+                await self._dispatch(data)
+                raise ConnectionResetError(
+                        'Polygon terminated connection: '
+                        f'({data.get("message")})')
 
     async def _ensure_ws(self):
         if self._ws is not None:
             return
-        try:
-            await self.connect()
-        except Exception:
-            self._ws = None
-            self._retries += 1
-            time.sleep(self._retry_wait)
-            if self._retries <= self._retry:
-                asyncio.ensure_future(self._ensure_ws())
-            else:
-                raise ConnectionError("Max Retries Exceeded")
+
+        while self._retries <= self._retry:
+            try:
+                await self.connect()
+                if self._streams:
+                    await self.subscribe(self._streams)
+
+                break
+            except (ConnectionRefusedError, ConnectionError) as e:
+                await self._dispatch({'ev': 'status',
+                                      'status': 'connect failed',
+                                      'message':
+                                      f'Connection Failed ({e})'})
+                self._ws = None
+                self._retries += 1
+                time.sleep(self._retry_wait * self._retry)
+        else:
+            raise ConnectionError("Max Retries Exceeded")
 
     async def subscribe(self, channels):
-        '''Start subscribing channels.
+        '''Subscribe to channels.
+        Note: This is cumulative, meaning you can add channels at runtime,
+        and you do not need to specify all the channels.
+
+        To remove channels see unsubscribe().
+
         If the necessary connection isn't open yet, it opens now.
         '''
         if len(channels) > 0:
             await self._ensure_ws()
             # Join channel list to string
             streams = ','.join(channels)
+            self._streams |= set(channels)
             await self._ws.send(json.dumps({
                 'action': 'subscribe',
                 'params': streams
             }))
 
+    async def unsubscribe(self, channels):
+        '''Unsubscribe from channels
+        '''
+        if not self._ws:
+            return
+        if len(channels) > 0:
+            # Join channel list to string
+            streams = ','.join(channels)
+            self._streams -= set(channels)
+            await self._ws.send(json.dumps({
+                'action': 'unsubscribe',
+                'params': streams
+            }))
+
     def run(self, initial_channels=[]):
-        '''Run forever and block until exception is rasised.
+        '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
         loop = asyncio.get_event_loop()
@@ -118,6 +176,7 @@ class StreamConn(object):
         '''Close any open connections'''
         if self._ws is not None:
             await self._ws.close()
+        self._ws = None
 
     def _cast(self, subject, data):
         if subject == 'T':
@@ -166,7 +225,8 @@ class StreamConn(object):
             ent = Entity(data)
         return ent
 
-    async def _dispatch(self, channel, msg):
+    async def _dispatch(self, msg):
+        channel = msg.get('ev')
         for pat, handler in self._handlers.items():
             if pat.match(channel):
                 handled_symbols = self._handler_symbols.get(handler)

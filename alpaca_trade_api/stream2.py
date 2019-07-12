@@ -13,6 +13,7 @@ class StreamConn(object):
         base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
         self._endpoint = base_url + '/stream'
         self._handlers = {}
+        self._handler_symbols = {}
         self._base_url = base_url
         self._ws = None
         self.polygon = None
@@ -65,7 +66,8 @@ class StreamConn(object):
         if 'staging' in self._base_url:
             key_id += '-staging'
         self.polygon = polygon.StreamConn(key_id)
-        self.polygon.register(r'.*', self._dispatch_polygon)
+        self.polygon._handlers = self._handlers
+        self.polygon._handler_symbols = self._handler_symbols
         await self.polygon.connect()
 
     async def _ensure_ws(self):
@@ -121,20 +123,17 @@ class StreamConn(object):
             return Account(msg)
         return Entity(msg)
 
-    async def _dispatch_polygon(self, conn, subject, data):
-        for pat, handler in self._handlers.items():
-            if pat.match(subject):
-                await handler(self, subject, data)
-
     async def _dispatch(self, channel, msg):
         for pat, handler in self._handlers.items():
             if pat.match(channel):
                 ent = self._cast(channel, msg['data'])
                 await handler(self, channel, ent)
 
-    def on(self, channel_pat):
+    def on(self, channel_pat, symbols=None):
         def decorator(func):
             self.register(channel_pat, func)
+            if symbols:
+                self._handler_symbols[func] = symbols
             return func
 
         return decorator
@@ -145,8 +144,14 @@ class StreamConn(object):
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
         self._handlers[channel_pat] = func
+        if self.polygon:
+            self.polygon.register(channel_pat, func)
 
     def deregister(self, channel_pat):
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
+        handler = self._handlers[channel_pat]
+        del self._handler_symbols[handler]
         del self._handlers[channel_pat]
+        if self.polygon:
+            self.polygon.deregister(channel_pat)

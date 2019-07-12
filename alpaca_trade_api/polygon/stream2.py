@@ -174,16 +174,16 @@ class StreamConn(object):
                     ent = self._cast(channel, msg)
                     await handler(self, channel, ent)
 
-    def register(self, channel_pat, func):
+    def register(self, channel_pat, func, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
         self._handlers[channel_pat] = func
+        self._handler_symbols[func] = symbols
 
     def deregister(self, channel_pat):
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
-        handler = self._handlers[channel_pat]
-        del self._handler_symbols[handler]
+        self._handler_symbols.pop(self._handlers[channel_pat], None)
         del self._handlers[channel_pat]

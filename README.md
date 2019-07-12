@@ -187,11 +187,17 @@ conn = StreamConn()
 async def on_account_updates(conn, channel, account):
     print('account', account)
 
+@conn.on(r'^status$')
+def on_status(conn, channel, data):
+    print('polygon status update', data)
 
 @conn.on(r'^AM$')
-def on_bars(conn, channel, bar):
+def on_minute_bars(conn, channel, bar):
     print('bars', bar)
 
+@conn.on(r'^A$')
+def on_second_bars(conn, channel, bar):
+    print('bars', bar)
 
 # blocks forever
 conn.run(['account_updates', 'AM.*'])
@@ -203,6 +209,9 @@ unless an exception is raised.
 
 ### StreamConn.subscribe(channels)
 Request "listen" to the server.  `channels` must be a list of string channel names.
+
+### StreamConn.unsubscribe(channels)
+Request to stop "listening" to the server.  `channels` must be a list of string channel names.
 
 ### StreamConn.run(channels)
 Goes into an infinite loop and awaits for messages from the server.  You should

@@ -18,6 +18,7 @@ class StreamConn(object):
             'wss://alpaca.socket.polygon.io/stocks'
         ).rstrip('/')
         self._handlers = {}
+        self._handler_symbols = {}
         self._streams = set([])
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
@@ -180,7 +181,7 @@ class StreamConn(object):
             loop.close()
 
     async def close(self):
-        '''Close any of open connections'''
+        '''Close any open connections'''
         if self._ws is not None:
             await self._ws.close()
         self._ws = None
@@ -236,24 +237,21 @@ class StreamConn(object):
         channel = msg.get('ev')
         for pat, handler in self._handlers.items():
             if pat.match(channel):
-                ent = self._cast(channel, msg)
-                await handler(self, channel, ent)
+                handled_symbols = self._handler_symbols.get(handler)
+                if handled_symbols is None or msg['sym'] in handled_symbols:
+                    ent = self._cast(channel, msg)
+                    await handler(self, channel, ent)
 
-    def on(self, channel_pat):
-        def decorator(func):
-            self.register(channel_pat, func)
-            return func
-
-        return decorator
-
-    def register(self, channel_pat, func):
+    def register(self, channel_pat, func, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
         self._handlers[channel_pat] = func
+        self._handler_symbols[func] = symbols
 
     def deregister(self, channel_pat):
         if isinstance(channel_pat, str):
             channel_pat = re.compile(channel_pat)
+        self._handler_symbols.pop(self._handlers[channel_pat], None)
         del self._handlers[channel_pat]

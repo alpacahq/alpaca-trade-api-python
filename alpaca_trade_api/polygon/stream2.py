@@ -7,12 +7,13 @@ import websockets
 from .entity import (
     Quote, Trade, Agg, Entity,
 )
+from alpaca_trade_api.common import get_polygon_credentials
 import logging
 
 
 class StreamConn(object):
     def __init__(self, key_id=None):
-        self._key_id = key_id or os.environ.get('APCA_API_KEY_ID')
+        self._key_id = get_polygon_credentials(key_id)
         self._endpoint = os.environ.get(
             'POLYGON_WS_URL',
             'wss://alpaca.socket.polygon.io/stocks'

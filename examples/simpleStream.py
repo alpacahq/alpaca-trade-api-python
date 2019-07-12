@@ -12,11 +12,14 @@ import pandas as pd
 from datetime import datetime
 
 # For some fun colors...
-from colorama import Fore, Back, Style, init as ColoramaInit
+from colorama import Fore, Style, init as ColoramaInit
+
+
 ColoramaInit(autoreset=True)
 
 # Make this global
 opt = None
+
 
 def ts():
     return pd.Timestamp.now()
@@ -55,7 +58,9 @@ async def on_minute(conn, channel, bar):
     else:
         bar_color = f'{Style.BRIGHT}{Fore.WHITE}'
 
-    print(f'{channel:<6} {ms2date(bar.end)}  {bar_color}{symbol:<10s} {percent:>8.2f} {bar.open:>8.2f} {bar.close:>8.2f}  {bar.volume:<10d}'
+    print(f'{channel:<6s} {ms2date(bar.end)}  {bar.symbol:<10s} '
+          f'{percent:>8.2f}% {bar.open:>8.2f} {bar.close:>8.2f} '
+          f' {bar.volume:<10d}'
           f'  {(Fore.GREEN+"above VWAP") if close > bar.vwap else (Fore.RED+"below VWAP")}')
 
 
@@ -65,13 +70,14 @@ async def on_tick(conn, channel, bar):
     except:  # noqa
         percent = 0
 
-    print(f'{channel:<6s} {ms2date(bar.end)}  {bar.symbol:<10s} {percent:>8.2f}% {bar.open:>8.2f} {bar.close:>8.2f}  {bar.volume:<10d}')
+    print(f'{channel:<6s} {ms2date(bar.end)}  {bar.symbol:<10s} '
+          f'{percent:>8.2f}% {bar.open:>8.2f} {bar.close:>8.2f} '
+          f' {bar.volume:<10d}')
 
 
 async def on_data(conn, channel, data):
     if opt.debug or not (channel in ('AM', 'Q', 'A', 'T')):
         debug("debug: ", pprint.pformat(data))
-
 
 
 def reloadWatch(prog, cmd):
@@ -130,6 +136,8 @@ if __name__ == '__main__':
 
     try:
         if opt.all:
+            # Note to see all these channels, you'd need to add a handler
+            # above or use --debug!
             conn.run(['Q.*', 'T.*', 'AM.*', 'A.*'])
         else:
             conn.run(['AM.*'])

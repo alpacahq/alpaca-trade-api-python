@@ -5,6 +5,7 @@ import websockets
 from .common import get_base_url, get_credentials
 from .entity import Account, Entity
 from . import polygon
+import logging
 
 
 class StreamConn(object):
@@ -16,6 +17,7 @@ class StreamConn(object):
         self._base_url = base_url
         self._ws = None
         self.polygon = None
+        self.loop = asyncio.get_event_loop()
 
     async def _connect(self):
         ws = await websockets.connect(self._endpoint)
@@ -124,12 +126,15 @@ class StreamConn(object):
         '''Run forever and block until exception is rasised.
         initial_channels is the channels to start with.
         '''
-        loop = asyncio.get_event_loop()
+        loop = self.loop
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
             loop.run_forever()
+        except KeyboardInterrupt:
+            logging.info("Exiting on Interrupt")
         finally:
             loop.run_until_complete(self.close())
+            loop.close()
 
     async def close(self):
         '''Close any of open connections'''

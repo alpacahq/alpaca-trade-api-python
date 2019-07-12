@@ -63,6 +63,7 @@ The Alpaca SDK will check the environment for a number of variables which can be
 | APCA_RETRY_WAIT=3 | 3 | seconds to wait between each retry attempt |
 | APCA_RETRY_CODES=429,504 | 429,504 | comma-separated HTTP status code for which retry is attempted |
 | POLYGON_WS_URL | wss://alpaca.socket.polygon.io/stocks | Endpoint for streaming polygon data.  You likely don't need to change this unless you want to proxy it for example |
+| POLYGON_KEY_ID | | Your Polygon key, if it's not the same as your Alpaca API key. Most users will not need to set this to access Polygon.|
 
 
 ## REST
@@ -238,9 +239,10 @@ Deregisters the event handler function that was previously registered via `on` o
 ---
 # Polygon API Service
 
-Alpaca's API key ID can be used to access Polygon API whose document is found [here](https://polygon.io/docs/).
-This python SDK wraps their API service and seamlessly integrates with Alpaca API.
-`alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
+Alpaca's API key ID can be used to access Polygon API, the documentation for
+which is found [here](https://polygon.io/docs/).
+This python SDK wraps their API service and seamlessly integrates it with the Alpaca
+API. `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
 
 The example below gives AAPL daily OHLCV data in a DataFrame format.
 

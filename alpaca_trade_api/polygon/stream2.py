@@ -21,13 +21,13 @@ class StreamConn(object):
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
-        self._retry_backoff_wait = int(os.environ.get('APCA_RETRY_BACKOFF_WAIT', 30))
+        self._retry_backoff_wait = int(
+                        os.environ.get('APCA_RETRY_BACKOFF_WAIT', 30))
         self._retry_backoff = 0
         self._retries = 0
 
     async def connect(self):
-        await self._dispatch('status',
-                             {'ev': 'status',
+        await self._dispatch({'ev': 'status',
                               'status': 'connecting',
                               'message': 'Connecting to Polygon'})
         self._ws = await websockets.connect(self._endpoint)
@@ -39,7 +39,7 @@ class StreamConn(object):
                 ("Invalid response on Polygon websocket  connection: {}"
                     .format(msg))
             )
-        await self._dispatch(msg.get('ev'), msg)
+        await self._dispatch(msg)
         if await self.authenticate():
             asyncio.ensure_future(self._consume_msg())
         else:
@@ -58,14 +58,17 @@ class StreamConn(object):
         stream = data.get('ev')
         msg = data.get('message')
         status = data.get('status')
-        if stream == 'status' and msg == 'authenticated' and status == 'success':
+        if (stream == 'status'
+                and msg == 'authenticated'
+                and status == 'success'):
             # reset retries only after we successfully authenticated
             self._retries = 0
             self._retry_backoff = 0
-            await self._dispatch(stream, data)
+            await self._dispatch(data)
             return True
         else:
-            raise ValueError(f'Invalid Polygon credentials, Failed to authenticate: {data}')
+            raise ValueError('Invalid Polygon credentials, '
+                             f'Failed to authenticate: {data}')
 
     async def _next(self):
         '''Returns the next message available
@@ -86,8 +89,7 @@ class StreamConn(object):
                 for update in msg:
                     yield update
         except websockets.exceptions.ConnectionClosedError as e:
-            await self._dispatch('status',
-                                 {'ev': 'status',
+            await self._dispatch({'ev': 'status',
                                   'status': 'disconnected',
                                   'message':
                                   f'Polygon Disconnected Unexpectedly ({e})'})
@@ -101,7 +103,7 @@ class StreamConn(object):
         async for data in self._stream:
             stream = data.get('ev')
             if stream:
-                await self._dispatch(stream, data)
+                await self._dispatch(data)
                 if stream == 'status' and data.get('status') == 'disconnected':
                     self._retry_backoff = self._retry_backoff_wait
 
@@ -117,14 +119,14 @@ class StreamConn(object):
 
                 break
             except (ConnectionRefusedError, ConnectionError) as e:
-                await self._dispatch('status',
-                                     {'ev': 'status',
+                await self._dispatch({'ev': 'status',
                                       'status': 'connect failed',
                                       'message':
                                       f'Connection Failed ({e})'})
                 self._ws = None
                 self._retries += 1
-                time.sleep(self._retry_wait * self._retry + self._retry_backoff)
+                sleepfor = self._retry_wait * self._retry + self._retry_backoff
+                time.sleep(sleepfor)
         else:
             raise ConnectionError("Max Retries Exceeded")
 
@@ -225,7 +227,8 @@ class StreamConn(object):
             ent = Entity(data)
         return ent
 
-    async def _dispatch(self, channel, msg):
+    async def _dispatch(self, msg):
+        channel = msg.get('ev')
         for pat, handler in self._handlers.items():
             if pat.match(channel):
                 ent = self._cast(channel, msg)

@@ -30,6 +30,10 @@ account = api.get_account()
 api.list_positions()
 ```
 
+## Example Scripts
+
+Please see the `examples/` folder for some example scripts that make use of this API
+
 ## API Document
 
 The HTTP API document is located at https://docs.alpaca.markets/

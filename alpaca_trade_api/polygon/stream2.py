@@ -87,7 +87,7 @@ class StreamConn(object):
                 for update in msg:
                     yield update
         except websockets.exceptions.ConnectionClosed:
-            # This error occurs when we self.close() such as on KeyboardInterrupt
+            # Ignore, occurs on self.close() such as after KeyboardInterrupt
             pass
         except websockets.exceptions.ConnectionClosedError as e:
             await self._dispatch({'ev': 'status',

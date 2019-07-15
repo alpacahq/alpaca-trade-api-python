@@ -24,6 +24,10 @@ def get_credentials(key_id=None, secret_key=None):
 
 
 def get_polygon_credentials(alpaca_key=None):
+    try:
+        alpaca_key, _ = get_credentials(alpaca_key)
+    except ValueError:
+        pass
     key_id = os.environ.get('POLYGON_KEY_ID') or alpaca_key
     if key_id is None:
         raise ValueError('Key ID must be given to access Polygon API')

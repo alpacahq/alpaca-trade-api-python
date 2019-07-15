@@ -11,6 +11,8 @@ import pandas as pd
 
 from datetime import datetime
 
+from alpaca_trade_api import StreamConn
+
 # For some fun colors...
 from colorama import Fore, Style, init as ColoramaInit
 
@@ -45,7 +47,7 @@ async def on_minute(conn, channel, bar):
     close = bar.close
 
     try:
-        percent = (bar.dailyopen - close)/close
+        percent = (close - bar.dailyopen)/close  * 100
         up = 1 if bar.open > bar.dailyopen else -1
     except:  # noqa
         percent = 0
@@ -66,7 +68,7 @@ async def on_minute(conn, channel, bar):
 
 async def on_tick(conn, channel, bar):
     try:
-        percent = (bar.dailyopen - bar.close)/bar.close
+        percent = (bar.close - bar.dailyopen)/bar.close * 100
     except:  # noqa
         percent = 0
 
@@ -111,17 +113,7 @@ if __name__ == '__main__':
         help="Prints debug messages",
         action='store_true')
 
-    parser.add_argument(
-        "--polygon",
-        help="Only import Polygon.StreamConn instead of Alpaca Wrapper (mainly for testing)",
-        action='store_true')
-
     opt = parser.parse_args()
-
-    if opt.polygon:
-        from alpaca_trade_api.polygon import StreamConn
-    else:
-        from alpaca_trade_api import StreamConn
 
     conn = StreamConn()
 

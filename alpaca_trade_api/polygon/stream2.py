@@ -61,7 +61,7 @@ class StreamConn(object):
         status = data.get('status')
         if (stream == 'status'
                 and msg == 'authenticated'
-                and status == 'success'):
+                and status == 'auth_success'):
             # reset retries only after we successfully authenticated
             self._retries = 0
             await self._dispatch(data)

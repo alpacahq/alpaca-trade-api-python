@@ -1,5 +1,5 @@
 from alpaca_trade_api.stream2 import StreamConn
-from alpaca_trade_api.polygon.stream2 import StreamConn as PolyStream
+from alpaca_trade_api.polygon import StreamConn as PolyStream
 from alpaca_trade_api.entity import Account
 import asyncio
 import json

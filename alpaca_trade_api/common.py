@@ -15,7 +15,7 @@ def get_credentials(key_id=None, secret_key=None):
     key_id = key_id or os.environ.get('APCA_API_KEY_ID')
     if key_id is None:
         raise ValueError('Key ID must be given to access Alpaca trade API',
-                         '(env: APCA_API_KEY_ID)')
+                         ' (env: APCA_API_KEY_ID)')
 
     secret_key = secret_key or os.environ.get('APCA_API_SECRET_KEY')
     if secret_key is None:
@@ -33,7 +33,7 @@ def get_polygon_credentials(alpaca_key=None):
     key_id = os.environ.get('POLYGON_KEY_ID') or alpaca_key
     if key_id is None:
         raise ValueError('Key ID must be given to access Polygon API'
-                         '(env: APCA_API_KEY_ID or POLYGON_KEY_ID)')
+                         ' (env: APCA_API_KEY_ID or POLYGON_KEY_ID)')
     return key_id
 
 

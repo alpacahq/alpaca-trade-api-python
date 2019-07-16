@@ -4,8 +4,8 @@ import time
 import datetime
 import queue
 
-API_KEY = "PKI0VRI38E9RGWCO98DN"
-API_SECRET = "tlQyYESkpkrbKdccfRJZNQ2AU6jk/7g/6yaHV45v"
+API_KEY = "API_KEY"
+API_SECRET = "API_SECRET"
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 class LongShort:

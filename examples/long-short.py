@@ -2,21 +2,21 @@ import alpaca_trade_api as tradeapi
 import threading
 import time
 import datetime
-import queue
 
 API_KEY = "API_KEY"
 API_SECRET = "API_SECRET"
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
+
 class LongShort:
   def __init__(self):
-    self.alpaca = tradeapi.REST(API_KEY,API_SECRET,APCA_API_BASE_URL,'v2')
+    self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
 
-    stockUniverse = ['DOMO','TLRY','SQ','MRO','AAPL','GM','SNAP','SHOP','SPLK','BA','AMZN','SUI','SUN','TSLA','CGC','SPWR','NIO','CAT','MSFT','PANW','OKTA','TWTR','TM','RTN','ATVI','GS','BAC','MS','TWLO','QCOM',]
+    stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM', 'SNAP', 'SHOP', 'SPLK', 'BA', 'AMZN', 'SUI', 'SUN', 'TSLA', 'CGC', 'SPWR', 'NIO', 'CAT', 'MSFT', 'PANW', 'OKTA', 'TWTR', 'TM', 'RTN', 'ATVI', 'GS', 'BAC', 'MS', 'TWLO', 'QCOM', ]
     # Format the allStocks variable for use in the class.
     self.allStocks = []
     for stock in stockUniverse:
-      self.allStocks.append([stock,0])
+      self.allStocks.append([stock, 0])
 
     self.long = []
     self.short = []
@@ -28,13 +28,13 @@ class LongShort:
     self.longAmount = 0
     self.shortAmount = 0
     self.timeToClose = None
-  
+
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
     orders = self.alpaca.list_orders(status="open")
     for order in orders:
       self.alpaca.cancel_order(order.id)
-    
+
     # Wait for market to open.
     print("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
@@ -53,7 +53,7 @@ class LongShort:
       closingTime = clock.next_close.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       self.timeToClose = closingTime - currTime
-      
+
       if(self.timeToClose < (60 * 15)):
         # Close all positions when 15 minutes til market close.
         print("Market closing soon.  Closing positions.")
@@ -66,13 +66,13 @@ class LongShort:
             orderSide = 'buy'
           qty = abs(int(float(position.qty)))
           respSO = []
-          tSubmitOrder = threading.Thread(target=self.submitOrder(qty,position.symbol,orderSide,respSO))
+          tSubmitOrder = threading.Thread(target=self.submitOrder(qty, position.symbol, orderSide, respSO))
           tSubmitOrder.start()
           tSubmitOrder.join()
-        
+
         # Run script again after market close for next trading day.
         print("Sleeping until market close (15 minutes).")
-        time.sleep(60*15)
+        time.sleep(60 * 15)
       else:
         time.sleep(60)
 
@@ -83,7 +83,7 @@ class LongShort:
       print("spinning")
       time.sleep(60)
       isOpen = self.alpaca.get_clock().is_open
-  
+
   def rebalance(self):
     tRerank = threading.Thread(target=self.rerank)
     tRerank.start()
@@ -94,10 +94,10 @@ class LongShort:
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
-    print("We are longing: " + str(self.long))
-    print("We are shorting: " + str(self.short))
+    print("We are taking a long position in: " + str(self.long))
+    print("We are taking a short position in: " + str(self.short))
     # Remove positions that are no longer in the short or long list, and make a list of positions that do not need to change.  Adjust position quantities if needed.
-    executed = [[],[]]
+    executed = [[], []]
     positions = self.alpaca.list_positions()
     self.blacklist.clear()
     for position in positions:
@@ -110,7 +110,7 @@ class LongShort:
           else:
             side = "buy"
           respSO = []
-          tSO = threading.Thread(target=self.submitOrder,args=[abs(int(float(position.qty))),position.symbol,side,respSO])
+          tSO = threading.Thread(target=self.submitOrder, args=[abs(int(float(position.qty))), position.symbol, side, respSO])
           tSO.start()
           tSO.join()
         else:
@@ -119,7 +119,7 @@ class LongShort:
             # Position changed from long to short.  Clear long position to prepare for short position.
             side = "sell"
             respSO = []
-            tSO = threading.Thread(target=self.submitOrder,args=[int(float(position.qty)),position.symbol,side,respSO])
+            tSO = threading.Thread(target=self.submitOrder, args=[int(float(position.qty)), position.symbol, side, respSO])
             tSO.start()
             tSO.join()
           else:
@@ -136,7 +136,7 @@ class LongShort:
                 # Too little short positions.  Sell some more.
                 side = "sell"
               respSO = []
-              tSO = threading.Thread(target=self.submitOrder,args=[abs(diff),position.symbol,side,respSO])
+              tSO = threading.Thread(target=self.submitOrder, args=[abs(diff), position.symbol, side, respSO])
               tSO.start()
               tSO.join()
             executed[1].append(position.symbol)
@@ -146,7 +146,7 @@ class LongShort:
         if(position.side == "short"):
           # Position changed from short to long.  Clear short position to prepare for long position.
           respSO = []
-          tSO = threading.Thread(target=self.submitOrder,args=[abs(int(float(position.qty))),position.symbol,"buy",respSO])
+          tSO = threading.Thread(target=self.submitOrder, args=[abs(int(float(position.qty))), position.symbol, "buy", respSO])
           tSO.start()
           tSO.join()
         else:
@@ -163,22 +163,22 @@ class LongShort:
               # Too little long positions.  Buy some more.
               side = "buy"
             respSO = []
-            tSO = threading.Thread(target=self.submitOrder,args=[abs(diff),position.symbol,side,respSO])
+            tSO = threading.Thread(target=self.submitOrder, args=[abs(diff), position.symbol, side, respSO])
             tSO.start()
             tSO.join()
-          executed[0].append(position.symbol)       
+          executed[0].append(position.symbol)
           self.blacklist.add(position.symbol)
 
     # Send orders to all remaining stocks in the long and short list.
     respSendBOLong = []
-    tSendBOLong = threading.Thread(target=self.sendBatchOrder,args=[self.qLong,self.long,"buy",respSendBOLong])
+    tSendBOLong = threading.Thread(target=self.sendBatchOrder, args=[self.qLong, self.long, "buy", respSendBOLong])
     tSendBOLong.start()
     tSendBOLong.join()
     respSendBOLong[0][0] += executed[0]
     if(len(respSendBOLong[0][1]) > 0):
       # Handle rejected/incomplete orders and determine new quantities to purchase.
       respGetTPLong = []
-      tGetTPLong = threading.Thread(target=self.getTotalPrice,args=[respSendBOLong[0][0],respGetTPLong])
+      tGetTPLong = threading.Thread(target=self.getTotalPrice, args=[respSendBOLong[0][0], respGetTPLong])
       tGetTPLong.start()
       tGetTPLong.join()
       if (respGetTPLong[0] > 0):
@@ -189,14 +189,14 @@ class LongShort:
       self.adjustedQLong = -1
 
     respSendBOShort = []
-    tSendBOShort = threading.Thread(target=self.sendBatchOrder,args=[self.qShort,self.short,"sell",respSendBOShort])
+    tSendBOShort = threading.Thread(target=self.sendBatchOrder, args=[self.qShort, self.short, "sell", respSendBOShort])
     tSendBOShort.start()
     tSendBOShort.join()
     respSendBOShort[0][0] += executed[1]
     if(len(respSendBOShort[0][1]) > 0):
       # Handle rejected/incomplete orders and determine new quantities to purchase.
       respGetTPShort = []
-      tGetTPShort = threading.Thread(target=self.getTotalPrice,args=[respSendBOShort[0][0],respGetTPShort])
+      tGetTPShort = threading.Thread(target=self.getTotalPrice, args=[respSendBOShort[0][0], respGetTPShort])
       tGetTPShort.start()
       tGetTPShort.join()
       if(respGetTPShort[0] > 0):
@@ -211,7 +211,7 @@ class LongShort:
       self.qLong = int(self.adjustedQLong - self.qLong)
       for stock in respSendBOLong[0][0]:
         respResendBOLong = []
-        tResendBOLong = threading.Thread(target=self.submitOrder,args=[self.qLong,stock,"buy",respResendBOLong])
+        tResendBOLong = threading.Thread(target=self.submitOrder, args=[self.qLong, stock, "buy", respResendBOLong])
         tResendBOLong.start()
         tResendBOLong.join()
 
@@ -219,7 +219,7 @@ class LongShort:
       self.qShort = int(self.adjustedQShort - self.qShort)
       for stock in respSendBOShort[0][0]:
         respResendBOShort = []
-        tResendBOShort = threading.Thread(target=self.submitOrder,args=[self.qShort,stock,"sell",respResendBOShort])
+        tResendBOShort = threading.Thread(target=self.submitOrder, args=[self.qShort, stock, "sell", respResendBOShort])
         tResendBOShort.start()
         tResendBOShort.join()
 
@@ -233,14 +233,14 @@ class LongShort:
     longShortAmount = len(self.allStocks) // 4
     self.long = []
     self.short = []
-    for i,stockField in enumerate(self.allStocks):
+    for i, stockField in enumerate(self.allStocks):
       if(i < longShortAmount):
         self.short.append(stockField[0])
       elif(i > (len(self.allStocks) - 1 - longShortAmount)):
         self.long.append(stockField[0])
       else:
         continue
-    
+
     # Determine amount to long/short based on total stock price of each bucket.
     equity = int(float(self.alpaca.get_account().equity))
 
@@ -248,12 +248,12 @@ class LongShort:
     self.longAmount = equity + self.shortAmount
 
     respGetTPLong = []
-    tGetTPLong = threading.Thread(target=self.getTotalPrice,args=[self.long,respGetTPLong])
+    tGetTPLong = threading.Thread(target=self.getTotalPrice, args=[self.long, respGetTPLong])
     tGetTPLong.start()
     tGetTPLong.join()
 
     respGetTPShort = []
-    tGetTPShort = threading.Thread(target=self.getTotalPrice,args=[self.short,respGetTPShort])
+    tGetTPShort = threading.Thread(target=self.getTotalPrice, args=[self.short, respGetTPShort])
     tGetTPShort.start()
     tGetTPShort.join()
 
@@ -261,36 +261,36 @@ class LongShort:
     self.qShort = int(self.shortAmount // respGetTPShort[0])
 
   # Get the total price of the array of input stocks.
-  def getTotalPrice(self,stocks,resp):
+  def getTotalPrice(self, stocks, resp):
     totalPrice = 0
     for stock in stocks:
-      bars = self.alpaca.get_barset(stock,"minute",1)
+      bars = self.alpaca.get_barset(stock, "minute", 1)
       totalPrice += bars[stock][0].c
     resp.append(totalPrice)
 
   # Submit a batch order that returns completed and uncompleted orders.
-  def sendBatchOrder(self,qty,stocks,side,resp):
+  def sendBatchOrder(self, qty, stocks, side, resp):
     executed = []
     incomplete = []
     for stock in stocks:
       if(self.blacklist.isdisjoint({stock})):
         respSO = []
-        tSubmitOrder = threading.Thread(target=self.submitOrder,args=[qty,stock,side,respSO])
+        tSubmitOrder = threading.Thread(target=self.submitOrder, args=[qty, stock, side, respSO])
         tSubmitOrder.start()
         tSubmitOrder.join()
-        if(respSO[0] == False):
+        if(not respSO[0]):
           # Stock order did not go through, add it to incomplete.
           incomplete.append(stock)
         else:
           executed.append(stock)
         respSO.clear()
-    resp.append([executed,incomplete])
+    resp.append([executed, incomplete])
 
   # Submit an order if quantity is above 0.
-  def submitOrder(self,qty,stock,side,resp):
+  def submitOrder(self, qty, stock, side, resp):
     if(qty > 0):
       try:
-        self.alpaca.submit_order(stock,qty,side,"market","day")
+        self.alpaca.submit_order(stock, qty, side, "market", "day")
         print("Market order of " + '|' + str(qty) + " " + stock + " " + side + '|' + " completed.")
         resp.append(True)
       except:
@@ -303,9 +303,9 @@ class LongShort:
   # Get percent changes of the stock prices over the past 10 days.
   def getPercentChanges(self):
     length = 10
-    for i,stock in enumerate(self.allStocks):
-      bars = self.alpaca.get_barset(stock[0],'minute',length)
-      self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]])-1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
+    for i, stock in enumerate(self.allStocks):
+      bars = self.alpaca.get_barset(stock[0], 'minute', length)
+      self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]]) - 1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.
   def rank(self):

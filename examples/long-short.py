@@ -3,8 +3,8 @@ import threading
 import time
 import datetime
 
-API_KEY = "API_KEY"
-API_SECRET = "API_SECRET"
+API_KEY = "YOUR_API_KEY_HERE"
+API_SECRET = "YOUR_API_SECRET_HERE"
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 
@@ -44,9 +44,6 @@ class LongShort:
 
     # Rebalance the portfolio every minute, making necessary trades.
     while True:
-      tRebalance = threading.Thread(target=self.rebalance)
-      tRebalance.start()
-      tRebalance.join()
 
       # Figure out when the market will close so we can prepare to sell beforehand.
       clock = self.alpaca.get_clock()
@@ -74,13 +71,21 @@ class LongShort:
         print("Sleeping until market close (15 minutes).")
         time.sleep(60 * 15)
       else:
+        # Rebalance the portfolio.
+        tRebalance = threading.Thread(target=self.rebalance)
+        tRebalance.start()
+        tRebalance.join()
         time.sleep(60)
 
   # Wait for market to open.
   def awaitMarketOpen(self):
     isOpen = self.alpaca.get_clock().is_open
     while(not isOpen):
-      print("spinning")
+      clock = self.alpaca.get_clock()
+      openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
+      currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
+      timeToOpen = int((openingTime - currTime) / 60)
+      print(str(timeToOpen) + " minutes til market open.")
       time.sleep(60)
       isOpen = self.alpaca.get_clock().is_open
 
@@ -291,13 +296,13 @@ class LongShort:
     if(qty > 0):
       try:
         self.alpaca.submit_order(stock, qty, side, "market", "day")
-        print("Market order of " + '|' + str(qty) + " " + stock + " " + side + '|' + " completed.")
+        print("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
         resp.append(True)
       except:
-        print("Order of " + '|' + str(qty) + " " + stock + " " + side + '|' + " did not go through.")
+        print("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
         resp.append(False)
     else:
-      print("Quantity is 0, order of " + '|' + str(qty) + " " + stock + " " + side + '|' + " not completed.")
+      print("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
 
   # Get percent changes of the stock prices over the past 10 days.

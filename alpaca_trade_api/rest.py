@@ -220,6 +220,10 @@ class REST(object):
         '''Cancel an order'''
         self.delete('/orders/{}'.format(order_id))
 
+    def cancel_all_orders(self):
+        '''Cancel all open orders'''
+        self.delete('/orders')
+
     def list_positions(self):
         '''Get a list of open positions'''
         resp = self.get('/positions')

@@ -68,8 +68,8 @@ class StreamConn(object):
         if 'staging' in self._base_url:
             key_id += '-staging'
         self.polygon = polygon.StreamConn(key_id)
-        self.polygon._handlers = self._handlers
-        self.polygon._handler_symbols = self._handler_symbols
+        self.polygon._handlers = self._handlers.copy()
+        self.polygon._handler_symbols = self._handler_symbols.copy()
         await self.polygon.connect()
 
     async def _ensure_ws(self):

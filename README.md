@@ -120,6 +120,9 @@ Calls `GET /orders/{order_id}` and returns an `Order` entity.
 ### REST.cancel_order(order_id)
 Calls `DELETE /orders/{order_id}`.
 
+### REST.cancel_all_orders()
+Calls `DELETE /orders`.
+
 ### REST.list_positions()
 Calls `GET /positions` and returns a list of `Position` entities.
 

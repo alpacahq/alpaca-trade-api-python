@@ -150,7 +150,7 @@ class REST(object):
         return NewsList(self.get(path))
 
     def gainers_losers(self, direction="gainers"):
-        path = '/snapshot/locale/us/markets/stocks/{}'.format(direction) 
+        path = '/snapshot/locale/us/markets/stocks/{}'.format(direction)
         return [
             Ticker(ticker) for ticker in
             self.get(path, version='v2')['tickers']

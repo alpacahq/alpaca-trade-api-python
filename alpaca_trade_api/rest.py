@@ -234,6 +234,14 @@ class REST(object):
         resp = self.get('/positions/{}'.format(symbol))
         return Position(resp)
 
+    def close_position(self, symbol):
+        '''Liquidates the position for the given symbol at market price'''
+        self.delete('/positions/{}'.format(symbol))
+
+    def close_all_positions(self, symbol):
+        '''Liquidates all open positions at market price'''
+        self.delete('/positions')
+
     def list_assets(self, status=None, asset_class=None):
         '''Get a list of assets'''
         params = {

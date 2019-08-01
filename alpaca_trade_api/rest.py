@@ -238,7 +238,7 @@ class REST(object):
         '''Liquidates the position for the given symbol at market price'''
         self.delete('/positions/{}'.format(symbol))
 
-    def close_all_positions(self, symbol):
+    def close_all_positions(self):
         '''Liquidates all open positions at market price'''
         self.delete('/positions')
 

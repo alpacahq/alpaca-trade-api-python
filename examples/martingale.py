@@ -12,6 +12,8 @@ def truncate(val, decimal_places):
 # price are likely to break, and increases its bet each time it is wrong.
 class MartingaleTrader(object):
     def __init__(self):
+        # API authentication keys can be taken from the Alpaca dashboard.
+        # https://app.alpaca.markets/paper/dashboard/overview
         self.key_id = "REPLACE_ME"
         self.secret_key = "REPLACE_ME"
         self.base_url = 'https://paper-api.alpaca.markets'
@@ -72,10 +74,10 @@ class MartingaleTrader(object):
         # Listen for second aggregates and perform trading logic
         @conn.on(r'A$', [self.symbol])
         async def handle_agg(conn, channel, data):
-            self.tick_index += 1
-            if self.tick_index == self.tick_size - 1:
+            self.tick_index = (self.tick_index + 1) % (self.tick_size)
+            print(self.tick_index)
+            if self.tick_index == 0:
                 # It's time to update
-                self.tick_index = 0
 
                 # Update price info
                 tick_open = self.last_price

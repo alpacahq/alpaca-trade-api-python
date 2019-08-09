@@ -18,7 +18,11 @@ class StreamConn(object):
         self._base_url = base_url
         self._ws = None
         self.polygon = None
-        self.loop = asyncio.get_event_loop()
+        try:
+            self.loop = asyncio.get_event_loop()
+        except:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
 
     async def _connect(self):
         ws = await websockets.connect(self._endpoint)

@@ -246,7 +246,7 @@ class REST(object):
         '''Get a list of assets'''
         params = {
             'status': status,
-            'assert_class': asset_class,
+            'asset_class': asset_class,
         }
         resp = self.get('/assets', params)
         return [Asset(o) for o in resp]

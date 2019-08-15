@@ -9,3 +9,11 @@ This trading algorithm implements the long-short equity strategy.  This means th
 Some stocks cannot be shorted.  In this case, the algorithm uses the leftover equity from the stocks that could not be shorted and shorts the stocks have already been shorted.
 
 The algorithm uses percent change in stock price over the past 10 minutes to rank the stocks, where the stocks that rose the most are longed and the ones that sunk the most are shorted.e most are longed and the ones that sunk the most are shorted.
+
+## Simple Stream
+
+This shows a basic approach to opening a streaming connection for Polygon market data. Note that a funded Alpaca brokerage account is required, as otherwise you will not be authorized for Polygon access.
+
+## Martingale
+
+This trading algorithm explores a strategy based on a gambling technique. Trading every few seconds, it maintains a position in the $SPY symbol of a size determined by the number of up or down candles it's experienced in a row. For a more complete explanation, please see [this post](https://forum.alpaca.markets/t/martingale-day-trading-with-the-alpaca-trading-api/).

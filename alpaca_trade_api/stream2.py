@@ -19,6 +19,8 @@ class StreamConn(object):
         self._ws = None
         self.polygon = None
         self.loop = asyncio.get_event_loop()
+        self.initial_channels = []
+        self._reconnect_interval = 5 # seconds
 
     async def _connect(self):
         ws = await websockets.connect(self._endpoint)
@@ -57,9 +59,16 @@ class StreamConn(object):
                 stream = msg.get('stream')
                 if stream is not None:
                     await self._dispatch(stream, msg)
-        finally:
-            await ws.close()
-            self._ws = None
+        except (websockets.exceptions.ConnectionClosed, websockets.exceptions.ConnectionClosedError):
+            while True:
+                try:
+                    logging.warning('stream disconnected, attempting to reconnect...')
+                    self._ws = None
+                    await self.subscribe(self.initial_channels)
+                    break
+                except:
+                    await asyncio.sleep(self._reconnect_interval)
+            logging.info('reconnect successful to channels %s.' % (self.initial_channels))
 
     async def _ensure_polygon(self):
         if self.polygon is not None:
@@ -125,10 +134,11 @@ class StreamConn(object):
             await self.polygon.unsubscribe(polygon_channels)
 
     def run(self, initial_channels=[]):
-        '''Run forever and block until exception is rasised.
+        '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
         loop = self.loop
+        self.initial_channels = initial_channels
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
             loop.run_forever()

@@ -1,6 +1,8 @@
 import asyncio
 import json
+import os
 import re
+import time
 import websockets
 from .common import get_base_url, get_credentials
 from .entity import Account, Entity
@@ -16,7 +18,11 @@ class StreamConn(object):
         self._handlers = {}
         self._handler_symbols = {}
         self._base_url = base_url
+        self._streams = set([])
         self._ws = None
+        self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
+        self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
+        self._retries = 0
         self.polygon = None
         try:
             self.loop = asyncio.get_event_loop()
@@ -43,12 +49,13 @@ class StreamConn(object):
                 ("Invalid Alpaca API credentials, Failed to authenticate: {}"
                     .format(msg))
             )
+        else:
+            self._retries = 0
 
         self._ws = ws
         await self._dispatch('authorized', msg)
 
         asyncio.ensure_future(self._consume_msg())
-        return ws
 
     async def _consume_msg(self):
         ws = self._ws
@@ -61,9 +68,12 @@ class StreamConn(object):
                 stream = msg.get('stream')
                 if stream is not None:
                     await self._dispatch(stream, msg)
-        finally:
-            await ws.close()
-            self._ws = None
+        except websockets.exceptions.ConnectionClosed:
+            # Ignore, occurs on self.close() such as after KeyboardInterrupt
+            pass
+        except websockets.exceptions.ConnectionClosedError:
+            await self.close()
+            asyncio.ensure_future(self._ensure_ws())
 
     async def _ensure_polygon(self):
         if self.polygon is not None:
@@ -79,10 +89,22 @@ class StreamConn(object):
     async def _ensure_ws(self):
         if self._ws is not None:
             return
-        self._ws = await self._connect()
+
+        while self._retries <= self._retry:
+            try:
+                await self._connect()
+                if self._streams:
+                    await self.subscribe(self._streams)
+                break
+            except Exception as e:
+                self._ws = None
+                self._retries += 1
+                time.sleep(self._retry_wait * self._retry)
+        else:
+            raise ConnectionError("Max Retries Exceeded")
 
     async def subscribe(self, channels):
-        '''Start subscribing channels.
+        '''Start subscribing to channels.
         If the necessary connection isn't open yet, it opens now.
         '''
         ws_channels = []
@@ -94,6 +116,7 @@ class StreamConn(object):
                 ws_channels.append(c)
 
         if len(ws_channels) > 0:
+            self._streams |= set(ws_channels)
             await self._ensure_ws()
             await self._ws.send(json.dumps({
                 'action': 'listen',
@@ -129,7 +152,7 @@ class StreamConn(object):
             await self.polygon.unsubscribe(polygon_channels)
 
     def run(self, initial_channels=[]):
-        '''Run forever and block until exception is rasised.
+        '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
         loop = self.loop
@@ -146,8 +169,10 @@ class StreamConn(object):
         '''Close any of open connections'''
         if self._ws is not None:
             await self._ws.close()
+            self._ws = None
         if self.polygon is not None:
             await self.polygon.close()
+            self.polygon = None
 
     def _cast(self, channel, msg):
         if channel == 'account_updates':

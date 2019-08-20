@@ -2,7 +2,6 @@ import asyncio
 import json
 import os
 import re
-import time
 import websockets
 from .common import get_base_url, get_credentials
 from .entity import Account, Entity
@@ -99,7 +98,7 @@ class StreamConn(object):
             except Exception:
                 self._ws = None
                 self._retries += 1
-                time.sleep(self._retry_wait * self._retry)
+                await asyncio.sleep(self._retry_wait * self._retry)
         else:
             raise ConnectionError("Max Retries Exceeded")
 

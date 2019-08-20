@@ -26,7 +26,7 @@ class StreamConn(object):
         self.polygon = None
         try:
             self.loop = asyncio.get_event_loop()
-        except:
+        except Exception:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
@@ -96,7 +96,7 @@ class StreamConn(object):
                 if self._streams:
                     await self.subscribe(self._streams)
                 break
-            except Exception as e:
+            except Exception:
                 self._ws = None
                 self._retries += 1
                 time.sleep(self._retry_wait * self._retry)

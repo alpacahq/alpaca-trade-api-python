@@ -59,9 +59,11 @@ class REST(object):
         key_id=None,
         secret_key=None,
         base_url=None,
-        api_version=None
+        api_version=None,
+        oauth=None
     ):
-        self._key_id, self._secret_key = get_credentials(key_id, secret_key)
+        self._key_id, self._secret_key, self._oauth = get_credentials(
+            key_id, secret_key, oauth)
         self._base_url = base_url or get_base_url()
         self._api_version = get_api_version(api_version)
         self._session = requests.Session()
@@ -83,10 +85,12 @@ class REST(object):
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
         url = base_url + '/' + version + path
-        headers = {
-            'APCA-API-KEY-ID': self._key_id,
-            'APCA-API-SECRET-KEY': self._secret_key,
-        }
+        headers = {}
+        if self._oauth:
+            headers['Authorization'] = 'Bearer ' + self._oauth
+        else:
+            headers['APCA-API-KEY-ID'] = self._key_id
+            headers['APCA-API-SECRET-KEY'] = self._secret_key
         opts = {
             'headers': headers,
             # Since we allow users to set endpoint URL via env var,

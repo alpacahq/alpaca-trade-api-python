@@ -9,7 +9,7 @@ class StreamConn(object):
     '''Deprecated. Use stream2.StreamConn'''
 
     def __init__(self, key_id=None, secret_key=None, base_url=None):
-        self._key_id, self._secret_key = get_credentials(key_id, secret_key)
+        self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         base_url = re.sub(r'^http', 'ws', base_url or get_base_url())
         self._endpoint = base_url + '/stream'
         self._handlers = {}

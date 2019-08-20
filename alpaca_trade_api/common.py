@@ -12,7 +12,7 @@ def get_data_url():
 
 
 def get_credentials(key_id=None, secret_key=None, oauth=None):
-    oauth = oauth or os.environ.get('APCA_API_OAUTH')
+    oauth = oauth or os.environ.get('APCA_API_OAUTH_TOKEN')
 
     key_id = key_id or os.environ.get('APCA_API_KEY_ID')
     if key_id is None and oauth is None:

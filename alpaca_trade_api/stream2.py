@@ -67,7 +67,7 @@ class StreamConn(object):
                 stream = msg.get('stream')
                 if stream is not None:
                     await self._dispatch(stream, msg)
-        except:
+        except Exception:
             await self.close()
             asyncio.ensure_future(self._ensure_ws())
 

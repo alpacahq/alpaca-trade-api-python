@@ -88,10 +88,7 @@ class StreamConn(object):
                 msg = json.loads(r)
                 for update in msg:
                     yield update
-        except websockets.exceptions.ConnectionClosed:
-            # Ignore, occurs on self.close() such as after KeyboardInterrupt
-            pass
-        except websockets.exceptions.ConnectionClosedError as e:
+        except Exception as e:
             await self._dispatch({'ev': 'status',
                                   'status': 'disconnected',
                                   'message':

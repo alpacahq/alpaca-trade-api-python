@@ -67,10 +67,7 @@ class StreamConn(object):
                 stream = msg.get('stream')
                 if stream is not None:
                     await self._dispatch(stream, msg)
-        except websockets.exceptions.ConnectionClosed:
-            # Ignore, occurs on self.close() such as after KeyboardInterrupt
-            pass
-        except websockets.exceptions.ConnectionClosedError:
+        except:
             await self.close()
             asyncio.ensure_future(self._ensure_ws())
 

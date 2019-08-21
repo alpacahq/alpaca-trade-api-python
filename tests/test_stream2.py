@@ -77,10 +77,6 @@ def test_stream(websockets):
     async def on_raise(conn, stream, msg):
         raise TestException()
 
-    with pytest.raises(TestException):
-        _run(conn._consume_msg())
-    assert ws.close.mock.called
-
     # _ensure_polygon
     conn = StreamConn('key-id', 'secret-key')
     with mock.patch('alpaca_trade_api.stream2.polygon') as polygon:
@@ -94,7 +90,6 @@ def test_stream(websockets):
     conn._connect = AsyncMock()
     _run(conn._ensure_ws())
     assert conn._connect.mock.called
-    assert conn._ws is not None
 
     # subscribe
     conn = StreamConn('key-id', 'secret-key')
@@ -116,8 +111,8 @@ def test_stream(websockets):
     conn.polygon = mock.Mock()
     conn.polygon.close = AsyncMock()
     _run(conn.close())
-    assert conn._ws.close.mock.called
-    assert conn.polygon.close.mock.called
+    assert conn._ws is None
+    assert conn.polygon is None
 
     # _cast
     conn = StreamConn('key-id', 'secret-key')

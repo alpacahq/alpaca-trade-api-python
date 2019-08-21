@@ -88,10 +88,7 @@ class StreamConn(object):
                 msg = json.loads(r)
                 for update in msg:
                     yield update
-        except websockets.exceptions.ConnectionClosed:
-            # Ignore, occurs on self.close() such as after KeyboardInterrupt
-            pass
-        except websockets.exceptions.ConnectionClosedError as e:
+        except Exception as e:
             await self._dispatch({'ev': 'status',
                                   'status': 'disconnected',
                                   'message':
@@ -121,13 +118,12 @@ class StreamConn(object):
                 await self.connect()
                 if self._streams:
                     await self.subscribe(self._streams)
-
                 break
-            except (ConnectionRefusedError, ConnectionError) as e:
+            except Exception as e:
                 await self._dispatch({'ev': 'status',
                                       'status': 'connect failed',
                                       'message':
-                                      f'Connection Failed ({e})'})
+                                      f'Polygon Connection Failed ({e})'})
                 self._ws = None
                 self._retries += 1
                 time.sleep(self._retry_wait * self._retry)

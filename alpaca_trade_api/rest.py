@@ -150,6 +150,9 @@ class REST(object):
 
     def post(self, path, data=None):
         return self._request('POST', path, data)
+    
+    def patch(self, path, data=None):
+        return self._request('PATCH', path, data)
 
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
@@ -163,6 +166,25 @@ class REST(object):
     def get_account(self):
         '''Get the account'''
         resp = self.get('/account')
+        return Account(resp)
+
+    def get_account_configs(self):
+        '''Get account configs'''
+        resp = self.get('/account/configurations')
+        return Account(resp)
+    
+    def edit_account_configs(self, no_shorting=None, dtbp_check=None, trade_confirm_email=None, suspend_trade=None):
+        '''Edit account configs'''
+        params = {}
+        if no_shorting is not None:
+            params['no_shorting'] = no_shorting
+        if dtbp_check is not None:
+            params['dtbp_check'] = dtbp_check
+        if trade_confirm_email is not None:
+            params['trade_confirm_email'] = trade_confirm_email
+        if suspend_trade is not None:
+            params['suspend_trade'] = suspend_trade
+        resp = self.patch('/account/configurations',params)
         return Account(resp)
 
     def list_orders(self, status=None, limit=None, after=None, until=None,
@@ -218,6 +240,21 @@ class REST(object):
     def get_order(self, order_id):
         '''Get an order'''
         resp = self.get('/orders/{}'.format(order_id))
+        return Order(resp)
+
+    def replace_order(self, order_id, qty=None, limit_price=None, stop_price=None, time_in_force=None, client_order_id=None):
+        params = {}
+        if qty is not None:
+            params['qty'] = qty
+        if limit_price is not None:
+            params['limit_price'] = limit_price
+        if stop_price is not None:
+            params['stop_price'] = stop_price
+        if time_in_force is not None:
+            params['time_in_force'] = time_in_force
+        if client_order_id is not None:
+            params['client_order_id'] = client_order_id
+        resp = self.patch('/orders/{}'.format(order_id), params)
         return Order(resp)
 
     def cancel_order(self, order_id):

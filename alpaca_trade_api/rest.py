@@ -168,13 +168,13 @@ class REST(object):
         resp = self.get('/account')
         return Account(resp)
 
-    def get_account_configs(self):
+    def get_account_configurations(self):
         '''Get account configs'''
         resp = self.get('/account/configurations')
         return Account(resp)
     
-    def edit_account_configs(self, no_shorting=None, dtbp_check=None, trade_confirm_email=None, suspend_trade=None):
-        '''Edit account configs'''
+    def update_account_configurations(self, no_shorting=None, dtbp_check=None, trade_confirm_email=None, suspend_trade=None):
+        '''Update account configs'''
         params = {}
         if no_shorting is not None:
             params['no_shorting'] = no_shorting

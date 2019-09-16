@@ -10,8 +10,8 @@ from .common import (
     get_api_version,
 )
 from .entity import (
-    Account, Asset, Order, Position,
-    BarSet, Clock, Calendar,
+    Account, AccountConfigurations, Asset,
+    Order, Position, BarSet, Clock, Calendar,
 )
 from . import polygon
 
@@ -150,7 +150,7 @@ class REST(object):
 
     def post(self, path, data=None):
         return self._request('POST', path, data)
-    
+
     def patch(self, path, data=None):
         return self._request('PATCH', path, data)
 
@@ -171,9 +171,15 @@ class REST(object):
     def get_account_configurations(self):
         '''Get account configs'''
         resp = self.get('/account/configurations')
-        return Account(resp)
-    
-    def update_account_configurations(self, no_shorting=None, dtbp_check=None, trade_confirm_email=None, suspend_trade=None):
+        return AccountConfigurations(resp)
+
+    def update_account_configurations(
+        self,
+        no_shorting=None,
+        dtbp_check=None,
+        trade_confirm_email=None,
+        suspend_trade=None
+    ):
         '''Update account configs'''
         params = {}
         if no_shorting is not None:
@@ -184,8 +190,8 @@ class REST(object):
             params['trade_confirm_email'] = trade_confirm_email
         if suspend_trade is not None:
             params['suspend_trade'] = suspend_trade
-        resp = self.patch('/account/configurations',params)
-        return Account(resp)
+        resp = self.patch('/account/configurations', params)
+        return AccountConfigurations(resp)
 
     def list_orders(self, status=None, limit=None, after=None, until=None,
                     direction=None, params=None):
@@ -242,7 +248,15 @@ class REST(object):
         resp = self.get('/orders/{}'.format(order_id))
         return Order(resp)
 
-    def replace_order(self, order_id, qty=None, limit_price=None, stop_price=None, time_in_force=None, client_order_id=None):
+    def replace_order(
+        self,
+        order_id,
+        qty=None,
+        limit_price=None,
+        stop_price=None,
+        time_in_force=None,
+        client_order_id=None
+    ):
         params = {}
         if qty is not None:
             params['qty'] = qty

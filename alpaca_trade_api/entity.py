@@ -39,6 +39,10 @@ class Account(Entity):
     pass
 
 
+class AccountConfigurations(Entity):
+    pass
+
+
 class Asset(Entity):
     pass
 

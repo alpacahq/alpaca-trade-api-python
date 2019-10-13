@@ -6,6 +6,7 @@ from .entity import (
     Exchange, SymbolTypeMap, ConditionMap,
     Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker
 )
+from ..entity import Bar
 from alpaca_trade_api.common import get_polygon_credentials
 
 
@@ -106,6 +107,11 @@ class REST(object):
         raw = self.get(path)
         # TODO status check
         return Quote(raw['last'])
+    
+    def previous_day_bar(self, symbol):
+        path = '/aggs/ticker/{}/prev'.format(symbol)
+        raw = self.get(path, version='v2')['results'][0]
+        return Bar(raw)
 
     def condition_map(self, ticktype='trades'):
         path = '/meta/conditions/{}'.format(ticktype)

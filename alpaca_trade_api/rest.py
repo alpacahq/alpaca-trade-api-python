@@ -10,8 +10,8 @@ from .common import (
     get_api_version,
 )
 from .entity import (
-    Account, AccountConfigurations, Asset,
-    Order, Position, BarSet, Clock, Calendar,
+    Account, AccountConfigurations, AccountActivity,
+    Asset, Order, Position, BarSet, Clock, Calendar,
 )
 from . import polygon
 
@@ -345,6 +345,30 @@ class REST(object):
     def get_clock(self):
         resp = self.get('/clock')
         return Clock(resp)
+
+    def get_activities(
+        self,
+        activity_type=None,
+        until=None,
+        after=None,
+        direction=None,
+        date=None,
+        page_size=None,
+    ):
+        url = '/account/activities/{}'.format(activity_type)
+        params = {}
+        if after is not None:
+            params['after'] = after
+        if until is not None:
+            params['until'] = until
+        if direction is not None:
+            params['direction'] = direction
+        if date is not None:
+            params['date'] = date
+        if page_size is not None:
+            params['page_size'] = page_size
+        resp = self.get(url, data=params)
+        return [AccountActivity(o) for o in resp]
 
     def get_calendar(self, start=None, end=None):
         params = {}

@@ -348,15 +348,19 @@ class REST(object):
 
     def get_activities(
         self,
-        activity_type=None,
+        activity_types=None,
         until=None,
         after=None,
         direction=None,
         date=None,
         page_size=None,
     ):
-        url = '/account/activities/{}'.format(activity_type)
+        url = '/account/activities'
         params = {}
+        if isinstance(activity_types, list):
+            params['activity_types'] = ','.join(activity_types)
+        elif activity_types is not None:
+            url += '/{}'.format(activity_types)
         if after is not None:
             params['after'] = after
         if until is not None:

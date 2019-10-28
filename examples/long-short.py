@@ -1,4 +1,5 @@
 import alpaca_trade_api as tradeapi
+#why are we even import threading module? All the threading usage we start a thread and join them immediately
 import threading
 import time
 import datetime

@@ -309,7 +309,7 @@ class LongShort:
   def getPercentChanges(self):
     length = 10
     for i, stock in enumerate(self.allStocks):
-      bars = self.alpaca.get_barset(stock[0], 'minute', length)
+      bars = self.alpaca.get_barset(stock[0], 'day', length)
       self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]]) - 1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.

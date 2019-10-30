@@ -191,7 +191,7 @@ def run_live(api):
                 # Wait to buy
                 time_until_close = clock.next_close - clock.timestamp
                 # We'll buy our shares a couple minutes before market close.
-                if time_until_close.seconds <= 9120:
+                if time_until_close.seconds <= 120:
                     print('Buying positions...')
                     portfolio_cash = float(api.get_account().cash)
                     ratings = get_ratings(

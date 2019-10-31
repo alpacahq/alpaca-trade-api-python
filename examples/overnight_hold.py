@@ -240,7 +240,7 @@ def run_live(api):
 
 
 if __name__ == '__main__':
-    api = tradeapi.REST('PKLF4UR7WCI5U9D6QKTU', '0pEmERtAlypbsm/peYlFSacQljQs5AxuQt3yAeJE', 'https://paper-api.alpaca.markets')
+    api = tradeapi.REST()
 
     if len(sys.argv) < 2:
         print('Error: please specify a command; either "run" or "backtest".')

@@ -243,7 +243,7 @@ if __name__ == '__main__':
     api = tradeapi.REST()
 
     if len(sys.argv) < 2:
-        print('Error: please specify a command; either "run" or "backtest".')
+        print('Error: please specify a command; either "run" or "backtest <cash balance> <number of days to test>".')
     else:
         if sys.argv[1] == 'backtest':
             # Run a backtesting session using the provided parameters

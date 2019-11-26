@@ -1,8 +1,8 @@
 import requests
 from .entity import (
     Aggs, Aggsv2, Aggsv2Set,
-    Trade, Trades,
-    Quote, Quotes,
+    Trade, Trades, TradeV2, TradesV2,
+    Quote, Quotes, QuoteV2, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
     Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker
 )
@@ -52,6 +52,23 @@ class REST(object):
 
         return Trades(raw)
 
+    def historic_trades_v2(self, symbol, date, timestamp=None,
+                            timestamp_limit=None, reverse=None,
+                            limit=None):
+        path = '/ticks/stocks/trades/{}/{}'.format(symbol, date)
+        params = {}
+        if timestamp is not None:
+            params['timestamp'] = timestamp
+        if timestamp_limit is not None:
+            params['timestampLimit'] = timestamp_limit
+        if reverse is not None:
+            params['reverse'] = reverse
+        if limit is not None:
+            params['limit'] = limit
+        raw = self.get(path, params, 'v2')
+
+        return TradesV2(raw)
+
     def historic_quotes(self, symbol, date, offset=None, limit=None):
         path = '/historic/quotes/{}/{}'.format(symbol, date)
         params = {}
@@ -62,6 +79,23 @@ class REST(object):
         raw = self.get(path, params)
 
         return Quotes(raw)
+
+    def historic_quotes_v2(self, symbol, date, timestamp=None,
+                            timestamp_limit=None, reverse=None,
+                            limit=None):
+        path = '/ticks/stocks/nbbo/{}/{}'.format(symbol, date)
+        params = {}
+        if timestamp is not None:
+            params['timestamp'] = timestamp
+        if timestamp_limit is not None:
+            params['timestampLimit'] = timestamp_limit
+        if reverse is not None:
+            params['reverse'] = reverse
+        if limit is not None:
+            params['limit'] = limit
+        raw = self.get(path, params, 'v2')
+
+        return Trades(raw)
 
     def historic_agg(self, size, symbol,
                      _from=None, to=None, limit=None):

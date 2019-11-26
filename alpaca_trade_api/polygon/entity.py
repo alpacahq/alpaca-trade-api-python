@@ -207,6 +207,68 @@ class Quotes(_TradesOrQuotes, list):
     _unit = Quote
 
 
+class _TradeOrQuoteV2(object):
+    def __init__(self, raw):
+        self._raw = raw
+
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if key in ['t', 'y', 'f']:
+                return pd.Timestamp(val, tz=NY, unit='ns')
+            return val
+        return getattr(super(), key)
+
+
+class _TradesOrQuotesV2(object):
+    def __init__(self, raw):
+        unit_class = self.__class__._unit
+        super().__init__([
+            unit_class(result)
+            for result in raw['results']
+        ])
+        self._raw = raw
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            raw = self._raw
+            columns = self.__class__._columns
+            df = pd.DataFrame(
+                sorted(raw['results'], key=lambda d: d['t']),
+                columns=columns,
+            )
+            df.set_index('t', inplace=True)
+            df.index = pd.to_datetime(
+                df.index.astype('int64') * 1000000,
+                utc=True, unit='ns'
+            ).tz_convert(NY)
+
+            df.sort_index(inplace=True)
+            self._df = df
+
+        return self._df
+
+
+class TradeV2(_TradeOrQuoteV2, Entity):
+    pass
+
+
+class TradesV2(_TradesOrQuotesV2, list):
+    _columns = ('T', 't', 'y', 'f', 'q', 'i', 'x', 's', 'c', 'p', 'z')
+    _unit = TradeV2
+
+
+class QuoteV2(_TradeOrQuoteV2, Entity):
+    pass
+
+
+class QuotesV2(_TradesOrQuotesV2, list):
+    _columns = ('T', 't', 'y', 'f', 'q', 'c', 'i', 'p', 'x', 's', 'P', 'X',
+                'S', 'z')
+    _unit = QuoteV2
+
+
 class Exchange(Entity):
     pass
 

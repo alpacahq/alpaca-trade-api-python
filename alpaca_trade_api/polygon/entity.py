@@ -147,7 +147,9 @@ class _TradeOrQuote(object):
             val = self._raw[key]
             if key == 'timestamp':
                 return pd.Timestamp(val, tz=NY, unit='ms')
-            elif key in ['sip_timestamp', 'participant_timestamp', 'trf_timestamp']:
+            elif key in [
+                'sip_timestamp', 'participant_timestamp', 'trf_timestamp'
+            ]:
                 return pd.Timestamp(val, tz=NY, unit='ns')
             return val
         return getattr(super(), key)

@@ -57,9 +57,10 @@ class REST(object):
 
         return Trades(raw)
 
-    def historic_trades_v2(self, symbol, date, timestamp=None,
-                            timestamp_limit=None, reverse=None,
-                            limit=None):
+    def historic_trades_v2(
+        self, symbol, date, timestamp=None, timestamp_limit=None,
+        reverse=None, limit=None
+    ):
         path = '/ticks/stocks/trades/{}/{}'.format(symbol, date)
         params = {}
         if timestamp is not None:
@@ -89,9 +90,10 @@ class REST(object):
 
         return Quotes(raw)
 
-    def historic_quotes_v2(self, symbol, date, timestamp=None,
-                            timestamp_limit=None, reverse=None,
-                            limit=None):
+    def historic_quotes_v2(
+        self, symbol, date, timestamp=None, timestamp_limit=None,
+        reverse=None, limit=None
+    ):
         path = '/ticks/stocks/nbbo/{}/{}'.format(symbol, date)
         params = {}
         if timestamp is not None:

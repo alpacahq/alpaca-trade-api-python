@@ -31,6 +31,7 @@ setup(
         'urllib3<1.25',
         'websocket-client',
         'websockets>=8.0',
+        'deprecated',
     ],
     tests_require=[
         'pytest',
@@ -39,6 +40,7 @@ setup(
         'coverage>=4.4.1',
         'mock>=1.0.1',
         'flake8',
+        'deprecated',
     ],
     setup_requires=['pytest-runner', 'flake8'],
 )

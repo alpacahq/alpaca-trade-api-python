@@ -1,12 +1,13 @@
 import requests
 from .entity import (
     Aggs, Aggsv2, Aggsv2Set,
-    Trade, Trades, TradeV2, TradesV2,
-    Quote, Quotes, QuoteV2, QuotesV2,
+    Trade, Trades, TradesV2,
+    Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
     Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker
 )
 from alpaca_trade_api.common import get_polygon_credentials
+from deprecated import deprecated
 
 
 def _is_list_like(o):
@@ -41,6 +42,10 @@ class REST(object):
         path = '/meta/symbol-types'
         return SymbolTypeMap(self.get(path))
 
+    @deprecated(
+        'historic_trades v1 is deprecated and will be removed from the ' +
+        'Polygon API in the future. Please upgrade to historic_trades_v2.'
+    )
     def historic_trades(self, symbol, date, offset=None, limit=None):
         path = '/historic/trades/{}/{}'.format(symbol, date)
         params = {}
@@ -69,6 +74,10 @@ class REST(object):
 
         return TradesV2(raw)
 
+    @deprecated(
+        'historic_quotes v1 is deprecated and will be removed from the ' +
+        'Polygon API in the future. Please upgrade to historic_quotes_v2.'
+    )
     def historic_quotes(self, symbol, date, offset=None, limit=None):
         path = '/historic/quotes/{}/{}'.format(symbol, date)
         params = {}
@@ -95,7 +104,7 @@ class REST(object):
             params['limit'] = limit
         raw = self.get(path, params, 'v2')
 
-        return Trades(raw)
+        return QuotesV2(raw)
 
     def historic_agg(self, size, symbol,
                      _from=None, to=None, limit=None):

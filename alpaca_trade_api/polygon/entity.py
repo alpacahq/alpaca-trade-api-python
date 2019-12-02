@@ -147,6 +147,8 @@ class _TradeOrQuote(object):
             val = self._raw[key]
             if key == 'timestamp':
                 return pd.Timestamp(val, tz=NY, unit='ms')
+            elif key in ['sip_timestamp', 'participant_timestamp', 'trf_timestamp']:
+                return pd.Timestamp(val, tz=NY, unit='ns')
             return val
         return getattr(super(), key)
 
@@ -156,14 +158,24 @@ class _TradesOrQuotes(object):
 
     def __init__(self, raw):
         def rename_keys(tick, map):
+            if type(map['t']) is dict:
+                # Must be a v2 response
+                return {
+                    map[k]['name']: v for k, v in tick.items()
+                }
             return {
                 map[k]: v for k, v in tick.items()
             }
 
         unit_class = self.__class__._unit
+        results = {}
+        if 'ticks' in raw:
+            results = raw['ticks']
+        else:
+            results = raw['results']
         super().__init__([
-            unit_class(rename_keys(tick, raw['map']))
-            for tick in raw['ticks']
+            unit_class(rename_keys(result, raw['map']))
+            for result in results
         ])
         self._raw = raw
 
@@ -172,16 +184,32 @@ class _TradesOrQuotes(object):
         if not hasattr(self, '_df'):
             raw = self._raw
             columns = self.__class__._columns
+            results = {}
+            if 'ticks' in raw:
+                results = raw['ticks']
+            else:
+                results = raw['results']
             df = pd.DataFrame(
-                sorted(raw['ticks'], key=lambda d: d['t']),
+                sorted(results, key=lambda d: d['t']),
                 columns=columns,
             )
-            df.columns = [raw['map'][c] for c in df.columns]
-            df.set_index('timestamp', inplace=True)
-            df.index = pd.to_datetime(
-                df.index.astype('int64') * 1000000,
-                utc=True,
-            ).tz_convert(NY)
+            if type(raw['map']['t']) is dict:
+                # Must be v2 response
+                df.columns = [raw['map'][c]['name'] for c in df.columns]
+                df.set_index('sip_timestamp', inplace=True)
+                df.index = pd.to_datetime(
+                    df.index.astype('int64'),
+                    utc=True,
+                    unit='ns',
+                ).tz_convert(NY)
+            else:
+                df.columns = [raw['map'][c] for c in df.columns]
+                df.set_index('timestamp', inplace=True)
+                df.index = pd.to_datetime(
+                    df.index.astype('int64'),
+                    utc=True,
+                    unit='ms',
+                ).tz_convert(NY)
 
             df.sort_index(inplace=True)
             self._df = df
@@ -198,6 +226,11 @@ class Trades(_TradesOrQuotes, list):
     _unit = Trade
 
 
+class TradesV2(_TradesOrQuotes, list):
+    _columns = ('t', 'y', 'f', 'q', 'i', 'x', 's', 'c', 'p', 'z')
+    _unit = Trade
+
+
 class Quote(_TradeOrQuote, Entity):
     pass
 
@@ -207,66 +240,10 @@ class Quotes(_TradesOrQuotes, list):
     _unit = Quote
 
 
-class _TradeOrQuoteV2(object):
-    def __init__(self, raw):
-        self._raw = raw
-
-    def __getattr__(self, key):
-        if key in self._raw:
-            val = self._raw[key]
-            if key in ['t', 'y', 'f']:
-                return pd.Timestamp(val, tz=NY, unit='ns')
-            return val
-        return getattr(super(), key)
-
-
-class _TradesOrQuotesV2(object):
-    def __init__(self, raw):
-        unit_class = self.__class__._unit
-        super().__init__([
-            unit_class(result)
-            for result in raw['results']
-        ])
-        self._raw = raw
-
-    @property
-    def df(self):
-        if not hasattr(self, '_df'):
-            raw = self._raw
-            columns = self.__class__._columns
-            df = pd.DataFrame(
-                sorted(raw['results'], key=lambda d: d['t']),
-                columns=columns,
-            )
-            df.set_index('t', inplace=True)
-            df.index = pd.to_datetime(
-                df.index.astype('int64') * 1000000,
-                utc=True, unit='ns'
-            ).tz_convert(NY)
-
-            df.sort_index(inplace=True)
-            self._df = df
-
-        return self._df
-
-
-class TradeV2(_TradeOrQuoteV2, Entity):
-    pass
-
-
-class TradesV2(_TradesOrQuotesV2, list):
-    _columns = ('T', 't', 'y', 'f', 'q', 'i', 'x', 's', 'c', 'p', 'z')
-    _unit = TradeV2
-
-
-class QuoteV2(_TradeOrQuoteV2, Entity):
-    pass
-
-
-class QuotesV2(_TradesOrQuotesV2, list):
-    _columns = ('T', 't', 'y', 'f', 'q', 'c', 'i', 'p', 'x', 's', 'P', 'X',
+class QuotesV2(_TradesOrQuotes, list):
+    _columns = ('t', 'y', 'f', 'q', 'c', 'i', 'p', 'x', 's', 'P', 'X',
                 'S', 'z')
-    _unit = QuoteV2
+    _unit = Quote
 
 
 class Exchange(Entity):

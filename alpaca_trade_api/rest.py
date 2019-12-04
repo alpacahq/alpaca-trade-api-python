@@ -216,7 +216,8 @@ class REST(object):
 
     def submit_order(self, symbol, qty, side, type, time_in_force,
                      limit_price=None, stop_price=None, client_order_id=None,
-                     extended_hours=None):
+                     extended_hours=None, order_class=None,
+                     order_attributes=None):
         '''Request a new order'''
         params = {
             'symbol': symbol,
@@ -233,8 +234,37 @@ class REST(object):
             params['client_order_id'] = client_order_id
         if extended_hours is not None:
             params['extended_hours'] = extended_hours
+        if order_class is not None:
+            params['class'] = order_class
+        if order_attributes is not None:
+            params['order_attributes'] = order_attributes
         resp = self.post('/orders', params)
         return Order(resp)
+
+    def submit_advanced_order(
+        self, symbol, qty, side, type, time_in_force, order_class,
+        take_profit_limit_price = None, stop_loss_stop_price = None,
+        stop_loss_limit_price=None, limit_price=None,
+        stop_price=None, client_order_id=None
+    ):
+        order_attributes = {
+            'take_profit_limit_price': take_profit_limit_price,
+            'stop_loss_stop_price': stop_loss_stop_price,
+        }
+        if take_profit_limit_price is not None:
+            order_attributes[
+                'take_profit_limit_price'] = take_profit_limit_price
+        if stop_loss_stop_price is not None:
+            order_attributes[
+                'stop_loss_stop_price'] = stop_loss_stop_price
+        if stop_loss_limit_price is not None:
+            order_attributes[
+                'stop_loss_limit_price'] = stop_loss_limit_price
+
+        return submit_order(
+            symbol, qty, side, type, time_in_force, limit_price, stop_price,
+            client_order_id, false, order_attributes
+        )
 
     def get_order_by_client_order_id(self, client_order_id):
         '''Get an order by client order id'''

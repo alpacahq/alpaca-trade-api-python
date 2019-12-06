@@ -307,7 +307,7 @@ The returned entities have fields relabeled with the longer name instead of shor
 For example, the `o` field is renamed to `open`.
 
 ### polygon/Aggs.df
-Returns a pandas DataFrame object with the ticks returned by the `hitoric_agg`.
+Returns a pandas DataFrame object with the ticks returned by `hitoric_agg_v2`.
 
 ### poylgon/REST.last_trade(symbol)
 Returns a `Trade` entity representing the last trade for the symbol.

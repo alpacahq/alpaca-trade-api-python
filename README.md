@@ -253,7 +253,7 @@ The example below gives AAPL daily OHLCV data in a DataFrame format.
 import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST()
-aapl = api.polygon.historic_agg('day', 'AAPL', limit=1000).df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, day, from='2019-01-01', to='2019-02-01').df
 ```
 
 ## polygon/REST
@@ -265,32 +265,38 @@ Returns a list of `Exchange` entity.
 ### polygon/REST.symbol_type_map()
 Returns a `SymbolTypeMap` object.
 
-### polygon/REST.historic_trades(symbol, date, offset=None, limit=None)
-Returns a `Trades` which is a list of `Trade` entities.
+### polygon/REST.historic_trades_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
+Returns a `TradesV2` which is a list of `Trade` entities.
 
 - `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
-- `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
-- `limit` is an integer for the number of ticks to return.  Default and max is 30000.
+- `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
+- `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
+- `limit` is an integer for the number of ticks to return.  Default and max is 50000.
 
-### polygon/Trades.df
-Returns a pandas DataFrame object with the ticks returned by the `historic_trades`.
+### polygon/TradesV2.df
+Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2`.
 
-### polygon/REST.historic_quotes(symbol, date, offset=None, limit=None)
-Returns a `Quotes` which is a list of `Quote` entities.
+### polygon/REST.historic_quotes_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
+Returns a `QuotesV2` which is a list of `Quote` entities.
 
-- `date` is a date string such as '2018-2-2'. The returned quotes are from this day only.
-- `offset` is an integer in Unix Epoch millisecond as the lower bound filter, inclusive.
-- `limit` is an integer for the number of ticks to return.  Default and max is 30000.
+- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
+- `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
+- `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
+- `limit` is an integer for the number of ticks to return.  Default and max is 50000.
 
-### polygon/Quotes.df
-Returns a pandas DataFrame object with the ticks returned by the `historic_quotes`.
+### polygon/QuotesV2.df
+Returns a pandas DataFrame object with the ticks returned by the `historic_quotes_v2`.
 
-### polygon/REST.historic_agg(size, symbol, _from=None, to=None, limit=None)
-Returns an `Aggs` which is a list of `Agg` entities. `Aggs.df` gives you the DataFrame
+### polygon/REST.historic_agg_v2(self, symbol, multiplier, timespan, _from, to, unadjusted=False, limit=None)
+Returns an `AggsV2` which is a list of `Agg` entities. `AggsV2.df` gives you the DataFrame
 object.
 
+- `multiplier` is an integer affecting the amount of data contained in each Agg object.
+- `timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values:
+  - `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`
 - `_from` is an Eastern Time timestamp string that filters the result for the lower bound, inclusive.
 - `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive.
+- `unadjusted` can be set to true if results should not be adjusted for splits.
 - `limit` is an integer to limit the number of results.  3000 is the default and max value.
 
 Specify the `_from` parameter if you specify the `to` parameter since when `to` is

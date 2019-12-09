@@ -263,7 +263,7 @@ class REST(object):
 
         return self.submit_order(
             symbol, qty, side, type, time_in_force, limit_price, stop_price,
-            client_order_id, False, order_attributes
+            client_order_id, False, order_class, order_attributes
         )
 
     def get_order_by_client_order_id(self, client_order_id):

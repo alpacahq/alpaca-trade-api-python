@@ -235,7 +235,7 @@ class REST(object):
         if extended_hours is not None:
             params['extended_hours'] = extended_hours
         if order_class is not None:
-            params['class'] = order_class
+            params['order_class'] = order_class
         if order_attributes is not None:
             params['order_attributes'] = order_attributes
         resp = self.post('/orders', params)

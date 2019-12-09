@@ -243,7 +243,7 @@ class REST(object):
 
     def submit_advanced_order(
         self, symbol, qty, side, type, time_in_force, order_class,
-        take_profit_limit_price = None, stop_loss_stop_price = None,
+        take_profit_limit_price=None, stop_loss_stop_price=None,
         stop_loss_limit_price=None, limit_price=None,
         stop_price=None, client_order_id=None
     ):
@@ -261,9 +261,9 @@ class REST(object):
             order_attributes[
                 'stop_loss_limit_price'] = stop_loss_limit_price
 
-        return submit_order(
+        return self.submit_order(
             symbol, qty, side, type, time_in_force, limit_price, stop_price,
-            client_order_id, false, order_attributes
+            client_order_id, False, order_attributes
         )
 
     def get_order_by_client_order_id(self, client_order_id):

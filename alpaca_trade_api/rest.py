@@ -194,7 +194,7 @@ class REST(object):
         return AccountConfigurations(resp)
 
     def list_orders(self, status=None, limit=None, after=None, until=None,
-                    direction=None, params=None):
+                    direction=None, params=None, nested=None):
         '''
         Get a list of orders
         https://docs.alpaca.markets/web-api/orders/#get-a-list-of-orders
@@ -211,7 +211,10 @@ class REST(object):
             params['direction'] = direction
         if status is not None:
             params['status'] = status
-        resp = self.get('/orders', params)
+        url = '/orders'
+        if nested:
+            url += '?nested=true'
+        resp = self.get(url, params)
         return [Order(o) for o in resp]
 
     def submit_order(self, symbol, qty, side, type, time_in_force,

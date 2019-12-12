@@ -58,7 +58,7 @@ class REST(object):
         self,
         key_id=None,
         secret_key=None,
-        base_url=None,
+        base_url='https://paper-api.alpaca.markets',
         api_version=None,
         oauth=None
     ):

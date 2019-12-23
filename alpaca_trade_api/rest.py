@@ -354,6 +354,7 @@ class REST(object):
         direction=None,
         date=None,
         page_size=None,
+        page_token=None
     ):
         url = '/account/activities'
         params = {}
@@ -371,6 +372,8 @@ class REST(object):
             params['date'] = date
         if page_size is not None:
             params['page_size'] = page_size
+        if page_token is not None:
+            params['page_token'] = page_token
         resp = self.get(url, data=params)
         return [AccountActivity(o) for o in resp]
 

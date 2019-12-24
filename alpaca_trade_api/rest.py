@@ -211,16 +211,16 @@ class REST(object):
             params['direction'] = direction
         if status is not None:
             params['status'] = status
+        if nested is not None:
+            params['nested'] = nested
         url = '/orders'
-        if nested:
-            url += '?nested=true'
         resp = self.get(url, params)
         return [Order(o) for o in resp]
 
     def submit_order(self, symbol, qty, side, type, time_in_force,
                      limit_price=None, stop_price=None, client_order_id=None,
                      extended_hours=None, order_class=None,
-                     order_attributes=None):
+                     take_profit=None, stop_loss=None):
         '''Request a new order'''
         params = {
             'symbol': symbol,
@@ -239,46 +239,29 @@ class REST(object):
             params['extended_hours'] = extended_hours
         if order_class is not None:
             params['order_class'] = order_class
-        if order_attributes is not None:
-            params['order_attributes'] = order_attributes
+        if take_profit is not None:
+            params['take_profit'] = take_profit
+        if stop_loss is not None:
+            params['stop_loss'] = stop_loss
         resp = self.post('/orders', params)
         return Order(resp)
 
-    def submit_advanced_order(
-        self, symbol, qty, side, type, time_in_force, order_class,
-        take_profit_limit_price=None, stop_loss_stop_price=None,
-        stop_loss_limit_price=None, limit_price=None,
-        stop_price=None, client_order_id=None
-    ):
-        order_attributes = {
-            'take_profit_limit_price': take_profit_limit_price,
-            'stop_loss_stop_price': stop_loss_stop_price,
-        }
-        if take_profit_limit_price is not None:
-            order_attributes[
-                'take_profit_limit_price'] = take_profit_limit_price
-        if stop_loss_stop_price is not None:
-            order_attributes[
-                'stop_loss_stop_price'] = stop_loss_stop_price
-        if stop_loss_limit_price is not None:
-            order_attributes[
-                'stop_loss_limit_price'] = stop_loss_limit_price
-
-        return self.submit_order(
-            symbol, qty, side, type, time_in_force, limit_price, stop_price,
-            client_order_id, False, order_class, order_attributes
-        )
-
-    def get_order_by_client_order_id(self, client_order_id):
+    def get_order_by_client_order_id(self, client_order_id, nested=None):
         '''Get an order by client order id'''
-        resp = self.get('/orders:by_client_order_id', {
+        params = {
             'client_order_id': client_order_id,
-        })
+        }
+        if nested is not None:
+            params['nested'] = nested
+        resp = self.get('/orders:by_client_order_id', params)
         return Order(resp)
 
-    def get_order(self, order_id):
+    def get_order(self, order_id, nested=None):
         '''Get an order'''
-        resp = self.get('/orders/{}'.format(order_id))
+        params = {}
+        if nested is not None:
+            params['nested'] = nested
+        resp = self.get('/orders/{}'.format(order_id), params)
         return Order(resp)
 
     def replace_order(

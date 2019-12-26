@@ -129,10 +129,10 @@ api.submit_order(
 )
 ```
 
-### REST.get_order_by_client_order_id(client_order_id, nested=None)
+### REST.get_order_by_client_order_id(client_order_id)
 Calls `GET /orders` with client_order_id and returns an `Order` entity.
 
-### REST.get_order(order_id, nested=None)
+### REST.get_order(order_id)
 Calls `GET /orders/{order_id}` and returns an `Order` entity.
 
 ### REST.cancel_order(order_id)

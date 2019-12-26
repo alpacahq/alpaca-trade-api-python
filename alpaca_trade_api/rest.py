@@ -246,21 +246,17 @@ class REST(object):
         resp = self.post('/orders', params)
         return Order(resp)
 
-    def get_order_by_client_order_id(self, client_order_id, nested=None):
+    def get_order_by_client_order_id(self, client_order_id):
         '''Get an order by client order id'''
         params = {
             'client_order_id': client_order_id,
         }
-        if nested is not None:
-            params['nested'] = nested
         resp = self.get('/orders:by_client_order_id', params)
         return Order(resp)
 
-    def get_order(self, order_id, nested=None):
+    def get_order(self, order_id):
         '''Get an order'''
         params = {}
-        if nested is not None:
-            params['nested'] = nested
         resp = self.get('/orders/{}'.format(order_id), params)
         return Order(resp)
 

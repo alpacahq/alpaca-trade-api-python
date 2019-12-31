@@ -7,6 +7,10 @@ import time
 from datetime import datetime, timedelta
 from pytz import timezone
 
+API_KEY = "YOUR_API_KEY_HERE"
+API_SECRET = "YOUR_API_SECRET_HERE"
+APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
+
 stocks_to_hold = 150 # Max 200
 
 # Only stocks with prices in this range will be considered.
@@ -240,7 +244,7 @@ def run_live(api):
 
 
 if __name__ == '__main__':
-    api = tradeapi.REST()
+    api = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
 
     if len(sys.argv) < 2:
         print('Error: please specify a command; either "run" or "backtest <cash balance> <number of days to test>".')

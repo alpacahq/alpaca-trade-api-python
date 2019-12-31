@@ -16,6 +16,9 @@ from alpaca_trade_api import StreamConn
 # For some fun colors...
 from colorama import Fore, Style, init as ColoramaInit
 
+API_KEY = "YOUR_API_KEY_HERE"
+API_SECRET = "YOUR_API_SECRET_HERE"
+APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 ColoramaInit(autoreset=True)
 
@@ -115,7 +118,7 @@ if __name__ == '__main__':
 
     opt = parser.parse_args()
 
-    conn = StreamConn()
+    conn = StreamConn(API_KEY, API_SECRET, APCA_API_BASE_URL)
 
     # This is another way to setup wrappers for websocket callbacks, handy if conn is not global.
     on_minute = conn.on(r'AM$')(on_minute)

@@ -32,6 +32,7 @@ setup(
         'websocket-client',
         'websockets>=8.0',
         'deprecated',
+        'alpha_vantage',
     ],
     tests_require=[
         'pytest',

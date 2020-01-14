@@ -1,0 +1,30 @@
+{
+    "Meta Data": {
+        "1. Information": "Forex Daily Prices (open, high, low, close)",
+        "2. From Symbol": "EUR",
+        "3. To Symbol": "USD",
+        "4. Output Size": "Compact",
+        "5. Last Refreshed": "2020-01-14 18:15:00",
+        "6. Time Zone": "UTC"
+    },
+    "Time Series FX (Daily)": {
+        "2020-01-14": {
+            "1. open": "1.1134",
+            "2. high": "1.1145",
+            "3. low": "1.1103",
+            "4. close": "1.1131"
+        },
+        "2020-01-13": {
+            "1. open": "1.1117",
+            "2. high": "1.1147",
+            "3. low": "1.1111",
+            "4. close": "1.1135"
+        },
+        "2020-01-12": {
+            "1. open": "1.1118",
+            "2. high": "1.1122",
+            "3. low": "1.1111",
+            "4. close": "1.1117"
+        }
+}
+}

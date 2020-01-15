@@ -409,7 +409,7 @@ class REST(object):
             params['name'] = name
         if symbols is not None:
             params['symbols'] = symbols
-        resp = self.patch('/watchlist/{}'.format(watchlist_id), data=params)
+        resp = self.patch('/watchlists/{}'.format(watchlist_id), data=params)
         return Watchlist(resp)
 
     def delete_watchlist(self, watchlist_id):

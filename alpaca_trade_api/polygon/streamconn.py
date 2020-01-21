@@ -20,7 +20,7 @@ class StreamConn(object):
         ).rstrip('/')
         self._handlers = {}
         self._handler_symbols = {}
-        self._streams = set([])
+        self._streams = set()
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
@@ -163,10 +163,12 @@ class StreamConn(object):
                 'params': streams
             }))
 
-    def run(self, initial_channels=[]):
+    def run(self, initial_channels=None):
         '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
+        if initial_channels is None:
+            initial_channels = []
         loop = self.loop
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
@@ -207,7 +209,7 @@ class StreamConn(object):
                 "t": "timestamp"
             }
             ent = Quote({map[k]: v for k, v in data.items() if k in map})
-        elif subject == 'AM' or subject == 'A':
+        elif subject in ('AM', 'A'):
             map = {
                 "sym": "symbol",
                 "a": "average",

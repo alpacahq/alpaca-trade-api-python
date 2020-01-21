@@ -17,7 +17,7 @@ class StreamConn(object):
         self._handlers = {}
         self._handler_symbols = {}
         self._base_url = base_url
-        self._streams = set([])
+        self._streams = set()
         self._ws = None
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
@@ -26,7 +26,7 @@ class StreamConn(object):
         try:
             self.loop = asyncio.get_event_loop()
         except websockets.WebSocketException as wse:
-            logging.warn(wse)
+            logging.warning(wse)
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 
@@ -69,7 +69,7 @@ class StreamConn(object):
                 if stream is not None:
                     await self._dispatch(stream, msg)
         except websockets.WebSocketException as wse:
-            logging.warn(wse)
+            logging.warning(wse)
             await self.close()
             asyncio.ensure_future(self._ensure_ws())
 
@@ -95,7 +95,7 @@ class StreamConn(object):
                     await self.subscribe(self._streams)
                 break
             except websockets.WebSocketException as wse:
-                logging.warn(wse)
+                logging.warning(wse)
                 self._ws = None
                 self._retries += 1
                 await asyncio.sleep(self._retry_wait * self._retry)
@@ -150,10 +150,12 @@ class StreamConn(object):
         if len(polygon_channels) > 0:
             await self.polygon.unsubscribe(polygon_channels)
 
-    def run(self, initial_channels=[]):
+    def run(self, initial_channels=None):
         '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
+        if initial_channels is None:
+            initial_channels = []
         loop = self.loop
         try:
             loop.run_until_complete(self.subscribe(initial_channels))

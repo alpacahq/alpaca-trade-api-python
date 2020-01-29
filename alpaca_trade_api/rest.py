@@ -12,6 +12,7 @@ from .common import (
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
+    Watchlist
 )
 from . import polygon
 from . import alpha_vantage
@@ -387,3 +388,34 @@ class REST(object):
             params['end'] = end
         resp = self.get('/calendar', data=params)
         return [Calendar(o) for o in resp]
+
+    def get_watchlists(self):
+        resp = self.get('/watchlists')
+        return [Watchlist(o) for o in resp]
+
+    def get_watchlist(self, watchlist_id):
+        resp = self.get('/watchlists/{}'.format((watchlist_id)))
+        return Watchlist(resp)
+
+    def add_watchlist(self, watchlist_name):
+        resp = self.post('/watchlists', data=dict(name=watchlist_name))
+        return [Watchlist(o) for o in resp]
+
+    def add_to_watchlist(self, watchlist_id, symbol):
+        resp = self.post('/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol))
+        return Watchlist(resp)
+
+    def update_watchlist(self, watchlist_id, name=None, symbols=None):
+        params = {}
+        if name is not None:
+            params['name'] = name
+        if symbols is not None:
+            params['symbols'] = symbols
+        resp = self.patch('/watchlists/{}'.format(watchlist_id), data=params)
+        return Watchlist(resp)
+
+    def delete_watchlist(self, watchlist_id):
+        self.delete('/watchlists/{}'.format(watchlist_id))
+
+    def delete_from_watchlist(self, watchlist_id, symbol):
+        self.delete('/watchlists/{}/{}'.format(watchlist_id, symbol))

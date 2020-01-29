@@ -14,6 +14,7 @@ from .entity import (
     Asset, Order, Position, BarSet, Clock, Calendar,
 )
 from . import polygon
+from . import alpha_vantage
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,7 @@ class REST(object):
             'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
+        self.alpha_vantage = alpha_vantage.REST(self._key_id)
 
     def _request(
         self,

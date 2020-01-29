@@ -151,6 +151,11 @@ class REST(object):
         raw = self.get(path)
         # TODO status check
         return Quote(raw['last'])
+    
+    def previous_day_bar(self, symbol):
+        path = '/aggs/ticker/{}/prev'.format(symbol)
+        raw = self.get(path, version='v2')
+        return Aggsv2(raw)
 
     def condition_map(self, ticktype='trades'):
         path = '/meta/conditions/{}'.format(ticktype)

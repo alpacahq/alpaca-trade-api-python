@@ -119,6 +119,7 @@ api.submit_order(
     type='market',
     qty='100',
     time_in_force='day',
+    order_class='bracket',
     take_profit=dict(
         limit_price='305.0',
     ),

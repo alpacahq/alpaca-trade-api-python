@@ -124,8 +124,8 @@ api.submit_order(
         limit_price='305.0',
     ),
     stop_loss=dict(
-        stop_price=295.5,
-        limit_price=295.5,
+        stop_price='295.5',
+        limit_price='295.5',
     )
 )
 ```

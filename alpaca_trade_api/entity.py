@@ -52,7 +52,7 @@ class Order(Entity):
         super().__init__(raw)
         try:
             self.legs = [Order(o) for o in self.legs]
-        except:
+        except Exception:
             # No order legs existed
             pass
 

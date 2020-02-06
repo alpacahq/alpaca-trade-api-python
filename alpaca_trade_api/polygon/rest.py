@@ -151,7 +151,7 @@ class REST(object):
         raw = self.get(path)
         # TODO status check
         return Quote(raw['last'])
-    
+
     def previous_day_bar(self, symbol):
         path = '/aggs/ticker/{}/prev'.format(symbol)
         raw = self.get(path, version='v2')

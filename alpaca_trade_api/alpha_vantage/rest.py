@@ -1,7 +1,5 @@
 import requests
 from alpha_vantage.timeseries import TimeSeries
-from alpha_vantage.cryptocurrencies import CryptoCurrencies
-from alpha_vantage.foreignexchange import ForeignExchange
 from alpha_vantage.sectorperformance import SectorPerformances
 from alpha_vantage.techindicators import TechIndicators
 from alpaca_trade_api.common import get_alpha_vantage_credentials
@@ -13,8 +11,6 @@ class REST(object):
         self._api_key = get_alpha_vantage_credentials(api_key)
         self._session = requests.Session()
         self._timeseries = TimeSeries(key=self._api_key)
-        self._cryptocurrencies = CryptoCurrencies(key=self._api_key)
-        self._foreignexchange = ForeignExchange(key=self._api_key)
         self._sectorperformance = SectorPerformances(key=self._api_key)
         self._techindicators = TechIndicators(key=self._api_key)
 
@@ -27,7 +23,7 @@ class REST(object):
         return resp.json()
 
     def get(self, params=None):
-        ''' Customizable endpoint, where you can pass all 
+        ''' Customizable endpoint, where you can pass all
         keywords/paramters from the documentation:
         https://www.alphavantage.co/documentation/#
 
@@ -36,13 +32,17 @@ class REST(object):
         '''
         return self._request('GET', params=params)
 
-    def historic_quotes(self, symbol, adjusted=False, outputsize='full', cadence='daily', output_format=None):
-        ''' Returns the one of the TIME_SERIES_* endpoints of the Alpha Vantage API.
+    def historic_quotes(
+        self, symbol, adjusted=False, outputsize='full',
+        cadence='daily', output_format=None
+    ):
+        ''' Returns one of the TIME_SERIES_* endpoints
+        of the Alpha Vantage API.
 
         Params:
             symbol: The ticker to return
             adjusted: Return the adjusted prices
-            cadence: Choose between ['daily', 'weekly', 'monthly'], to return the cadence
+            cadence: Choose between ['daily', 'weekly', 'monthly']
             output_format: Choose between['json', 'csv', 'pandas']
 
         Returns:
@@ -52,16 +52,27 @@ class REST(object):
             self._timeseries.output_format = output_format
         if cadence == 'daily':
             data, _ = self._timeseries.get_daily_adjusted(
-                symbol=symbol, outputsize=outputsize) if adjusted else self._timeseries.get_daily(symbol=symbol, outputsize=outputsize)
+                symbol=symbol, outputsize=outputsize
+            ) if adjusted else self._timeseries.get_daily(
+                symbol=symbol, outputsize=outputsize
+            )
         if cadence == 'weekly':
             data, _ = self._timeseries.get_weekly_adjusted(
-                symbol=symbol) if adjusted else self._timeseries.get_weekly(symbol=symbol)
+                symbol=symbol
+            ) if adjusted else self._timeseries.get_weekly(
+                symbol=symbol
+            )
         if cadence == 'monthly':
             data, _ = self._timeseries.get_monthly_adjusted(
-                symbol=symbol) if adjusted else self._timeseries.get_monthly(symbol=symbol)
+                symbol=symbol
+            ) if adjusted else self._timeseries.get_monthly(
+                symbol=symbol
+            )
         return data
 
-    def intraday_quotes(self, symbol, interval='5min', outputsize='full', output_format=None):
+    def intraday_quotes(
+        self, symbol, interval='5min', outputsize='full', output_format=None
+    ):
         ''' Returns the TIME_SERIES_INTRADAY endpoint of the Alpha Vantage API.
 
         Params:
@@ -113,92 +124,11 @@ class REST(object):
                   'keywords': keywords, 'datatype': datatype}
         return self.get(params)
 
-    def historic_fx_quotes(self, from_symbol, to_symbol, outputsize='full', cadence='daily', output_format=None):
-        ''' Returns the one of the FX_* endpoints of the Alpha Vantage API.
-
-        Params:
-            from_currency: The symbol to convert
-            to_currency: The symbol to convert to
-            cadence: Choose between ['daily', 'weekly', 'monthly'], to return the cadence
-            output_format: Choose between['json', 'csv', 'pandas']
-
-        Returns:
-            pandas, csv, or json
-        '''
-        if output_format:
-            self._foreignexchange.output_format = output_format
-        if cadence == 'daily':
-            data, _ = self._foreignexchange.get_currency_exchange_daily(
-                from_symbol=from_symbol, to_symbol=to_symbol, outputsize=outputsize)
-        if cadence == 'weekly':
-            data, _ = self._foreignexchange.get_currency_exchange_weekly(
-                from_symbol=from_symbol, to_symbol=to_symbol, outputsize=outputsize)
-        if cadence == 'monthly':
-            data, _ = self._foreignexchange.get_currency_exchange_monthly(
-                from_symbol=from_symbol, to_symbol=to_symbol, utputsize=outputsize)
-        return data
-
-    def intraday_fx_quotes(self, from_symbol, to_symbol, interval='5min', outputsize='full', output_format=None):
-        ''' Returns the FX_INTRADAY endpoint of the Alpha Vantage API.
-
-        Params:
-            from_currency: The symbol to convert
-            to_currency: The symbol to convert to
-            interval: Choose between['1min', '5min', '15min', '30min', '60min']
-            output_format: Choose between['json', 'csv', 'pandas']
-
-        Returns:
-            pandas, csv, or json
-        '''
-        if output_format:
-            self._foreignexchange.output_format = output_format
-        data, _ = self._foreignexchange.get_currency_exchange_intraday(
-            from_symbol=from_symbol, to_symbol=to_symbol, interval=interval, outputsize=outputsize)
-        return data
-
-    def exchange_rate(self, from_currency, to_currency):
-        ''' Returns the exchange rate of two currencies, digital or physical.
-        CURRENCY_EXCHANGE_RATE endpoint of the Alpha Vantage API
-
-        Params:
-            from_currency: The symbol to convert
-            to_currency: The symbol to convert to
-
-        Returns:
-            json
-        '''
-        params = {'function': "CURRENCY_EXCHANGE_RATE",
-                  'from_currency': from_currency, 'to_currency': to_currency}
-        data = self.get(params)
-        return data
-
-    def historic_cryptocurrency_quotes(self, symbol, market, cadence='daily', output_format=None):
-        ''' Returns the one of the DIGITAL_CURRENCY_* endpoints of the Alpha Vantage API.
-
-        Params:
-            symbol: The cryptocurrency to return
-            market: The market it's being sold on
-            cadence: Choose between ['daily', 'weekly', 'monthly'], to return the cadence
-            output_format: Choose between['json', 'csv', 'pandas']
-
-        Returns:
-            pandas, csv, or json
-        '''
-        if output_format:
-            self._cryptocurrencies.output_format = output_format
-        if cadence == 'daily':
-            data, _ = self._cryptocurrencies.get_digital_currency_daily(
-                symbol=symbol, market=market)
-        if cadence == 'weekly':
-            data, _ = self._cryptocurrencies.get_digital_currency_weekly(
-                symbol=symbol, market=market)
-        if cadence == 'monthly':
-            data, _ = self._cryptocurrencies.get_digital_currency_monthly(
-                symbol=symbol, market=market)
-        return data
-
-    def techindicators(self, techindicator='SMA', output_format='json', **kwargs):
-        ''' Returns the one of the technical indicator endpoints of the Alpha Vantage API.
+    def techindicators(
+        self, techindicator='SMA', output_format='json', **kwargs
+    ):
+        ''' Returns one of the technical indicator endpoints of the
+        Alpha Vantage API.
 
         Params:
             techindicator: The technical indicator of choice

@@ -152,5 +152,6 @@ class Calendar(Entity):
                 return val
         return super().__getattr__(key)
 
+
 class Watchlist(Entity):
     pass

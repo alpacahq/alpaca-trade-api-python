@@ -111,7 +111,7 @@ Calls `GET /orders` and returns a list of `Order` entities.
 ### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None)
 Calls `POST /orders` and returns an `Order` entity.
 
-Below is an example of submitting a bracket orders.
+Below is an example of submitting a bracket order.
 ```py
 api.submit_order(
     symbol='SPY',

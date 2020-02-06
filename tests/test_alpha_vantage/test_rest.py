@@ -10,7 +10,7 @@ import pytest
 import os
 
 
-cli = REST(os.getenv("ALPHAVANTAGE_API_KEY"))
+cli = REST("ALPHAVANTAGE_API_KEY")
 
 
 # def endpoint(params=''):

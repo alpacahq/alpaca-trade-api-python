@@ -416,7 +416,9 @@ class REST(object):
         return [Watchlist(o) for o in resp]
 
     def add_to_watchlist(self, watchlist_id, symbol):
-        resp = self.post('/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol))
+        resp = self.post(
+            '/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol)
+        )
         return Watchlist(resp)
 
     def update_watchlist(self, watchlist_id, name=None, symbols=None):

@@ -246,31 +246,6 @@ class REST(object):
         resp = self.post('/orders', params)
         return Order(resp)
 
-    def submit_advanced_order(
-        self, symbol, qty, side, type, time_in_force, order_class,
-        take_profit_limit_price=None, stop_loss_stop_price=None,
-        stop_loss_limit_price=None, limit_price=None,
-        stop_price=None, client_order_id=None
-    ):
-        order_attributes = {
-            'take_profit_limit_price': take_profit_limit_price,
-            'stop_loss_stop_price': stop_loss_stop_price,
-        }
-        if take_profit_limit_price is not None:
-            order_attributes[
-                'take_profit_limit_price'] = take_profit_limit_price
-        if stop_loss_stop_price is not None:
-            order_attributes[
-                'stop_loss_stop_price'] = stop_loss_stop_price
-        if stop_loss_limit_price is not None:
-            order_attributes[
-                'stop_loss_limit_price'] = stop_loss_limit_price
-
-        return self.submit_order(
-            symbol, qty, side, type, time_in_force, limit_price, stop_price,
-            client_order_id, False, order_class, order_attributes
-        )
-
     def get_order_by_client_order_id(self, client_order_id):
         '''Get an order by client order id'''
         params = {

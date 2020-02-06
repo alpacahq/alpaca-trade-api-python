@@ -273,58 +273,6 @@ class TestAlphaVantage(unittest.TestCase):
                 data, dict, 'Result Data must be a dict')
 
     @requests_mock.Mocker()
-    def test_historic_fx_quotes(self, mock_request):
-        """ Test that api call returns a json file as requested
-        """
-        cli = REST(TestAlphaVantage._API_KEY_TEST)
-        url = "https://www.alphavantage.co/query?function=FX_DAILY&from_symbol=USD&to_symbol=EUR&outputsize=full&apikey=test"
-        path_file = self.get_file_from_url("mock_foreign_exchange_historical")
-        with open(path_file) as f:
-            mock_request.get(url, text=f.read())
-            data = cli.historic_fx_quotes('USD', 'EUR')
-            self.assertIsInstance(
-                data, dict, 'Result Data must be a dict')
-
-    @requests_mock.Mocker()
-    def test_intraday_fx_quotes(self, mock_request):
-        """ Test that api call returns a json file as requested
-        """
-        cli = REST(TestAlphaVantage._API_KEY_TEST)
-        url = "https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=USD&to_symbol=EUR&outputsize=full&apikey=test"
-        path_file = self.get_file_from_url("mock_intraday_fx")
-        with open(path_file) as f:
-            mock_request.get(url, text=f.read())
-            data = cli.intraday_fx_quotes('USD', 'EUR')
-            self.assertIsInstance(
-                data, dict, 'Result Data must be a dict')
-
-    @requests_mock.Mocker()
-    def test_exchange_rate(self, mock_request):
-        """ Test that api call returns a json file as requested
-        """
-        cli = REST(TestAlphaVantage._API_KEY_TEST)
-        url = "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey=test"
-        path_file = self.get_file_from_url("mock_foreign_exchange")
-        with open(path_file) as f:
-            mock_request.get(url, text=f.read())
-            data = cli.exchange_rate('USD', 'EUR')
-            self.assertIsInstance(
-                data, dict, 'Result Data must be a dict')
-
-    @requests_mock.Mocker()
-    def test_historic_cryptocurrency_quotes(self, mock_request):
-        """ Test that api call returns a json file as requested
-        """
-        cli = REST(TestAlphaVantage._API_KEY_TEST)
-        url = "https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=BTC&market=CNY&apikey=test&datatype=json"
-        path_file = self.get_file_from_url("mock_crypto_currencies")
-        with open(path_file) as f:
-            mock_request.get(url, text=f.read())
-            data = cli.historic_cryptocurrency_quotes('BTC', 'CNY')
-            self.assertIsInstance(
-                data, dict, 'Result Data must be a dict')
-
-    @requests_mock.Mocker()
     def test_techindicators(self, mock_request):
         """ Test that api call returns a json file as requested
         """

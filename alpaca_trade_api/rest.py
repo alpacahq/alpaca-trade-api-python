@@ -294,11 +294,13 @@ class REST(object):
 
     def close_position(self, symbol):
         '''Liquidates the position for the given symbol at market price'''
-        self.delete('/positions/{}'.format(symbol))
+        resp = self.delete('/positions/{}'.format(symbol))
+        return Order(resp)
 
     def close_all_positions(self):
         '''Liquidates all open positions at market price'''
-        self.delete('/positions')
+        resp = self.delete('/positions')
+        return [Order(o) for o in resp]
 
     def list_assets(self, status=None, asset_class=None):
         '''Get a list of assets'''

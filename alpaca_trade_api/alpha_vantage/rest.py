@@ -1,7 +1,5 @@
 import requests
 from alpha_vantage.timeseries import TimeSeries
-from alpha_vantage.cryptocurrencies import CryptoCurrencies
-from alpha_vantage.foreignexchange import ForeignExchange
 from alpha_vantage.sectorperformance import SectorPerformances
 from alpha_vantage.techindicators import TechIndicators
 from alpaca_trade_api.common import get_alpha_vantage_credentials
@@ -13,8 +11,6 @@ class REST(object):
         self._api_key = get_alpha_vantage_credentials(api_key)
         self._session = requests.Session()
         self._timeseries = TimeSeries(key=self._api_key)
-        self._cryptocurrencies = CryptoCurrencies(key=self._api_key)
-        self._foreignexchange = ForeignExchange(key=self._api_key)
         self._sectorperformance = SectorPerformances(key=self._api_key)
         self._techindicators = TechIndicators(key=self._api_key)
 

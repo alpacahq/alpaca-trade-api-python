@@ -1,3 +1,4 @@
+# flake8: noqa
 import requests_mock
 import requests
 from os import path

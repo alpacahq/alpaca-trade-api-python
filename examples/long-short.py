@@ -305,7 +305,7 @@ class LongShort:
       print("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
 
-  # Get percent changes of the stock prices over the past 10 days.
+  # Get percent changes of the stock prices over the past 10 minutes.
   def getPercentChanges(self):
     length = 10
     for i, stock in enumerate(self.allStocks):
@@ -314,7 +314,7 @@ class LongShort:
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.
   def rank(self):
-    # Ranks all stocks by percent change over the past 10 days (higher is better).
+    # Ranks all stocks by percent change over the past 10 minutes (higher is better).
     tGetPC = threading.Thread(target=self.getPercentChanges)
     tGetPC.start()
     tGetPC.join()

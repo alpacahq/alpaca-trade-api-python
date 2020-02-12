@@ -1,0 +1,61 @@
+{
+    "Meta Data": {
+        "1. Information": "Daily Prices and Volumes for Digital Currency",
+        "2. Digital Currency Code": "BTC",
+        "3. Digital Currency Name": "Bitcoin",
+        "4. Market Code": "CNY",
+        "5. Market Name": "Chinese Yuan",
+        "6. Last Refreshed": "2020-01-14 00:00:00",
+        "7. Time Zone": "UTC"
+    },
+    "Time Series (Digital Currency Daily)": {
+        "2020-01-14": {
+            "1a. open (CNY)": "55910.25085800",
+            "1b. open (USD)": "8110.34000000",
+            "2a. high (CNY)": "57816.56571900",
+            "2b. high (USD)": "8386.87000000",
+            "3a. low (CNY)": "55877.16109800",
+            "3b. low (USD)": "8105.54000000",
+            "4a. close (CNY)": "57678.96746700",
+            "4b. close (USD)": "8366.91000000",
+            "5. volume": "11045.90073500",
+            "6. market cap (USD)": "11045.90073500"
+        },
+        "2020-01-13": {
+            "1a. open (CNY)": "56424.72768900",
+            "1b. open (USD)": "8184.97000000",
+            "2a. high (CNY)": "56500.76520000",
+            "2b. high (USD)": "8196.00000000",
+            "3a. low (CNY)": "55534.88889300",
+            "3b. low (USD)": "8055.89000000",
+            "4a. close (CNY)": "55910.25085800",
+            "4b. close (USD)": "8110.34000000",
+            "5. volume": "31159.75568300",
+            "6. market cap (USD)": "31159.75568300"
+        },
+        "2020-01-12": {
+            "1a. open (CNY)": "55287.54293700",
+            "1b. open (USD)": "8020.01000000",
+            "2a. high (CNY)": "56507.65890000",
+            "2b. high (USD)": "8197.00000000",
+            "3a. low (CNY)": "54873.85200000",
+            "3b. low (USD)": "7960.00000000",
+            "4a. close (CNY)": "56424.79662600",
+            "4b. close (USD)": "8184.98000000",
+            "5. volume": "38131.49433600",
+            "6. market cap (USD)": "38131.49433600"
+        },
+        "2020-01-11": {
+            "1a. open (CNY)": "56520.48118200",
+            "1b. open (USD)": "8198.86000000",
+            "2a. high (CNY)": "57123.54205800",
+            "2b. high (USD)": "8286.34000000",
+            "3a. low (CNY)": "55171.38409200",
+            "3b. low (USD)": "8003.16000000",
+            "4a. close (CNY)": "55287.54293700",
+            "4b. close (USD)": "8020.01000000",
+            "5. volume": "54810.03266700",
+            "6. market cap (USD)": "54810.03266700"
+        }
+}
+}

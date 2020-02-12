@@ -48,7 +48,13 @@ class Asset(Entity):
 
 
 class Order(Entity):
-    pass
+    def __init__(self, raw):
+        super().__init__(raw)
+        try:
+            self.legs = [Order(o) for o in self.legs]
+        except Exception:
+            # No order legs existed
+            pass
 
 
 class Position(Entity):
@@ -145,6 +151,7 @@ class Calendar(Entity):
             else:
                 return val
         return super().__getattr__(key)
+
 
 class Watchlist(Entity):
     pass

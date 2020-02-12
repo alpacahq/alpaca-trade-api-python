@@ -11,7 +11,7 @@ def reqmock():
 
 def endpoint(path, params='', api_version='v1'):
     return 'https://api.polygon.io/{}{}?{}&apiKey=key-id'.format(
-      api_version, path, params
+        api_version, path, params
     )
 
 
@@ -221,8 +221,8 @@ def test_polygon(reqmock):
 # Historic Aggregates V2
     reqmock.get(
         endpoint(
-          '/aggs/ticker/AAPL/range/1/day/2018-2-2/2018-2-5',
-          params='unadjusted=False', api_version='v2'
+            '/aggs/ticker/AAPL/range/1/day/2018-2-2/2018-2-5',
+            params='unadjusted=False', api_version='v2'
         ),
         text='''
 {
@@ -244,9 +244,9 @@ def test_polygon(reqmock):
 }''')
 
     aggs = cli.historic_agg_v2(
-      'AAPL', 1, 'day',
-      _from='2018-2-2',
-      to='2018-2-5'
+        'AAPL', 1, 'day',
+        _from='2018-2-2',
+        to='2018-2-5'
     )
     assert aggs[0].open == 173.15
     assert len(aggs) == 1

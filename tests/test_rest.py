@@ -332,6 +332,41 @@ def test_data(reqmock):
     assert barset['AAPL'].df.index[0].day == 23
 
 
+def test_watchlists(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v2')
+
+    # watchlists
+    reqmock.get('https://data.alpaca.markets/v2/watchlists',
+        text='''[
+    {
+        "id": "900e20b1-46eb-492b-a505-2ea67386b5fd",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2019-10-31T01:45:41.308091Z",
+        "updated_at": "2019-12-09T17:50:57.151693Z",
+        "name": "Primary Watchlist"
+    },
+    {
+        "id": "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2020-01-23T00:52:07.049138Z",
+        "updated_at": "2020-01-23T00:57:27.063889Z",
+        "name": "dev"
+    },
+    {
+        "id": "e7574813-a853-4536-a52b-b47cc25def14",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2020-01-23T01:36:25.807997Z",
+        "updated_at": "2020-01-23T01:36:25.807997Z",
+        "name": "prod"
+    }
+    ]''')
+
+    watchlists = api.get_watchlists()
+    assert watchlists[0].name == 'Primary Watchlist'
+    assert watchlists[1].id == 'e65f2f2d-b596-4db6-bd68-1b7ceb77cccc'
+    assert watchlists[2].account_id == '1f893862-13b5-4603-b3ca-513980c00c6e'
+
+
 def test_errors(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 

@@ -435,3 +435,12 @@ class REST(object):
 
     def delete_from_watchlist(self, watchlist_id, symbol):
         self.delete('/watchlists/{}/{}'.format(watchlist_id, symbol))
+
+    def __enter__(self):
+        return self
+
+    def close(self):
+        self._session.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

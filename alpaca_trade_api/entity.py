@@ -129,6 +129,71 @@ class BarSet(dict):
         return self._df
 
 
+
+class _Timestamped(object):
+    def __getattr__(self, key):
+        if key in self._raw:
+            val = self._raw[key]
+            if key == 'timestamp':
+                return pd.Timestamp(val, tz=NY, unit='ms')
+            return val
+        return getattr(super(), key)
+
+
+class Agg(_Timestamped, Entity):
+    pass
+
+
+class Aggs(list):
+    def __init__(self, raw):
+        self._raw = raw
+        super().__init__([
+            Agg(tick) for tick in self.rename_keys()
+        ])
+
+    def _raw_results(self):
+        return self._raw.get('results', [])
+
+    def rename_keys(self):
+        colmap = {
+            "o": "open",
+            "h": "high",
+            "l": "low",
+            "c": "close",
+            "v": "volume",
+            "t": "timestamp",
+        }
+        return [
+            {colmap.get(k, k): v for k, v in tick.items()}
+            for tick in self._raw_results()
+        ]
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            columns = ('timestamp', 'open', 'high', 'low', 'close', 'volume')
+            df = pd.DataFrame(
+                self.rename_keys(),
+                columns=columns
+            )
+            df.set_index('timestamp', inplace=True)
+            df.index = pd.to_datetime(
+                df.index.astype('int64'),
+                unit='ms', utc=True
+            ).tz_convert(NY)
+
+            self._df = df
+        return self._df
+
+
+class Trade(_Timestamped, Entity):
+    pass
+
+
+class Quote(_Timestamped, Entity):
+    pass
+
+
 class Clock(Entity):
     def __getattr__(self, key):
         if key in self._raw:

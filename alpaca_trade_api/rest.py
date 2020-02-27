@@ -12,7 +12,7 @@ from .common import (
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
-    Aggs, Trade, Quote, Watchlist
+    Watchlist
 )
 from . import polygon
 from . import alpha_vantage
@@ -358,22 +358,6 @@ class REST(object):
             params['until'] = until
         resp = self.data_get('/bars/{}'.format(timeframe), params)
         return BarSet(resp)
-
-    def get_aggregates(self, symbol, timespan, _from, to):
-        resp = self.data_get('/aggs/ticker/{}/range/1/{}/{}/{}'.format(
-            symbol, timespan, _from, to
-        ))
-        return Aggs(resp)
-
-    def get_last_trade(self, symbol):
-        '''Get the last trade for the given symbol'''
-        resp = self.data_get('/last/stocks/{}'.format(symbol))
-        return Trade(resp['last'])
-
-    def get_last_quote(self, symbol):
-        '''Get the last trade for the given symbol'''
-        resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
-        return Quote(resp['last'])
 
     def get_clock(self):
         resp = self.get('/clock')

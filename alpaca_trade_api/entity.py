@@ -155,3 +155,26 @@ class Calendar(Entity):
 
 class Watchlist(Entity):
     pass
+
+
+class PortfolioHistory(Entity):
+    def __init__(self, raw):
+        self._raw = raw
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            df = pd.DataFrame(
+                self._raw, columns=('time', 'profit_loss', 'profit_loss_pct', 'equity'),
+            )
+            df.set_index('time', inplace=True)
+            if not df.empty:
+                df.index = pd.to_datetime(
+                    (df.index * 1e9).astype('int64'), utc=True,
+                ).tz_convert(NY)
+            else:
+                df.index = pd.to_datetime(
+                    df.index, utc=True
+                )
+            self._df = df
+        return self._df

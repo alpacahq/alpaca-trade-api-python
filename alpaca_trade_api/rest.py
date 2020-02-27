@@ -435,3 +435,20 @@ class REST(object):
 
     def delete_from_watchlist(self, watchlist_id, symbol):
         self.delete('/watchlists/{}/{}'.format(watchlist_id, symbol))
+
+    def get_portfolio_history(
+        date_start=None, date_end=None, period=None,
+        timeframe=None, extended_hours=None
+    ):
+        params = {}
+        if date_start is not None:
+            params['date_start'] = date_start
+        if date_end is not None:
+            params['date_end'] = date_end
+        if perioid is not None:
+            params['period'] = period
+        if timeframe is not None:
+            params['timeframe'] = timeframe
+        if extended_hours is not None:
+            params['extended_hours'] = extended_hours
+        return PortfolioHistory(self.get('account/portfolio/history', data=params))

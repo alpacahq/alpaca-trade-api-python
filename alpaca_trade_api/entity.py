@@ -165,12 +165,14 @@ class PortfolioHistory(Entity):
     def df(self):
         if not hasattr(self, '_df'):
             df = pd.DataFrame(
-                self._raw, columns=('time', 'profit_loss', 'profit_loss_pct', 'equity'),
+                self._raw, columns=(
+                    'timestamp', 'profit_loss', 'profit_loss_pct', 'equity'
+                ),
             )
-            df.set_index('time', inplace=True)
+            df.set_index('timestamp', inplace=True)
             if not df.empty:
                 df.index = pd.to_datetime(
-                    (df.index * 1e9).astype('int64'), utc=True,
+                    (df.index * 1e6).astype('int64'), utc=True,
                 ).tz_convert(NY)
             else:
                 df.index = pd.to_datetime(

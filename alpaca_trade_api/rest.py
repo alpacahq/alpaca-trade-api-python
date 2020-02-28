@@ -12,7 +12,7 @@ from .common import (
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
-    Watchlist
+    Watchlist, PortfolioHistory
 )
 from . import polygon
 from . import alpha_vantage
@@ -437,7 +437,7 @@ class REST(object):
         self.delete('/watchlists/{}/{}'.format(watchlist_id, symbol))
 
     def get_portfolio_history(
-        date_start=None, date_end=None, period=None,
+        self, date_start=None, date_end=None, period=None,
         timeframe=None, extended_hours=None
     ):
         params = {}
@@ -445,10 +445,12 @@ class REST(object):
             params['date_start'] = date_start
         if date_end is not None:
             params['date_end'] = date_end
-        if perioid is not None:
+        if period is not None:
             params['period'] = period
         if timeframe is not None:
             params['timeframe'] = timeframe
         if extended_hours is not None:
             params['extended_hours'] = extended_hours
-        return PortfolioHistory(self.get('account/portfolio/history', data=params))
+        return PortfolioHistory(
+            self.get('/account/portfolio/history', data=params)
+        )

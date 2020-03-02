@@ -135,13 +135,6 @@ class REST(object):
         raw = self.get(path, params, version='v2')
         return Aggsv2(raw)
 
-
-    def daily_open_close(self, symbol, date):
-        path = '/open-close/{}/{}'.format(symbol, date)
-        raw = self.get(path)
-        return raw
-
-
     def grouped_daily(self, date, unadjusted=False):
         path = '/aggs/grouped/locale/US/market/STOCKS/{}'.format(date)
         params = {}

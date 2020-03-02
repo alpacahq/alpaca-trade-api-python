@@ -169,6 +169,10 @@ Calls `GET /clock` and returns a `Clock` entity.
 ### REST.get_calendar(start=None, end=None)
 Calls `GET /calendar` and returns a `Calendar` entity.
 
+### REST.get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None)
+Calls `GET /account/portfolio/history` and returns a PortfolioHistory entity. PortfolioHistory.df
+can be used to get the results as a dataframe.
+
 ---
 
 ## StreamConn
@@ -191,7 +195,7 @@ if `AM.*` given to the `subscribe()` method, a WebSocket connection is
 established to Polygon's interface.
 
 The `run` method is a short-cut to start subscribing to channels and
-runnnig forever.  The call will be blocked forever until a critical
+running forever.  The call will be blocked forever until a critical
 exception is raised, and each event handler is called asynchronously
 upon the message arrivals.
 
@@ -215,15 +219,15 @@ async def on_account_updates(conn, channel, account):
     print('account', account)
 
 @conn.on(r'^status$')
-def on_status(conn, channel, data):
+async def on_status(conn, channel, data):
     print('polygon status update', data)
 
 @conn.on(r'^AM$')
-def on_minute_bars(conn, channel, bar):
+async def on_minute_bars(conn, channel, bar):
     print('bars', bar)
 
 @conn.on(r'^A$')
-def on_second_bars(conn, channel, bar):
+async def on_second_bars(conn, channel, bar):
     print('bars', bar)
 
 # blocks forever
@@ -328,6 +332,9 @@ For example, the `o` field is renamed to `open`.
 ### polygon/Aggs.df
 Returns a pandas DataFrame object with the ticks returned by `hitoric_agg_v2`.
 
+### polygon/REST.daily_open_close(symbol, date)
+Returns a `DailyOpenClose` entity.
+
 ### poylgon/REST.last_trade(symbol)
 Returns a `Trade` entity representing the last trade for the symbol.
 
@@ -363,7 +370,7 @@ Returns a `NewsList` entity for the symbol.
 ---
 # Alpha Vantage API Service
 
-In addition to Polygon is Alpha Vantage, for users without a live account (paper trading) or want to use the unique features of AV data. You can get a free key [here](https://www.alphavantage.co/support/#api-key) and the documentation is [here](https://www.alphavantage.co/documentation/). Premium keys are also available [here](https://www.alphavantage.co/premium/#intro) 
+In addition to Polygon is Alpha Vantage, for users without a live account (paper trading) or want to use the unique features of AV data. You can get a free key [here](https://www.alphavantage.co/support/#api-key) and the documentation is [here](https://www.alphavantage.co/documentation/). Premium keys are also available [here](https://www.alphavantage.co/premium/#intro)
 This python SDK wraps their API service and seamlessly integrates it with the Alpaca
 API. `alpaca_trade_api.REST.alpha_vantage` will be the `REST` object for Alpha Vantage.
 
@@ -415,7 +422,7 @@ Returns a `json` object with the current OHLCV data of the selected currency pai
 Returns a `csv`, `json`, or `pandas` object of historical OHLCV data for the cryptocurrency pair.
 
 ### alpha_vantage/REST.techindicators(self, techindicator='SMA', output_format='json', **kwargs)
-Returns a `csv`, `json`, or `pandas` object with the data from the techindicator of choice. 
+Returns a `csv`, `json`, or `pandas` object with the data from the techindicator of choice.
 
 ### alpha_vantage/REST.sector()
 Returns a `json` of the currrency sector performances.

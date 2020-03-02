@@ -191,7 +191,7 @@ if `AM.*` given to the `subscribe()` method, a WebSocket connection is
 established to Polygon's interface.
 
 The `run` method is a short-cut to start subscribing to channels and
-runnnig forever.  The call will be blocked forever until a critical
+running forever.  The call will be blocked forever until a critical
 exception is raised, and each event handler is called asynchronously
 upon the message arrivals.
 
@@ -215,15 +215,15 @@ async def on_account_updates(conn, channel, account):
     print('account', account)
 
 @conn.on(r'^status$')
-def on_status(conn, channel, data):
+async def on_status(conn, channel, data):
     print('polygon status update', data)
 
 @conn.on(r'^AM$')
-def on_minute_bars(conn, channel, bar):
+async def on_minute_bars(conn, channel, bar):
     print('bars', bar)
 
 @conn.on(r'^A$')
-def on_second_bars(conn, channel, bar):
+async def on_second_bars(conn, channel, bar):
     print('bars', bar)
 
 # blocks forever

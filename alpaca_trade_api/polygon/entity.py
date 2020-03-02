@@ -314,3 +314,7 @@ class NewsList(EntityList):
 
 class Ticker(Entity):
     pass
+
+
+class DailyOpenClose(Entity):
+    pass

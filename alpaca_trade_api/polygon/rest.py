@@ -4,7 +4,8 @@ from .entity import (
     Trade, Trades, TradesV2,
     Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
-    Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker
+    Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker,
+    DailyOpenClose
 )
 from alpaca_trade_api.common import get_polygon_credentials
 from deprecated import deprecated
@@ -140,6 +141,11 @@ class REST(object):
         params['unadjusted'] = unadjusted
         raw = self.get(path, params, version='v2')
         return Aggsv2Set(raw)
+
+    def daily_open_close(self, symbol, date):
+        path = '/open-close/{}/{}'.format(symbol, date)
+        raw = self.get(path)
+        return DailyOpenClose(raw)
 
     def last_trade(self, symbol):
         path = '/last/stocks/{}'.format(symbol)

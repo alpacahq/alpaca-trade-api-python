@@ -23,7 +23,11 @@ setup(
     author_email='oss@alpaca.markets',
     url='https://github.com/alpacahq/alpaca-trade-api-python',
     keywords='financial,timeseries,api,trade',
-    packages=['alpaca_trade_api', 'alpaca_trade_api.polygon'],
+    packages=[
+        'alpaca_trade_api',
+        'alpaca_trade_api.polygon',
+        'alpaca_trade_api.alpha_vantage',
+    ],
     install_requires=[
         'asyncio-nats-client',
         'pandas',
@@ -32,6 +36,7 @@ setup(
         'websocket-client',
         'websockets>=8.0',
         'deprecated',
+        'alpha_vantage',
     ],
     tests_require=[
         'pytest',

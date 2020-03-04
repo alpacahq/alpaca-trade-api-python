@@ -48,7 +48,13 @@ class Asset(Entity):
 
 
 class Order(Entity):
-    pass
+    def __init__(self, raw):
+        super().__init__(raw)
+        try:
+            self.legs = [Order(o) for o in self.legs]
+        except Exception:
+            # No order legs existed
+            pass
 
 
 class Position(Entity):
@@ -146,5 +152,31 @@ class Calendar(Entity):
                 return val
         return super().__getattr__(key)
 
+
 class Watchlist(Entity):
     pass
+
+
+class PortfolioHistory(Entity):
+    def __init__(self, raw):
+        self._raw = raw
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            df = pd.DataFrame(
+                self._raw, columns=(
+                    'timestamp', 'profit_loss', 'profit_loss_pct', 'equity'
+                ),
+            )
+            df.set_index('timestamp', inplace=True)
+            if not df.empty:
+                df.index = pd.to_datetime(
+                    (df.index * 1e6).astype('int64'), utc=True,
+                ).tz_convert(NY)
+            else:
+                df.index = pd.to_datetime(
+                    df.index, utc=True
+                )
+            self._df = df
+        return self._df

@@ -39,6 +39,14 @@ def get_polygon_credentials(alpaca_key=None):
     return key_id
 
 
+def get_alpha_vantage_credentials(alpha_vantage_key=None):
+    key_id = alpha_vantage_key or os.environ.get('ALPHAVANTAGE_API_KEY')
+    if key_id is None:
+        raise ValueError('Key ID must be given to access Alpha Vantage API'
+                         ' (env: ALPHAVANTAGE_API_KEY)')
+    return key_id
+
+
 def get_api_version(api_version):
     api_version = api_version or os.environ.get('APCA_API_VERSION')
     if api_version is None:

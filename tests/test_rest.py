@@ -219,6 +219,14 @@ def test_orders(reqmock):
     )
     api.cancel_order(order_id)
 
+    # Cancel all orders
+    reqmock.delete(
+        'https://api.alpaca.markets/v1/orders',
+        text='',
+        status_code=204,
+    )
+    api.cancel_all_orders()
+
 
 def test_positions(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
@@ -330,6 +338,53 @@ def test_data(reqmock):
     assert barset['TSLA'][1].h == 346.22
     assert barset['AAPL'][0].t.day == 23
     assert barset['AAPL'].df.index[0].day == 23
+
+
+def test_watchlists(reqmock):
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    # get watchlists
+    reqmock.get('https://api.alpaca.markets/v1/watchlists',
+        text='''[
+    {
+        "id": "900e20b1-46eb-492b-a505-2ea67386b5fd",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2019-10-31T01:45:41.308091Z",
+        "updated_at": "2019-12-09T17:50:57.151693Z",
+        "name": "Primary Watchlist"
+    },
+    {
+        "id": "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2020-01-23T00:52:07.049138Z",
+        "updated_at": "2020-01-23T00:57:27.063889Z",
+        "name": "dev"
+    },
+    {
+        "id": "e7574813-a853-4536-a52b-b47cc25def14",
+        "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+        "created_at": "2020-01-23T01:36:25.807997Z",
+        "updated_at": "2020-01-23T01:36:25.807997Z",
+        "name": "prod"
+    }
+    ]''')
+    watchlists = api.get_watchlists()
+    assert watchlists[0].name == 'Primary Watchlist'
+    assert watchlists[1].id == 'e65f2f2d-b596-4db6-bd68-1b7ceb77cccc'
+    assert watchlists[2].account_id == '1f893862-13b5-4603-b3ca-513980c00c6e'
+
+    # get a watchlist by watchlist_id
+    watchlist_id = "watchlist-id"
+    reqmock.get('https://api.alpaca.markets/v1/watchlists/{}'.format(watchlist_id),
+                text='''{
+            "id": "900e20b1-46eb-492b-a505-2ea67386b5fd",
+            "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
+            "created_at": "2019-10-31T01:45:41.308091Z",
+            "updated_at": "2019-12-09T17:50:57.151693Z",
+            "name": "Primary Watchlist"
+        }''')
+    watchlist = api.get_watchlist(watchlist_id)
+    print(watchlist, type(watchlist), dir(watchlist))
+    assert watchlist.name == 'Primary Watchlist'
 
 
 def test_errors(reqmock):

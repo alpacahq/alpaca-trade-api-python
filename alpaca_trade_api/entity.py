@@ -172,7 +172,7 @@ class PortfolioHistory(Entity):
             df.set_index('timestamp', inplace=True)
             if not df.empty:
                 df.index = pd.to_datetime(
-                    (df.index * 1e6).astype('int64'), utc=True,
+                    (df.index * 1e9).astype('int64'), utc=True,
                 ).tz_convert(NY)
             else:
                 df.index = pd.to_datetime(

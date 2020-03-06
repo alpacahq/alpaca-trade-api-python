@@ -335,7 +335,8 @@ def test_data(reqmock):
 def test_watchlists(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
     # get watchlists
-    reqmock.get('https://api.alpaca.markets/v1/watchlists',
+    reqmock.get(
+        'https://api.alpaca.markets/v1/watchlists',
         text='''[
     {
         "id": "900e20b1-46eb-492b-a505-2ea67386b5fd",
@@ -367,8 +368,9 @@ def test_watchlists(reqmock):
     # get a watchlist by watchlist_id
     watchlist_id = "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc"
     symbol = "AMD"
-    reqmock.get('https://api.alpaca.markets/v1/watchlists/{}'.format(watchlist_id),
-                text='''{
+    reqmock.get(
+        'https://api.alpaca.markets/v1/watchlists/{}'.format(watchlist_id),
+        text='''{
             "id": "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc",
             "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
             "created_at": "2020-01-23T00:52:07.049138Z",
@@ -440,8 +442,9 @@ def test_watchlists(reqmock):
     assert watchlist.assets[0]["easy_to_borrow"]
 
     # add an asset to a watchlist
-    reqmock.post('https://api.alpaca.markets/v1/watchlists/{}'.format(watchlist_id),
-                text='''{
+    reqmock.post(
+        'https://api.alpaca.markets/v1/watchlists/{}'.format(watchlist_id),
+        text='''{
             "id": "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc",
             "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
             "created_at": "2020-01-23T00:52:07.049138Z",
@@ -468,8 +471,11 @@ def test_watchlists(reqmock):
     assert watchlist.assets[0]["symbol"] == "AMD"
 
     # remove an item from a watchlist
-    reqmock.delete('https://api.alpaca.markets/v1/watchlists/{}/{}'.format(watchlist_id, symbol),
-                text='''{
+    reqmock.delete(
+        'https://api.alpaca.markets/v1/watchlists/{}/{}'.format(
+            watchlist_id, symbol
+        ),
+        text='''{
     "id": "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc",
     "account_id": "1f893862-13b5-4603-b3ca-513980c00c6e",
     "created_at": "2020-01-23T00:52:07.049138Z",
@@ -525,7 +531,7 @@ def test_watchlists(reqmock):
             "easy_to_borrow": true
         }
     ]
-}''')
+    }''')
     api.delete_from_watchlist(watchlist_id, symbol)
 
     # delete a watchlist

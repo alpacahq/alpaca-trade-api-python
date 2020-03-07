@@ -6,6 +6,7 @@ import os
 import websockets
 from .entity import (
     Quote, Trade, Agg, Entity,
+    trade_mapping, quote_mapping, agg_mapping
 )
 from alpaca_trade_api.common import get_polygon_credentials
 import logging
@@ -185,50 +186,12 @@ class StreamConn(object):
 
     def _cast(self, subject, data):
         if subject == 'T':
-            map = {
-                "sym": "symbol",
-                "c": "conditions",
-                "x": "exchange",
-                "p": "price",
-                "s": "size",
-                "t": "timestamp"
-            }
-            ent = Trade({map[k]: v for k, v in data.items() if k in map})
-        elif subject == 'Q':
-            map = {
-                "sym": "symbol",
-                "ax": "askexchange",
-                "ap": "askprice",
-                "as": "asksize",
-                "bx": "bidexchange",
-                "bp": "bidprice",
-                "bs": "bidsize",
-                "c": "condition",
-                "t": "timestamp"
-            }
-            ent = Quote({map[k]: v for k, v in data.items() if k in map})
-        elif subject == 'AM' or subject == 'A':
-            map = {
-                "sym": "symbol",
-                "a": "average",
-                "c": "close",
-                "h": "high",
-                "k": "transactions",
-                "l": "low",
-                "o": "open",
-                "t": "totalvalue",
-                "x": "exchange",
-                "v": "volume",
-                "s": "start",
-                "e": "end",
-                "vw": "vwap",
-                "av": "totalvolume",
-                "op": "dailyopen",    # depricated? stream often has 0 for op
-            }
-            ent = Agg({map[k]: v for k, v in data.items() if k in map})
-        else:
-            ent = Entity(data)
-        return ent
+            return Trade({trade_mapping[k]: v for k, v in data.items() if k in trade_mapping})
+        if subject == 'Q':
+            return Quote({quote_mapping[k]: v for k, v in data.items() if k in quote_mapping})
+        if subject == 'AM' or subject == 'A':
+            return Agg({agg_mapping[k]: v for k, v in data.items() if k in agg_mapping})
+        return Entity(data)
 
     async def _dispatch(self, msg):
         channel = msg.get('ev')

@@ -6,6 +6,7 @@ import websockets
 from .common import get_base_url, get_credentials
 from .entity import Account, Entity
 from . import polygon
+from .polygon.entity import Trade, Quote, Agg, trade_mapping, agg_mapping, quote_mapping
 import logging
 
 
@@ -176,6 +177,12 @@ class StreamConn(object):
     def _cast(self, channel, msg):
         if channel == 'account_updates':
             return Account(msg)
+        if channel.startswith('T.'):
+            return Trade({trade_mapping[k]: v for k, v in msg.items() if k in trade_mapping})
+        if channel.startswith('Q.'):
+            return Quote({quote_mapping[k]: v for k, v in msg.items() if k in quote_mapping})
+        if channel.startswith('A.') or channel.startswith('AM.'):
+            return Agg({agg_mapping[k]: v for k, v in msg.items() if k in agg_mapping})
         return Entity(msg)
 
     async def _dispatch(self, channel, msg):

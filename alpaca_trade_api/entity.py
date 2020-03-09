@@ -176,7 +176,7 @@ class PortfolioHistory(Entity):
                 ).tz_convert(NY)
             else:
                 df.index = pd.to_datetime(
-                    df.index, utc=True, unit='s'
+                    df.index, utc=True
                 )
             self._df = df
         return self._df

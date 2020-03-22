@@ -219,6 +219,14 @@ def test_orders(reqmock):
     )
     api.cancel_order(order_id)
 
+    # Cancel all orders
+    reqmock.delete(
+        'https://api.alpaca.markets/v1/orders',
+        text='',
+        status_code=204,
+    )
+    api.cancel_all_orders()
+
 
 def test_positions(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')

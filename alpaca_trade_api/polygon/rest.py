@@ -145,8 +145,7 @@ class REST(object):
                                                                                          _from=dateutil.parser.parse(_from).date().isoformat(),
                                                                                          to=dateutil.parser.parse(to).date().isoformat()
         )
-        params = {}
-        params['unadjusted'] = unadjusted
+        params = {'unadjusted': unadjusted}
         if limit:
             params['limit'] = limit
         raw = self.get(path, params, version='v2')

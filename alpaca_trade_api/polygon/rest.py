@@ -33,7 +33,7 @@ class REST(object):
         resp.raise_for_status()
         return resp.json()
 
-    def get(self, path, params=None, version='v1'):
+    def get(self, path, params=None, version='v2'):
         return self._request('GET', path, params=params, version=version)
 
     def exchanges(self):
@@ -60,8 +60,8 @@ class REST(object):
         return Trades(raw)
 
     def historic_trades_v2(
-        self, symbol, date, timestamp=None, timestamp_limit=None,
-        reverse=None, limit=None
+            self, symbol, date, timestamp=None, timestamp_limit=None,
+            reverse=None, limit=None
     ):
         path = '/ticks/stocks/trades/{}/{}'.format(symbol, date)
         params = {}
@@ -93,8 +93,8 @@ class REST(object):
         return Quotes(raw)
 
     def historic_quotes_v2(
-        self, symbol, date, timestamp=None, timestamp_limit=None,
-        reverse=None, limit=None
+            self, symbol, date, timestamp=None, timestamp_limit=None,
+            reverse=None, limit=None
     ):
         path = '/ticks/stocks/nbbo/{}/{}'.format(symbol, date)
         params = {}

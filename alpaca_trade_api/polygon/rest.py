@@ -1,3 +1,4 @@
+import dateutil
 import requests
 from .entity import (
     Aggs, Aggsv2, Aggsv2Set,
@@ -141,8 +142,8 @@ class REST(object):
         path = '/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{_from}/{to}'.format(symbol=symbol,
                                                                                          multiplier=multiplier,
                                                                                          timespan=timespan,
-                                                                                         _from=_from,
-                                                                                         to=to
+                                                                                         _from=dateutil.parser.parse(_from).date().isoformat(),
+                                                                                         to=dateutil.parser.parse(to).date().isoformat()
         )
         params = {}
         params['unadjusted'] = unadjusted

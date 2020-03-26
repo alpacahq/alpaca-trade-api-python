@@ -148,13 +148,13 @@ class REST(object):
         return DailyOpenClose(raw)
 
     def last_trade(self, symbol):
-        path = '/last/stocks/{}'.format(symbol)
-        raw = self.get(path)
+        path = '/last/trade/{}'.format(symbol)
+        raw = self.get(path, version='v2')
         return Trade(raw['last'])
 
     def last_quote(self, symbol):
-        path = '/last_quote/stocks/{}'.format(symbol)
-        raw = self.get(path)
+        path = '/last/quote/{}'.format(symbol)
+        raw = self.get(path, version='v2')
         # TODO status check
         return Quote(raw['last'])
 

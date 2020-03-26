@@ -150,13 +150,13 @@ class REST(object):
     def last_trade(self, symbol):
         path = '/last/trade/{}'.format(symbol)
         raw = self.get(path, version='v2')
-        return Trade(raw['last'])
+        return Trade(raw['results'])
 
     def last_quote(self, symbol):
         path = '/last/quote/{}'.format(symbol)
         raw = self.get(path, version='v2')
         # TODO status check
-        return Quote(raw['last'])
+        return Quote(raw['results'])
 
     def previous_day_bar(self, symbol):
         path = '/aggs/ticker/{}/prev'.format(symbol)

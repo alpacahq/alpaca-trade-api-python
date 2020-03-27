@@ -25,6 +25,11 @@ class Entity(object):
                     ISO8601YMD.match(val)):
                 return pd.Timestamp(val)
             else:
+                if isinstance(val, str):
+                    try:
+                        val = float(val)
+                    except ValueError:
+                        pass
                 return val
         return super().__getattribute__(key)
 

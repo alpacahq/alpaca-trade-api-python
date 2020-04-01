@@ -4,7 +4,7 @@ import unittest
 
 class TestStockTwits(unittest.TestCase):
 
-    stocktwits = REST(None)
+    stocktwits = REST(api_key=None)
 
     def test_search_symbol(self):
 

@@ -27,7 +27,7 @@ class REST(object):
         params = params or {}
         params['apiKey'] = self._api_key
         if self._staging:
-            params['staging'] = 'true'
+            params['apiKey'] += '-staging'
         resp = self._session.request(method, url, params=params)
         resp.raise_for_status()
         return resp.json()

@@ -33,7 +33,7 @@ class REST(object):
         resp.raise_for_status()
         return resp.json()
 
-    def get(self, path, params=None, version='v2'):
+    def get(self, path, params=None, version='v1'):
         return self._request('GET', path, params=params, version=version)
 
     def exchanges(self):

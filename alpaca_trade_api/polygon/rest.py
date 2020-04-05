@@ -110,20 +110,6 @@ class REST(object):
 
         return QuotesV2(raw)
 
-    def historic_agg(self, size, symbol,
-                     _from=None, to=None, limit=None):
-        path = '/historic/agg/{}/{}'.format(size, symbol)
-        params = {}
-        if _from is not None:
-            params['from'] = _from
-        if to is not None:
-            params['to'] = to
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Aggs(raw)
-
     def historic_agg_v2(self, symbol, multiplier, timespan, _from, to,
                         unadjusted=False, limit=None):
         """

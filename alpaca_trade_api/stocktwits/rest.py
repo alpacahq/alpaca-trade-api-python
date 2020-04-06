@@ -24,6 +24,7 @@ class REST(object):
         30 Results will return only ticker symbols.
 
         :param id:The symbol that you want to search for (Required)
+        :param callback: Define your own callback function name, add this parameter as the value
         """
         params = {}
 

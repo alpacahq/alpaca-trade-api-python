@@ -122,18 +122,33 @@ class REST(object):
                             2015-01-07, 2015-01-10)
         :param timespan: Size of the time window: minute, hour, day, week,
                month, quarter, year
-        :param _from:
+        :param _from: some use isoformat some use timestamp. for now we
+                      handle both. we should decide on one and use only that
+                      examples of different usages: pylivetrader,
+                      alpaca-backtrader.
         :param to:
         :param unadjusted:
         :param limit: max samples to retrieve (seems like we get "limit - 1" )
         :return:
         """
-        path = '/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{_from}/{to}'.format(symbol=symbol,
-                                                                                         multiplier=multiplier,
-                                                                                         timespan=timespan,
-                                                                                         _from=dateutil.parser.parse(_from).date().isoformat(),
-                                                                                         to=dateutil.parser.parse(to).date().isoformat()
-        )
+        path_template = '/aggs/ticker/{symbol}/range/{multiplier}/' \
+                        '{timespan}/{_from}/{to}'
+        if isinstance(_from, int):
+            path = path_template.format(symbol=symbol,
+                                        multiplier=multiplier,
+                                        timespan=timespan,
+                                        _from=_from,
+                                        to=to
+                                        )
+        else:
+            path = path_template.format(symbol=symbol,
+                                        multiplier=multiplier,
+                                        timespan=timespan,
+                                        _from=dateutil.parser.parse(
+                                            _from).date().isoformat(),
+                                        to=dateutil.parser.parse(
+                                            to).date().isoformat()
+                                        )
         params = {'unadjusted': unadjusted}
         if limit:
             params['limit'] = limit

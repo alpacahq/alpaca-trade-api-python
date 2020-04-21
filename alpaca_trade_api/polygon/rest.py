@@ -123,7 +123,7 @@ class REST(object):
         :param timespan: Size of the time window: minute, hour, day, week,
                month, quarter, year
         :param _from: some use isoformat some use timestamp. for now we
-                      handle both. we should decide on one and use only that
+                      handle both.
                       examples of different usages: pylivetrader,
                       alpaca-backtrader.
         :param to:

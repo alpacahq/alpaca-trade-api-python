@@ -359,7 +359,7 @@ class REST(object):
         resp = self.data_get('/bars/{}'.format(timeframe), params)
         return BarSet(resp)
 
-    def get_aggregates(self, symbol, multiplier, timespan, _from, to):
+    def get_aggs(self, symbol, multiplier, timespan, _from, to):
         resp = self.data_get('/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
             symbol, multiplier, timespan, _from, to
         ))

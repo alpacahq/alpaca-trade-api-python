@@ -377,7 +377,7 @@ def test_data(reqmock):
             ]
         }'''
     )
-    aggs = api.get_aggregates('AAPL', 'day', '2020-02-10', '2020-02-12')
+    aggs = api.get_aggs('AAPL', 1, 'day', '2020-02-10', '2020-02-12')
     assert len(aggs) == 3
     assert aggs[0].open == 314.18
     assert aggs.df.iloc[1].high == 323.9

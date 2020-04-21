@@ -163,7 +163,7 @@ of `1Min`. Similarly, `day` is an alias of `1D`.
 `pd.Timestamp().isoformat()`
 `after` cannot be used with `start` and `until` cannot be used with `end`.
 
-### REST.get_aggregates(symbol, timespan, multiplier, _from, to):
+### REST.get_aggs(symbol, timespan, multiplier, _from, to):
 Calls `GET /aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from}/{to}` and returns the `Aggs` entity.
 `multiplier` is the size of the timespan multiplier.
 `timespan` is the size of the time window, can be one of `minute`, `hour`, `day`, `week`, `month`, `quarter` or `year`.

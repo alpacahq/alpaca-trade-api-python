@@ -6,8 +6,12 @@ import pytest
 import requests_mock
 
 
-if 'APCA_API_BASE_URL' in os.environ:
-    del os.environ['APCA_API_BASE_URL']
+@pytest.fixture(autouse=True)
+def delete_base_url_envs():
+    if 'APCA_API_BASE_URL' in os.environ:
+        del os.environ['APCA_API_BASE_URL']
+    if 'APCA_API_DATA_URL' in os.environ:
+        del os.environ['APCA_API_DATA_URL']
 
 
 @pytest.fixture
@@ -330,6 +334,102 @@ def test_data(reqmock):
     assert barset['TSLA'][1].h == 346.22
     assert barset['AAPL'][0].t.day == 23
     assert barset['AAPL'].df.index[0].day == 23
+
+    # Aggs
+    reqmock.get(
+        'https://data.alpaca.markets/v1/aggs/ticker/AAPL/'
+        'range/1/day/2020-02-10/2020-02-12',
+        text='''
+        {
+            "ticker": "AAPL",
+            "status": "OK",
+            "adjusted": true,
+            "queryCount": 3,
+            "resultsCount": 3,
+            "results": [
+                {
+                    "v": 23748626,
+                    "o": 314.18,
+                    "c": 321.54,
+                    "h": 321.54,
+                    "l": 313.85,
+                    "t": 1581310800000,
+                    "n": 1
+                },
+                {
+                    "v": 21107108,
+                    "o": 323.6,
+                    "c": 319.61,
+                    "h": 323.9,
+                    "l": 318.71,
+                    "t": 1581397200000,
+                    "n": 1
+                },
+                {
+                    "v": 24425223,
+                    "o": 321.62,
+                    "c": 327.2,
+                    "h": 327.21,
+                    "l": 321.47,
+                    "t": 1581483600000,
+                    "n": 1
+                }
+            ]
+        }'''
+    )
+    aggs = api.get_aggregates('AAPL', 'day', '2020-02-10', '2020-02-12')
+    assert len(aggs) == 3
+    assert aggs[0].open == 314.18
+    assert aggs.df.iloc[1].high == 323.9
+    with pytest.raises(AttributeError):
+        aggs[2].foo
+
+    # Last trade
+    reqmock.get(
+        'https://data.alpaca.markets/v1/last/stocks/AAPL',
+        text='''
+        {
+            "status": "success",
+            "symbol": "AAPL",
+            "last": {
+                "price": 159.59,
+                "size": 20,
+                "exchange": 11,
+                "cond1": 14,
+                "cond2": 16,
+                "cond3": 0,
+                "cond4": 0,
+                "timestamp": 1518086464720
+            }
+        }
+        '''
+    )
+    trade = api.get_last_trade('AAPL')
+    assert trade.price == 159.59
+    assert trade.timestamp.day == 8
+
+    # Last quote
+    reqmock.get(
+        'https://data.alpaca.markets/v1/last_quote/stocks/AAPL',
+        text='''
+        {
+            "status": "success",
+            "symbol": "AAPL",
+            "last": {
+                "askprice": 159.59,
+                "asksize": 2,
+                "askexchange": 11,
+                "bidprice": 159.45,
+                "bidsize": 20,
+                "bidexchange": 12,
+                "timestamp": 1518086601843
+            }
+        }'''
+    )
+
+    quote = api.get_last_quote('AAPL')
+    assert quote.askprice == 159.59
+    assert quote.timestamp.day == 8
 
 
 def test_watchlists(reqmock):

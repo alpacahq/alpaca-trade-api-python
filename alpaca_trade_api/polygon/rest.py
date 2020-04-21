@@ -115,10 +115,13 @@ class REST(object):
         """
 
         :param symbol:
-        :param multiplier: Size of the timespan multiplier (distance between samples.
-               e.g if 1 we get for daily 2015-01-05, 2015-01-06, 2015-01-07, 2015-01-08
-                   if 3 we get           2015-01-01, 2015-01-04, 2015-01-07, 2015-01-10)
-        :param timespan: Size of the time window: minute, hour, day, week, month, quarter, year
+        :param multiplier: Size of the timespan multiplier (distance between
+               samples. e.g if it's 1 we get for daily 2015-01-05, 2015-01-06,
+                            2015-01-07, 2015-01-08.
+                            if it's 3 we get 2015-01-01, 2015-01-04,
+                            2015-01-07, 2015-01-10)
+        :param timespan: Size of the time window: minute, hour, day, week,
+               month, quarter, year
         :param _from:
         :param to:
         :param unadjusted:

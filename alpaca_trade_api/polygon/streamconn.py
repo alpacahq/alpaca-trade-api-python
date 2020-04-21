@@ -27,6 +27,7 @@ class StreamConn(object):
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
         self._retries = 0
         self.loop = asyncio.get_event_loop()
+        self._consume_task = None
 
     async def connect(self):
         await self._dispatch({'ev': 'status',
@@ -43,7 +44,7 @@ class StreamConn(object):
             )
         await self._dispatch(msg)
         if await self.authenticate():
-            asyncio.ensure_future(self._consume_msg())
+            self._consume_task = asyncio.ensure_future(self._consume_msg())
         else:
             await self.close()
 
@@ -180,6 +181,8 @@ class StreamConn(object):
 
     async def close(self):
         '''Close any open connections'''
+        if self._consume_task:
+            self._consume_task.cancel()
         if self._ws is not None:
             await self._ws.close()
         self._ws = None

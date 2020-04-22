@@ -202,9 +202,12 @@ This class provides a unique interface to the two interfaces, both
 Alpaca's account/trade updates events and Polygon's price updates.
 One connection is established when the `subscribe()` is called with
 the corresponding channel names.  For example, if you subscribe to
-`account_updates`, a WebSocket connects to Alpaca stream API, and
+`trade_updates`, a WebSocket connects to Alpaca stream API, and
 if `AM.*` given to the `subscribe()` method, a WebSocket connection is
-established to Polygon's interface.
+established to Polygon's interface. If your account is enabled for
+Alpaca Data API streaming, adding `polyfeed/` suffix to `T.<symbol>`,
+`Q.<symbol>` and `AM.<symbol>` will also connect to the data stream
+interface.
 
 The `run` method is a short-cut to start subscribing to channels and
 running forever.  The call will be blocked forever until a critical
@@ -226,7 +229,7 @@ a `ValueError` is raised when registering it as an event handler.
 ```python
 conn = StreamConn()
 
-@conn.on(r'^account_updates$')
+@conn.on(r'^trade_updates$')
 async def on_account_updates(conn, channel, account):
     print('account', account)
 
@@ -243,7 +246,10 @@ async def on_second_bars(conn, channel, bar):
     print('bars', bar)
 
 # blocks forever
-conn.run(['account_updates', 'AM.*'])
+conn.run(['trade_updates', 'AM.*'])
+
+# if Data API streaming is enabled
+# conn.run(['trade_updates', 'polyfeed/AM.SPY'])
 
 ```
 

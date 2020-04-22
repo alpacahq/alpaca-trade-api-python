@@ -205,7 +205,7 @@ the corresponding channel names.  For example, if you subscribe to
 `trade_updates`, a WebSocket connects to Alpaca stream API, and
 if `AM.*` given to the `subscribe()` method, a WebSocket connection is
 established to Polygon's interface. If your account is enabled for
-Alpaca Data API streaming, adding `polyfeed/` suffix to `T.<symbol>`,
+Alpaca Data API streaming, adding `polyfeed/` prefix to `T.<symbol>`,
 `Q.<symbol>` and `AM.<symbol>` will also connect to the data stream
 interface.
 

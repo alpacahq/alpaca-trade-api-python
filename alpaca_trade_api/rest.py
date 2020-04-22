@@ -470,3 +470,12 @@ class REST(object):
         return PortfolioHistory(
             self.get('/account/portfolio/history', data=params)
         )
+
+    def __enter__(self):
+        return self
+
+    def close(self):
+        self._session.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

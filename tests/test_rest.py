@@ -706,3 +706,10 @@ def test_errors(reqmock):
         assert err.response.status_code == err.status_code
     else:
         assert False
+
+
+def test_no_resource_warning_with_context_manager():
+    with pytest.warns(None) as record:  # ensure no warnings are raised
+        with tradeapi.REST('key-id', 'secret-key', api_version='v1') as api:
+            assert api
+    assert not record

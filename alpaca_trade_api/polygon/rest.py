@@ -1,7 +1,7 @@
 import dateutil
 import requests
 from .entity import (
-    Aggs, Aggsv2, Aggsv2Set,
+    Aggsv2, Aggsv2Set,
     Trade, Trades, TradesV2,
     Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,

@@ -6,7 +6,9 @@ import websockets
 from .common import get_base_url, get_data_url, get_credentials
 from .entity import Account, Entity
 from . import polygon
-from .polygon.entity import Trade, Quote, Agg, trade_mapping, agg_mapping, quote_mapping
+from .polygon.entity import (
+    Trade, Quote, Agg, trade_mapping, agg_mapping, quote_mapping
+)
 import logging
 
 
@@ -113,11 +115,14 @@ class _StreamConn(object):
         if channel == 'account_updates':
             return Account(msg)
         if channel.startswith('T.'):
-            return Trade({trade_mapping[k]: v for k, v in msg.items() if k in trade_mapping})
+            return Trade({trade_mapping[k]: v for k,
+                          v in msg.items() if k in trade_mapping})
         if channel.startswith('Q.'):
-            return Quote({quote_mapping[k]: v for k, v in msg.items() if k in quote_mapping})
+            return Quote({quote_mapping[k]: v for k,
+                          v in msg.items() if k in quote_mapping})
         if channel.startswith('A.') or channel.startswith('AM.'):
-            return Agg({agg_mapping[k]: v for k, v in msg.items() if k in agg_mapping})
+            return Agg({agg_mapping[k]: v for k,
+                        v in msg.items() if k in agg_mapping})
         return Entity(msg)
 
     async def _dispatch(self, channel, msg):
@@ -150,15 +155,20 @@ class _StreamConn(object):
 
 class StreamConn(object):
 
-    def __init__(self, key_id=None, secret_key=None, base_url=None, data_url=None):
+    def __init__(
+            self,
+            key_id=None,
+            secret_key=None,
+            base_url=None,
+            data_url=None):
         _key_id, _secret_key, _ = get_credentials(key_id, secret_key)
         _base_url = base_url or get_base_url()
         _data_url = data_url or get_data_url()
 
         self.trading_ws = _StreamConn(_key_id, _secret_key, _base_url)
         self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
-        self.polygon = polygon.StreamConn(_key_id +
-                                          '-staging' if 'staging' in _base_url else '')
+        self.polygon = polygon.StreamConn(
+            _key_id + '-staging' if 'staging' in _base_url else '')
 
         self._handlers = {}
         self._handler_symbols = {}

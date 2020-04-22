@@ -108,8 +108,8 @@ class StreamConn(object):
                 data['ev'] = 'status'
                 await self._dispatch(data)
                 raise ConnectionResetError(
-                        'Polygon terminated connection: '
-                        f'({data.get("message")})')
+                    'Polygon terminated connection: '
+                    f'({data.get("message")})')
 
     async def _ensure_ws(self):
         if self._ws is not None:
@@ -189,11 +189,14 @@ class StreamConn(object):
 
     def _cast(self, subject, data):
         if subject == 'T':
-            return Trade({trade_mapping[k]: v for k, v in data.items() if k in trade_mapping})
+            return Trade({trade_mapping[k]: v for k,
+                          v in data.items() if k in trade_mapping})
         if subject == 'Q':
-            return Quote({quote_mapping[k]: v for k, v in data.items() if k in quote_mapping})
+            return Quote({quote_mapping[k]: v for k,
+                          v in data.items() if k in quote_mapping})
         if subject == 'AM' or subject == 'A':
-            return Agg({agg_mapping[k]: v for k, v in data.items() if k in agg_mapping})
+            return Agg({agg_mapping[k]: v for k,
+                        v in data.items() if k in agg_mapping})
         return Entity(data)
 
     async def _dispatch(self, msg):

@@ -139,10 +139,10 @@ def test_polygon(reqmock):
     with pytest.raises(AttributeError):
         quotes[0].foo
 
-# Historic Aggregates V2
+    # Historic Aggregates V2
     reqmock.get(
         endpoint(
-            '/aggs/ticker/AAPL/range/1/day/2018-2-2/2018-2-5',
+            '/aggs/ticker/AAPL/range/1/day/2018-02-02/2018-02-05',
             params='unadjusted=False', api_version='v2'
         ),
         text='''

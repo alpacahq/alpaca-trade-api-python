@@ -8,7 +8,7 @@ This trading algorithm implements the long-short equity strategy.  This means th
 
 Some stocks cannot be shorted.  In this case, the algorithm uses the leftover equity from the stocks that could not be shorted and shorts the stocks have already been shorted.
 
-The algorithm uses percent change in stock price over the past 10 minutes to rank the stocks, where the stocks that rose the most are longed and the ones that sunk the most are shorted.e most are longed and the ones that sunk the most are shorted.
+The algorithm uses percent change in stock price over the past 10 minutes to rank the stocks, where the stocks that rose the most are longed and the ones that sunk the most are shorted.
 
 ## Simple Stream
 

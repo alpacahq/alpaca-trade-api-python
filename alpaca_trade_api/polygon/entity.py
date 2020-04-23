@@ -329,7 +329,7 @@ trade_mapping = {
     "t": "timestamp"
 }
 
-quote_mapping = {	
+quote_mapping = {
     "sym": "symbol",
     "ax": "askexchange",
     "ap": "askprice",

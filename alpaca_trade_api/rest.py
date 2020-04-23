@@ -12,7 +12,7 @@ from .common import (
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
-    Watchlist, PortfolioHistory
+    Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
 from . import polygon
 from . import alpha_vantage
@@ -359,6 +359,22 @@ class REST(object):
         resp = self.data_get('/bars/{}'.format(timeframe), params)
         return BarSet(resp)
 
+    def get_aggs(self, symbol, multiplier, timespan, _from, to):
+        resp = self.data_get('/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
+            symbol, multiplier, timespan, _from, to
+        ))
+        return Aggs(resp)
+
+    def get_last_trade(self, symbol):
+        '''Get the last trade for the given symbol'''
+        resp = self.data_get('/last/stocks/{}'.format(symbol))
+        return Trade(resp['last'])
+
+    def get_last_quote(self, symbol):
+        '''Get the last trade for the given symbol'''
+        resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
+        return Quote(resp['last'])
+
     def get_clock(self):
         resp = self.get('/clock')
         return Clock(resp)
@@ -454,3 +470,12 @@ class REST(object):
         return PortfolioHistory(
             self.get('/account/portfolio/history', data=params)
         )
+
+    def __enter__(self):
+        return self
+
+    def close(self):
+        self._session.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

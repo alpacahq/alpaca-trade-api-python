@@ -43,6 +43,7 @@ def test_stream(websockets):
     }).encode())
 
     conn = StreamConn('key-id', 'secret-key')
+    conn = conn.trading_ws
     conn._consume_msg = AsyncMock()
 
     @conn.on('authorized')
@@ -78,44 +79,40 @@ def test_stream(websockets):
         raise TestException()
 
     # _ensure_polygon
-    conn = StreamConn('key-id', 'secret-key')
     with mock.patch('alpaca_trade_api.stream2.polygon') as polygon:
         polygon.StreamConn().connect = AsyncMock()
-        _run(conn._ensure_polygon())
+        polygon.StreamConn()._handlers = None
+
+        conn = StreamConn('key-id', 'secret-key')
+        _run(conn._ensure_ws(conn.polygon))
         assert conn.polygon is not None
         assert conn.polygon.connect.mock.called
 
     # _ensure_ws
     conn = StreamConn('key-id', 'secret-key')
-    conn._connect = AsyncMock()
-    _run(conn._ensure_ws())
-    assert conn._connect.mock.called
+    conn.trading_ws._connect = AsyncMock()
+    _run(conn._ensure_ws(conn.trading_ws))
+    assert conn.trading_ws._connect.mock.called
 
     # subscribe
-    conn = StreamConn('key-id', 'secret-key')
+    conn = StreamConn('key-id', 'secret-key').trading_ws
     conn._ensure_ws = AsyncMock()
     conn._ws = mock.Mock()
     conn._ws.send = AsyncMock()
     conn._ensure_nats = AsyncMock()
-    conn.polygon = mock.Mock()
-    conn.polygon.subscribe = AsyncMock()
 
     _run(conn.subscribe(['Q.*', 'account_updates']))
     assert conn._ws.send.mock.called
-    assert conn.polygon.subscribe.mock.called
 
     # close
-    conn = StreamConn('key-id', 'secret-key')
+    conn = StreamConn('key-id', 'secret-key').trading_ws
     conn._ws = mock.Mock()
     conn._ws.close = AsyncMock()
-    conn.polygon = mock.Mock()
-    conn.polygon.close = AsyncMock()
     _run(conn.close())
     assert conn._ws is None
-    assert conn.polygon is None
 
     # _cast
-    conn = StreamConn('key-id', 'secret-key')
+    conn = StreamConn('key-id', 'secret-key').trading_ws
     ent = conn._cast('account_updates', {})
     assert isinstance(ent, Account)
     ent = conn._cast('other', {'key': 'value'})

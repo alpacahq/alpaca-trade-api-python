@@ -1,6 +1,7 @@
+import dateutil
 import requests
 from .entity import (
-    Aggs, Aggsv2, Aggsv2Set,
+    Aggsv2, Aggsv2Set,
     Trade, Trades, TradesV2,
     Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
@@ -59,8 +60,8 @@ class REST(object):
         return Trades(raw)
 
     def historic_trades_v2(
-        self, symbol, date, timestamp=None, timestamp_limit=None,
-        reverse=None, limit=None
+            self, symbol, date, timestamp=None, timestamp_limit=None,
+            reverse=None, limit=None
     ):
         path = '/ticks/stocks/trades/{}/{}'.format(symbol, date)
         params = {}
@@ -92,8 +93,8 @@ class REST(object):
         return Quotes(raw)
 
     def historic_quotes_v2(
-        self, symbol, date, timestamp=None, timestamp_limit=None,
-        reverse=None, limit=None
+            self, symbol, date, timestamp=None, timestamp_limit=None,
+            reverse=None, limit=None
     ):
         path = '/ticks/stocks/nbbo/{}/{}'.format(symbol, date)
         params = {}
@@ -109,27 +110,46 @@ class REST(object):
 
         return QuotesV2(raw)
 
-    def historic_agg(self, size, symbol,
-                     _from=None, to=None, limit=None):
-        path = '/historic/agg/{}/{}'.format(size, symbol)
-        params = {}
-        if _from is not None:
-            params['from'] = _from
-        if to is not None:
-            params['to'] = to
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Aggs(raw)
-
     def historic_agg_v2(self, symbol, multiplier, timespan, _from, to,
                         unadjusted=False, limit=None):
-        path = '/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
-            symbol, multiplier, timespan, _from, to
-        )
-        params = {}
-        params['unadjusted'] = unadjusted
+        """
+
+        :param symbol:
+        :param multiplier: Size of the timespan multiplier (distance between
+               samples. e.g if it's 1 we get for daily 2015-01-05, 2015-01-06,
+                            2015-01-07, 2015-01-08.
+                            if it's 3 we get 2015-01-01, 2015-01-04,
+                            2015-01-07, 2015-01-10)
+        :param timespan: Size of the time window: minute, hour, day, week,
+               month, quarter, year
+        :param _from: some use isoformat some use timestamp. for now we
+                      handle both.
+                      examples of different usages: pylivetrader,
+                      alpaca-backtrader.
+        :param to:
+        :param unadjusted:
+        :param limit: max samples to retrieve (seems like we get "limit - 1" )
+        :return:
+        """
+        path_template = '/aggs/ticker/{symbol}/range/{multiplier}/' \
+                        '{timespan}/{_from}/{to}'
+        if isinstance(_from, int):
+            path = path_template.format(symbol=symbol,
+                                        multiplier=multiplier,
+                                        timespan=timespan,
+                                        _from=_from,
+                                        to=to
+                                        )
+        else:
+            path = path_template.format(symbol=symbol,
+                                        multiplier=multiplier,
+                                        timespan=timespan,
+                                        _from=dateutil.parser.parse(
+                                            _from).date().isoformat(),
+                                        to=dateutil.parser.parse(
+                                            to).date().isoformat()
+                                        )
+        params = {'unadjusted': unadjusted}
         if limit:
             params['limit'] = limit
         raw = self.get(path, params, version='v2')

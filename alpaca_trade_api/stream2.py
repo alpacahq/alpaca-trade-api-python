@@ -166,7 +166,7 @@ class StreamConn(object):
         self.trading_ws = _StreamConn(_key_id, _secret_key, _base_url)
         self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
         self.polygon = polygon.StreamConn(
-            _key_id + '-staging' if 'staging' in _base_url else '')
+            _key_id + '-staging' if 'staging' in _base_url else _key_id)
 
         self._handlers = {}
         self._handler_symbols = {}

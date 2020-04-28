@@ -190,7 +190,7 @@ class StreamConn(object):
         else:
             self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
             self._data_prefixes = (
-                ('Q.', 'T.', 'AM.', 'polyfeed/', 'alpacadatav1/'))
+                ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
         self._handlers = {}
         self._handler_symbols = {}

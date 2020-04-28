@@ -4,11 +4,9 @@ import os
 import re
 import websockets
 from .common import get_base_url, get_data_url, get_credentials
-from .entity import Account, Entity
+from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
-from .polygon.entity import (
-    Trade, Quote, Agg, trade_mapping, agg_mapping, quote_mapping
-)
+from .polygon.entity import Trade, Quote, Agg
 import logging
 
 

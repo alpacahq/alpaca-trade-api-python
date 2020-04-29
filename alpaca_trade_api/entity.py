@@ -244,3 +244,40 @@ class PortfolioHistory(Entity):
                 )
             self._df = df
         return self._df
+
+
+trade_mapping = {
+    "sym": "symbol",
+    "c": "conditions",
+    "x": "exchange",
+    "p": "price",
+    "s": "size",
+    "t": "timestamp"
+}
+
+quote_mapping = {
+    "T": "symbol",
+    "X": "askexchange",
+    "P": "askprice",
+    "S": "asksize",
+    "x": "bidexchange",
+    "p": "bidprice",
+    "s": "bidsize",
+    "c": "conditions",
+    "t": "timestamp"
+}
+
+agg_mapping = {
+    "sym": "symbol",
+    "o": "open",
+    "c": "close",
+    "h": "high",
+    "l": "low",
+    "a": "average",
+    "x": "exchange",
+    "v": "volume",
+    "s": "start",
+    "e": "end",
+    "vw": "vwap",
+    "av": "totalvolume",
+}

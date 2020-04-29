@@ -83,10 +83,10 @@ def test_stream(websockets):
         polygon.StreamConn().connect = AsyncMock()
         polygon.StreamConn()._handlers = None
 
-        conn = StreamConn('key-id', 'secret-key')
-        _run(conn._ensure_ws(conn.polygon))
-        assert conn.polygon is not None
-        assert conn.polygon.connect.mock.called
+        conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
+        _run(conn._ensure_ws(conn.data_ws))
+        assert conn.data_ws is not None
+        assert conn.data_ws.connect.mock.called
 
     # _ensure_ws
     conn = StreamConn('key-id', 'secret-key')
@@ -119,14 +119,14 @@ def test_stream(websockets):
     assert ent.key == 'value'
 
     # polygon _dispatch
-    conn = StreamConn('key-id', 'secret-key')
-    conn.polygon = PolyStream('key-id')
+    conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
+    conn.data_ws = PolyStream('key-id')
     msg_data = {'key': 'value', 'ev': 'Q'}
-    conn.polygon._cast = mock.Mock(return_value=msg_data)
+    conn.data_ws._cast = mock.Mock(return_value=msg_data)
 
     @conn.on('Q')
     async def on_q(conn, subject, data):
         on_q.data = data
 
-    _run(conn.polygon._dispatch(msg_data))
+    _run(conn.data_ws._dispatch(msg_data))
     assert on_q.data['key'] == 'value'

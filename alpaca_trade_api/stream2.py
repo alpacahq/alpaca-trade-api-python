@@ -4,11 +4,9 @@ import os
 import re
 import websockets
 from .common import get_base_url, get_data_url, get_credentials
-from .entity import Account, Entity
+from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
-from .polygon.entity import (
-    Trade, Quote, Agg, trade_mapping, agg_mapping, quote_mapping
-)
+from .polygon.entity import Trade, Quote, Agg
 import logging
 
 
@@ -89,6 +87,8 @@ class _StreamConn(object):
             raise ConnectionError("Max Retries Exceeded")
 
     async def subscribe(self, channels):
+        if isinstance(channels, str):
+            channels = [channels]
         if len(channels) > 0:
             await self._ensure_ws()
             self._streams |= set(channels)
@@ -100,9 +100,15 @@ class _StreamConn(object):
             }))
 
     async def unsubscribe(self, channels):
-        # Currently our streams don't support unsubscribe
-        # not as useful with our feeds
-        pass
+        if isinstance(channels, str):
+            channels = [channels]
+        if len(channels) > 0:
+            await self._ws.send(json.dumps({
+                'action': 'unlisten',
+                'data': {
+                    'streams': channels,
+                }
+            }))
 
     async def close(self):
         if self._consume_task:
@@ -160,15 +166,31 @@ class StreamConn(object):
             key_id=None,
             secret_key=None,
             base_url=None,
-            data_url=None):
+            data_url=None,
+            data_stream=None):
         _key_id, _secret_key, _ = get_credentials(key_id, secret_key)
         _base_url = base_url or get_base_url()
         _data_url = data_url or get_data_url()
+        if data_stream is not None:
+            if data_stream in ('alpacadatav1', 'polygon'):
+                _data_stream = data_stream
+            else:
+                raise ValueError('invalid data_stream name {}'.format(
+                    data_stream))
+        else:
+            _data_stream = 'alpacadatav1'
+        self._data_stream = _data_stream
 
         self.trading_ws = _StreamConn(_key_id, _secret_key, _base_url)
-        self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
-        self.polygon = polygon.StreamConn(
-            _key_id + '-staging' if 'staging' in _base_url else '')
+
+        if self._data_stream == 'polygon':
+            self.data_ws = polygon.StreamConn(
+                _key_id + '-staging' if 'staging' in _base_url else _key_id)
+            self._data_prefixes = (('Q.', 'T.', 'A.', 'AM.'))
+        else:
+            self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
+            self._data_prefixes = (
+                ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
         self._handlers = {}
         self._handler_symbols = {}
@@ -193,15 +215,19 @@ class StreamConn(object):
     async def subscribe(self, channels):
         '''Start subscribing to channels.
         If the necessary connection isn't open yet, it opens now.
+        This may raise ValueError if a channel is not recognized.
         '''
-        trading_channels, data_channels, polygon_channels = [], [], []
+        trading_channels, data_channels = [], []
+
         for c in channels:
-            if c.startswith(('Q.', 'T.', 'A.', 'AM.',)):
-                polygon_channels.append(c)
-            elif c in ('trade_updates', 'account_updates'):
+            if c in ('trade_updates', 'account_updates'):
                 trading_channels.append(c)
-            else:
+            elif c.startswith(self._data_prefixes):
                 data_channels.append(c)
+            else:
+                raise ValueError(
+                    ('unknown channel {} (you may need to specify ' +
+                     'the right data_stream)').format(c))
 
         if trading_channels:
             await self._ensure_ws(self.trading_ws)
@@ -209,18 +235,21 @@ class StreamConn(object):
         if data_channels:
             await self._ensure_ws(self.data_ws)
             await self.data_ws.subscribe(data_channels)
-        if polygon_channels:
-            await self._ensure_ws(self.polygon)
-            await self.polygon.subscribe(polygon_channels)
 
     async def unsubscribe(self, channels):
         '''Handle unsubscribing from channels.'''
-        polygon_channels = [
+
+        data_prefixes = ('Q.', 'T.', 'AM.')
+        if self._data_stream == 'polygon':
+            data_prefixes = ('Q.', 'T.', 'A.', 'AM.')
+
+        data_channels = [
             c for c in channels
-            if c.startswith(('Q.', 'T.', 'A.', 'AM.',))
+            if c.startswith(data_prefixes)
         ]
-        if polygon_channels:
-            await self.polygon.unsubscribe(polygon_channels)
+
+        if data_channels:
+            await self.data_ws.unsubscribe(data_channels)
 
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is raised.
@@ -244,9 +273,6 @@ class StreamConn(object):
         if self.data_ws is not None:
             await self.data_ws.close()
             self.data_ws = None
-        if self.polygon is not None:
-            await self.polygon.close()
-            self.polygon = None
 
     def on(self, channel_pat, symbols=None):
         def decorator(func):
@@ -267,8 +293,6 @@ class StreamConn(object):
             self.trading_ws.register(channel_pat, func, symbols)
         if self.data_ws:
             self.data_ws.register(channel_pat, func, symbols)
-        if self.polygon:
-            self.polygon.register(channel_pat, func, symbols)
 
     def deregister(self, channel_pat):
         if isinstance(channel_pat, str):
@@ -280,5 +304,3 @@ class StreamConn(object):
             self.trading_ws.deregister(channel_pat)
         if self.data_ws:
             self.data_ws.deregister(channel_pat)
-        if self.polygon:
-            self.polygon.deregister(channel_pat)

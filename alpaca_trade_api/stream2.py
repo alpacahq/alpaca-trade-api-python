@@ -6,7 +6,7 @@ import websockets
 from .common import get_base_url, get_data_url, get_credentials
 from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
-from .polygon.entity import Trade, Quote, Agg
+from .entity import Trade, Quote, Agg
 import logging
 
 
@@ -51,6 +51,10 @@ class _StreamConn(object):
         await self._dispatch('authorized', msg)
 
         self._consume_task = asyncio.ensure_future(self._consume_msg())
+
+    async def consume(self):
+        if self._consume_task:
+            await self._consume_task
 
     async def _consume_msg(self):
         ws = self._ws
@@ -239,17 +243,19 @@ class StreamConn(object):
     async def unsubscribe(self, channels):
         '''Handle unsubscribing from channels.'''
 
-        data_prefixes = ('Q.', 'T.', 'AM.')
-        if self._data_stream == 'polygon':
-            data_prefixes = ('Q.', 'T.', 'A.', 'AM.')
-
         data_channels = [
             c for c in channels
-            if c.startswith(data_prefixes)
+            if c.startswith(self._data_prefixes)
         ]
 
         if data_channels:
             await self.data_ws.unsubscribe(data_channels)
+
+    async def consume(self):
+        await asyncio.gather(
+            self.trading_ws.consume(),
+            self.data_ws.consume(),
+        )
 
     def run(self, initial_channels=[]):
         '''Run forever and block until exception is raised.
@@ -258,7 +264,7 @@ class StreamConn(object):
         loop = self.loop
         try:
             loop.run_until_complete(self.subscribe(initial_channels))
-            loop.run_forever()
+            loop.run_until_complete(self.consume())
         except KeyboardInterrupt:
             logging.info("Exiting on Interrupt")
         finally:

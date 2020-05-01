@@ -134,6 +134,8 @@ class _Timestamped(object):
         if key in self._raw:
             val = self._raw[key]
             if key == 'timestamp':
+                if val > 1000000000000000000:
+                    return pd.Timestamp(val, tz=NY)
                 return pd.Timestamp(val, tz=NY, unit='ms')
             return val
         return getattr(super(), key)

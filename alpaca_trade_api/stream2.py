@@ -197,8 +197,8 @@ class StreamConn(object):
 
         try:
             self.loop = asyncio.get_event_loop()
-        except websockets.WebSocketException as wse:
-            logging.warn(wse)
+        except RuntimeError as e:
+            logging.warn(e)
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
 

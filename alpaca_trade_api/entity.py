@@ -135,6 +135,8 @@ class _Timestamped(object):
             val = self._raw[key]
             if key == 'timestamp':
                 if val > 1000000000000000000:
+                    # this is for supporing timestamp represented in nanosecond. 
+                    # the alpaca data api uses nanoseconds. polygon uses microseconds.
                     return pd.Timestamp(val, tz=NY)
                 return pd.Timestamp(val, tz=NY, unit='ms')
             return val

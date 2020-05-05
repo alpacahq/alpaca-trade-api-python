@@ -128,22 +128,24 @@ class BarSet(dict):
                 self._df = pd.concat(dfs, axis=1)
         return self._df
 
-
 class _Timestamped(object):
     def __getattr__(self, key):
         if key in self._raw:
             val = self._raw[key]
             if key == 'timestamp':
-                if val > 1000000000000000000:
-                    # this is for supporing timestamp represented in nanosecond. 
-                    # the alpaca data api uses nanoseconds. polygon uses microseconds.
-                    return pd.Timestamp(val, tz=NY)
-                return pd.Timestamp(val, tz=NY, unit='ms')
+                return pd.Timestamp(val, tz=NY, unit=self.unit)
             return val
         return getattr(super(), key)
 
 
-class Agg(_Timestamped, Entity):
+class _NanoTimestamped(_Timestamped):
+    unit = 'ms'
+
+
+class _MicroTimestamped(_Timestamped):
+    unit = 'ms'
+
+class Agg(_MicroTimestamped, Entity):
     pass
 
 
@@ -189,11 +191,11 @@ class Aggs(list):
         return self._df
 
 
-class Trade(_Timestamped, Entity):
+class Trade(_NanoTimestamped, Entity):
     pass
 
 
-class Quote(_Timestamped, Entity):
+class Quote(_NanoTimestamped, Entity):
     pass
 
 
@@ -251,7 +253,7 @@ class PortfolioHistory(Entity):
 
 
 trade_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "c": "conditions",
     "x": "exchange",
     "p": "price",
@@ -272,7 +274,7 @@ quote_mapping = {
 }
 
 agg_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "o": "open",
     "c": "close",
     "h": "high",

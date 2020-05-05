@@ -139,7 +139,7 @@ class _Timestamped(object):
 
 
 class _NanoTimestamped(_Timestamped):
-    unit = 'ms'
+    unit = 'ns'
 
 
 class _MicroTimestamped(_Timestamped):

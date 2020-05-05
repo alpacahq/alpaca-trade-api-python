@@ -39,11 +39,16 @@ class _StreamConn(object):
             r = r.decode('utf-8')
         msg = json.loads(r)
 
-        if msg.get('data', {}).get('status') != 'authorized':
-            raise ValueError(
-                ("Invalid Alpaca API credentials, Failed to authenticate: {}"
-                    .format(msg))
-            )
+        if msg.get('data', {}).get('status'):
+            status = msg.get('data').get('status')
+            if status != 'authorized':
+                raise ValueError(
+                    (f"Invalid Alpaca API credentials, Failed to "
+                     f"authenticate: {msg}")
+                )
+        elif msg.get('data', {}).get('error'):
+            raise Exception(f"Error while connecting to {self._endpoint}:"
+                            f"{msg.get('data').get('error')}")
         else:
             self._retries = 0
 

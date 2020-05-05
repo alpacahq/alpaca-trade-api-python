@@ -142,10 +142,10 @@ class _NanoTimestamped(_Timestamped):
     unit = 'ns'
 
 
-class _MicroTimestamped(_Timestamped):
+class _MilliTimestamped(_Timestamped):
     unit = 'ms'
 
-class Agg(_MicroTimestamped, Entity):
+class Agg(_MilliTimestamped, Entity):
     pass
 
 

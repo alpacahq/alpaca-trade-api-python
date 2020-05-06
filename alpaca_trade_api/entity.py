@@ -128,6 +128,7 @@ class BarSet(dict):
                 self._df = pd.concat(dfs, axis=1)
         return self._df
 
+
 class _Timestamped(object):
     def __getattr__(self, key):
         if key in self._raw:
@@ -144,6 +145,7 @@ class _NanoTimestamped(_Timestamped):
 
 class _MilliTimestamped(_Timestamped):
     unit = 'ms'
+
 
 class Agg(_MilliTimestamped, Entity):
     pass

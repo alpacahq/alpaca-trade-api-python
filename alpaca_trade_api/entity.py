@@ -130,25 +130,27 @@ class BarSet(dict):
 
 
 class _Timestamped(object):
+    _tskeys = ('timestamp',)
+
     def __getattr__(self, key):
         if key in self._raw:
             val = self._raw[key]
-            if key == 'timestamp':
-                return pd.Timestamp(val, tz=NY, unit=self.unit)
+            if key in self._tskeys:
+                return pd.Timestamp(val, tz=NY, unit=self._unit)
             return val
         return getattr(super(), key)
 
 
 class _NanoTimestamped(_Timestamped):
-    unit = 'ns'
+    _unit = 'ns'
 
 
 class _MilliTimestamped(_Timestamped):
-    unit = 'ms'
+    _unit = 'ms'
 
 
 class Agg(_MilliTimestamped, Entity):
-    pass
+    _tskeys = ('timestamp', 'start', 'end')
 
 
 class Aggs(list):
@@ -288,4 +290,7 @@ agg_mapping = {
     "e": "end",
     "vw": "vwap",
     "av": "totalvolume",
+
+    # this is extra alias in the client side
+    "t": "timestamp",
 }

@@ -131,6 +131,8 @@ class _StreamConn(object):
             return Quote({quote_mapping[k]: v for k,
                           v in msg.items() if k in quote_mapping})
         if channel.startswith('A.') or channel.startswith('AM.'):
+            # to be compatible with REST Agg
+            msg['t'] = msg['s']
             return Agg({agg_mapping[k]: v for k,
                         v in msg.items() if k in agg_mapping})
         return Entity(msg)

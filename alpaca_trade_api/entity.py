@@ -134,12 +134,20 @@ class _Timestamped(object):
         if key in self._raw:
             val = self._raw[key]
             if key == 'timestamp':
-                return pd.Timestamp(val, tz=NY, unit='ms')
+                return pd.Timestamp(val, tz=NY, unit=self.unit)
             return val
         return getattr(super(), key)
 
 
-class Agg(_Timestamped, Entity):
+class _NanoTimestamped(_Timestamped):
+    unit = 'ns'
+
+
+class _MilliTimestamped(_Timestamped):
+    unit = 'ms'
+
+
+class Agg(_MilliTimestamped, Entity):
     pass
 
 
@@ -185,11 +193,11 @@ class Aggs(list):
         return self._df
 
 
-class Trade(_Timestamped, Entity):
+class Trade(_NanoTimestamped, Entity):
     pass
 
 
-class Quote(_Timestamped, Entity):
+class Quote(_NanoTimestamped, Entity):
     pass
 
 
@@ -247,7 +255,7 @@ class PortfolioHistory(Entity):
 
 
 trade_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "c": "conditions",
     "x": "exchange",
     "p": "price",
@@ -268,7 +276,7 @@ quote_mapping = {
 }
 
 agg_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "o": "open",
     "c": "close",
     "h": "high",

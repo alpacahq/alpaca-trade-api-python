@@ -399,7 +399,7 @@ def test_data(reqmock):
                 "cond2": 16,
                 "cond3": 0,
                 "cond4": 0,
-                "timestamp": 1518086464720
+                "timestamp": 1518101436000900000
             }
         }
         '''
@@ -422,7 +422,7 @@ def test_data(reqmock):
                 "bidprice": 159.45,
                 "bidsize": 20,
                 "bidexchange": 12,
-                "timestamp": 1518086601843
+                "timestamp": 1518101436000900000
             }
         }'''
     )

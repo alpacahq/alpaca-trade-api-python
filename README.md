@@ -205,7 +205,7 @@ the corresponding channel names.  For example, if you subscribe to
 `trade_updates`, a WebSocket connects to Alpaca stream API, and
 if `AM.*` given to the `subscribe()` method, a WebSocket connection is
 established to Polygon's interface. If your account is enabled for
-Alpaca Data API streaming, adding `polyfeed/` prefix to `T.<symbol>`,
+Alpaca Data API streaming, adding `alpacadatav1/` prefix to `T.<symbol>`,
 `Q.<symbol>` and `AM.<symbol>` will also connect to the data stream
 interface.
 
@@ -249,7 +249,7 @@ async def on_second_bars(conn, channel, bar):
 conn.run(['trade_updates', 'AM.*'])
 
 # if Data API streaming is enabled
-# conn.run(['trade_updates', 'polyfeed/AM.SPY'])
+# conn.run(['trade_updates', 'alpacadatav1/AM.SPY'])
 
 ```
 

@@ -46,6 +46,8 @@ class _StreamConn(object):
                     (f"Invalid Alpaca API credentials, Failed to "
                      f"authenticate: {msg}")
                 )
+            else:
+                self._retries = 0
         elif msg.get('data', {}).get('error'):
             raise Exception(f"Error while connecting to {self._endpoint}:"
                             f"{msg.get('data').get('error')}")

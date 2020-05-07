@@ -130,17 +130,27 @@ class BarSet(dict):
 
 
 class _Timestamped(object):
+    _tskeys = ('timestamp',)
+
     def __getattr__(self, key):
         if key in self._raw:
             val = self._raw[key]
-            if key == 'timestamp':
-                return pd.Timestamp(val, tz=NY, unit='ms')
+            if key in self._tskeys:
+                return pd.Timestamp(val, tz=NY, unit=self._unit)
             return val
         return getattr(super(), key)
 
 
-class Agg(_Timestamped, Entity):
-    pass
+class _NanoTimestamped(_Timestamped):
+    _unit = 'ns'
+
+
+class _MilliTimestamped(_Timestamped):
+    _unit = 'ms'
+
+
+class Agg(_MilliTimestamped, Entity):
+    _tskeys = ('timestamp', 'start', 'end')
 
 
 class Aggs(list):
@@ -185,11 +195,11 @@ class Aggs(list):
         return self._df
 
 
-class Trade(_Timestamped, Entity):
+class Trade(_NanoTimestamped, Entity):
     pass
 
 
-class Quote(_Timestamped, Entity):
+class Quote(_NanoTimestamped, Entity):
     pass
 
 
@@ -247,7 +257,7 @@ class PortfolioHistory(Entity):
 
 
 trade_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "c": "conditions",
     "x": "exchange",
     "p": "price",
@@ -268,7 +278,7 @@ quote_mapping = {
 }
 
 agg_mapping = {
-    "sym": "symbol",
+    "T": "symbol",
     "o": "open",
     "c": "close",
     "h": "high",
@@ -280,4 +290,7 @@ agg_mapping = {
     "e": "end",
     "vw": "vwap",
     "av": "totalvolume",
+
+    # this is extra alias in the client side
+    "t": "timestamp",
 }

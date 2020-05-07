@@ -98,6 +98,10 @@ class StreamConn(object):
             await self.close()
             asyncio.ensure_future(self._ensure_ws())
 
+    async def consume(self):
+        if self._consume_task:
+            await self._consume_task
+
     async def _consume_msg(self):
         async for data in self._stream:
             stream = data.get('ev')

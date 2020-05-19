@@ -96,11 +96,11 @@ class MartingaleTrader(object):
                 tick_close = data.close
                 self.last_price = tick_close
 
-                await conn.process_current_tick(tick_open, tick_close)
+                await self.process_current_tick(tick_open, tick_close)
 
         # Listen for quote data and perform trading logic
-        @conn.on(r'Q\..+', [self.symbol])
-        async def handle_tick(conn, channel, data):
+        @conn.on(r'T\..+', [self.symbol])
+        async def handle_alpaca_aggs(conn, channel, data):
             now = datetime.datetime.utcnow()
             if now - self.last_trade_time < datetime.timedelta(seconds=1):
                 # don't react every tick unless at least 1 second past
@@ -113,45 +113,10 @@ class MartingaleTrader(object):
 
                 # Update price info
                 tick_open = self.last_price
-                tick_close = data.askprice
+                tick_close = data.price
                 self.last_price = tick_close
 
-                await conn.process_current_tick(tick_open, tick_close)
-
-        async def process_current_tick(self, tick_open, tick_close):
-            # Update streak info
-            diff = truncate(tick_close, 2) - truncate(tick_open, 2)
-            if diff != 0:
-                # There was a meaningful change in the price
-                self.streak_count += 1
-                increasing = tick_open > tick_close
-                if self.streak_increasing != increasing:
-                    # It moved in the opposite direction of the streak.
-                    # Therefore, the streak is over, and we should reset.
-
-                    # Empty out the position
-                    self.send_order(0)
-
-                    # Reset variables
-                    self.streak_increasing = increasing
-                    self.streak_start = tick_open
-                    self.streak_count = 0
-                else:
-                    # Calculate the number of shares we want to be holding
-                    total_buying_power = self.equity * \
-                                         self.margin_multiplier
-                    target_value = (2 ** self.streak_count) * \
-                                   (self.base_bet / 100) * total_buying_power
-                    if target_value > total_buying_power:
-                        # Limit the amount we can buy to a bit (1 share)
-                        # less than our total buying power
-                        target_value = total_buying_power - self.last_price
-                    target_qty = int(target_value / self.last_price)
-                    if self.streak_increasing:
-                        target_qty = target_qty * -1
-                    self.send_order(target_qty)
-            # Update our account balance
-            self.equity = float(self.api.get_account().equity)
+                await self.process_current_tick(tick_open, tick_close)
 
         # Listen for updates to our orders
         @conn.on(r'trade_updates')
@@ -183,7 +148,42 @@ class MartingaleTrader(object):
         if USE_POLYGON:
             conn.run([f'A.{self.symbol}', 'trade_updates'])
         else:
-            conn.run([f'alpacadatav1/Q.{self.symbol}', 'trade_updates'])
+            conn.run([f'alpacadatav1/T.{self.symbol}', 'trade_updates'])
+
+    async def process_current_tick(self, tick_open, tick_close):
+        # Update streak info
+        diff = truncate(tick_close, 2) - truncate(tick_open, 2)
+        if diff != 0:
+            # There was a meaningful change in the price
+            self.streak_count += 1
+            increasing = tick_open > tick_close
+            if self.streak_increasing != increasing:
+                # It moved in the opposite direction of the streak.
+                # Therefore, the streak is over, and we should reset.
+
+                # Empty out the position
+                self.send_order(0)
+
+                # Reset variables
+                self.streak_increasing = increasing
+                self.streak_start = tick_open
+                self.streak_count = 0
+            else:
+                # Calculate the number of shares we want to be holding
+                total_buying_power = self.equity * \
+                                     self.margin_multiplier
+                target_value = (2 ** self.streak_count) * \
+                               (self.base_bet / 100) * total_buying_power
+                if target_value > total_buying_power:
+                    # Limit the amount we can buy to a bit (1 share)
+                    # less than our total buying power
+                    target_value = total_buying_power - self.last_price
+                target_qty = int(target_value / self.last_price)
+                if self.streak_increasing:
+                    target_qty = target_qty * -1
+                self.send_order(target_qty)
+        # Update our account balance
+        self.equity = float(self.api.get_account().equity)
 
     def send_order(self, target_qty):
         # We don't want to have two orders open at once

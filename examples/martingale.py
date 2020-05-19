@@ -1,4 +1,10 @@
 import alpaca_trade_api as tradeapi
+import datetime
+
+ALPACA_API_KEY = "REPLACE_ME"
+ALPACA_SECRET_KEY = "REPLACE_ME"
+USE_POLYGON = False
+
 
 # Utility to truncate a float value to a certain number of decimal places.
 # We'll use this to see if a "penny level" was crossed when we compare prices.
@@ -14,9 +20,10 @@ class MartingaleTrader(object):
     def __init__(self):
         # API authentication keys can be taken from the Alpaca dashboard.
         # https://app.alpaca.markets/paper/dashboard/overview
-        self.key_id = "REPLACE_ME"
-        self.secret_key = "REPLACE_ME"
+        self.key_id = ALPACA_API_KEY
+        self.secret_key = ALPACA_SECRET_KEY
         self.base_url = 'https://paper-api.alpaca.markets'
+        self.data_url = 'https://data.alpaca.markets'
 
         # The symbol we will be trading
         self.symbol = 'SPY'
@@ -39,6 +46,9 @@ class MartingaleTrader(object):
 
         # The closing price of the last aggregate we saw
         self.last_price = 0
+
+        # used to use tick data as second aggs data (mot every tick, but sec)
+        self.last_trade_time = datetime.datetime.utcnow()
 
         # The connection to the Alpaca API
         self.api = tradeapi.REST(
@@ -68,7 +78,9 @@ class MartingaleTrader(object):
         conn = tradeapi.StreamConn(
             self.key_id,
             self.secret_key,
-            self.base_url
+            base_url=self.base_url,
+            data_url=self.data_url,
+            data_stream='polygon' if USE_POLYGON else 'alpacadatav1'
         )
 
         # Listen for second aggregates and perform trading logic
@@ -82,6 +94,59 @@ class MartingaleTrader(object):
                 # Update price info
                 tick_open = self.last_price
                 tick_close = data.close
+                self.last_price = tick_close
+
+                # Update streak info
+                diff = truncate(tick_close, 2) - truncate(tick_open, 2)
+                if diff != 0:
+                    # There was a meaningful change in the price
+                    self.streak_count += 1
+                    increasing = tick_open > tick_close
+                    if self.streak_increasing != increasing:
+                        # It moved in the opposite direction of the streak.
+                        # Therefore, the streak is over, and we should reset.
+
+                        # Empty out the position
+                        self.send_order(0)
+
+                        # Reset variables
+                        self.streak_increasing = increasing
+                        self.streak_start = tick_open
+                        self.streak_count = 0
+                    else:
+                        # Calculate the number of shares we want to be holding
+                        total_buying_power = self.equity * \
+                            self.margin_multiplier
+                        target_value = (2**self.streak_count) * \
+                            (self.base_bet / 100) * total_buying_power
+                        if target_value > total_buying_power:
+                            # Limit the amount we can buy to a bit (1 share)
+                            # less than our total buying power
+                            target_value = total_buying_power - self.last_price
+                        target_qty = int(target_value / self.last_price)
+                        if self.streak_increasing:
+                            target_qty = target_qty * -1
+                        self.send_order(target_qty)
+
+                # Update our account balance
+                self.equity = float(self.api.get_account().equity)
+
+        # Listen for quote data and perform trading logic
+        @conn.on(r'Q\..+', [self.symbol])
+        async def handle_tick(conn, channel, data):
+            now = datetime.datetime.utcnow()
+            if now - self.last_trade_time < datetime.timedelta(seconds=1):
+                # to react every tick unless at least 1 second past
+                return
+            self.last_trade_time = now
+            self.tick_index = (self.tick_index + 1) % (self.tick_size)
+            print(self.tick_index)
+            if self.tick_index == 0:
+                # It's time to update
+
+                # Update price info
+                tick_open = self.last_price
+                tick_close = data.askprice
                 self.last_price = tick_close
 
                 # Update streak info
@@ -146,7 +211,10 @@ class MartingaleTrader(object):
             elif event_type != 'new':
                 print(f'Unexpected order event type {event_type} received')
 
-        conn.run([f'A.{self.symbol}', 'trade_updates'])
+        if USE_POLYGON:
+            conn.run([f'A.{self.symbol}', 'trade_updates'])
+        else:
+            conn.run([f'alpacadatav1/Q.{self.symbol}', 'trade_updates'])
 
     def send_order(self, target_qty):
         # We don't want to have two orders open at once

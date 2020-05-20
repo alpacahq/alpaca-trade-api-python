@@ -12,6 +12,7 @@ from typing import List, Callable
 
 Url = str
 
+
 class _StreamConn(object):
     def __init__(self, key_id: str, secret_key: str, base_url: Url):
         self._key_id = key_id

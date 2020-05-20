@@ -1,7 +1,8 @@
 import os
-from typing import Dict, Tuple
+from typing import Tuple
 
 Credentials = Tuple[str, str, str]
+
 
 def get_base_url() -> str:
     return os.environ.get(

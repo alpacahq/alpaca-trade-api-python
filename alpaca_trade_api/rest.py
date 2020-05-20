@@ -253,7 +253,7 @@ class REST(object):
                      stop_price: str = None,
                      client_order_id: str = None,
                      extended_hours: bool = None,
-                     order_class: str=None,
+                     order_class: str = None,
                      take_profit: dict = None,
                      stop_loss: dict = None):
         """

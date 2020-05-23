@@ -311,8 +311,7 @@ class StreamConn(object):
             if self._data_stream == 'polygon':
                 self.data_ws = polygon.StreamConn(
                     self._key_id + '-staging' if 'staging' in
-                                                  self._base_url else
-                    self._key_id)
+                    self._base_url else self._key_id)
             else:
                 self.data_ws = _StreamConn(self._key_id,
                                            self._secret_key,

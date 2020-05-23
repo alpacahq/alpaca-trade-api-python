@@ -181,9 +181,9 @@ class StreamConn(object):
             base_url=None,
             data_url=None,
             data_stream=None):
-        _key_id, _secret_key, _ = get_credentials(key_id, secret_key)
-        _base_url = base_url or get_base_url()
-        _data_url = data_url or get_data_url()
+        self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
+        self._base_url = base_url or get_base_url()
+        self._data_url = data_url or get_data_url()
         if data_stream is not None:
             if data_stream in ('alpacadatav1', 'polygon'):
                 _data_stream = data_stream
@@ -194,14 +194,19 @@ class StreamConn(object):
             _data_stream = 'alpacadatav1'
         self._data_stream = _data_stream
 
-        self.trading_ws = _StreamConn(_key_id, _secret_key, _base_url)
+        self.trading_ws = _StreamConn(self._key_id,
+                                      self._secret_key,
+                                      self._base_url)
 
         if self._data_stream == 'polygon':
             self.data_ws = polygon.StreamConn(
-                _key_id + '-staging' if 'staging' in _base_url else _key_id)
+                self._key_id + '-staging' if 'staging' in self._base_url else
+                self._key_id)
             self._data_prefixes = (('Q.', 'T.', 'A.', 'AM.'))
         else:
-            self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
+            self.data_ws = _StreamConn(self._key_id,
+                                       self._secret_key,
+                                       self._data_url)
             self._data_prefixes = (
                 ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
@@ -271,23 +276,47 @@ class StreamConn(object):
         initial_channels is the channels to start with.
         '''
         loop = self.loop
-        try:
-            loop.run_until_complete(self.subscribe(initial_channels))
-            loop.run_until_complete(self.consume())
-        except KeyboardInterrupt:
-            logging.info("Exiting on Interrupt")
-        finally:
-            loop.run_until_complete(self.close())
-            loop.close()
+        should_renew = True  # should renew connection if it disconnects
+        while should_renew:
+            try:
+                if loop.is_closed():
+                    self.loop = asyncio.new_event_loop()
+                    loop = self.loop
+                loop.run_until_complete(self.subscribe(initial_channels))
+                loop.run_until_complete(self.consume())
+            except KeyboardInterrupt:
+                logging.info("Exiting on Interrupt")
+                should_renew = False
+            except Exception as e:
+                print(e)
+                loop.run_until_complete(self.close(should_renew))
+                if loop.is_running():
+                    loop.close()
 
-    async def close(self):
-        '''Close any of open connections'''
+    async def close(self, renew):
+        """
+        Close any of open connections
+        :param renew: should re-open connection?
+        """
         if self.trading_ws is not None:
             await self.trading_ws.close()
             self.trading_ws = None
         if self.data_ws is not None:
             await self.data_ws.close()
             self.data_ws = None
+        if renew:
+            self.trading_ws = _StreamConn(self._key_id,
+                                          self._secret_key,
+                                          self._base_url)
+            if self._data_stream == 'polygon':
+                self.data_ws = polygon.StreamConn(
+                    self._key_id + '-staging' if 'staging' in
+                                                  self._base_url else
+                    self._key_id)
+            else:
+                self.data_ws = _StreamConn(self._key_id,
+                                           self._secret_key,
+                                           self._data_url)
 
     def on(self, channel_pat, symbols=None):
         def decorator(func):

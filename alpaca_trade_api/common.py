@@ -7,9 +7,12 @@ Credentials = Tuple[str, str, str]
 
 class URL(str):
     def __new__(cls, *value):
+        """
+        note: we use *value and v0 to allow an empty URL string
+        """
         if value:
             v0 = value[0]
-            if not type(v0) is str:
+            if not (isinstance(v0, str) or isinstance(v0, URL)):
                 raise TypeError(f'Unexpected type for URL: "{type(v0)}"')
             if not (v0.startswith('http://') or v0.startswith('https://') or
             v0.startswith('ws://') or v0.startswith('wss://')):

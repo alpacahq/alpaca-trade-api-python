@@ -1,17 +1,51 @@
 import os
 from typing import Tuple
+import dateutil.parser
 
 Credentials = Tuple[str, str, str]
 
 
-def get_base_url() -> str:
-    return os.environ.get(
-        'APCA_API_BASE_URL', 'https://api.alpaca.markets').rstrip('/')
+class URL(str):
+    def __new__(cls, *value):
+        if value:
+            v0 = value[0]
+            if not type(v0) is str:
+                raise TypeError(f'Unexpected type for URL: "{type(v0)}"')
+            if not (v0.startswith('http://') or v0.startswith('https://') or
+            v0.startswith('ws://') or v0.startswith('wss://')):
+                raise ValueError(f'Passed string value "{v0}" is not an'
+                                 f' "http*://" or "ws*://" URL')
+        return str.__new__(cls, *value)
 
 
-def get_data_url() -> str:
-    return os.environ.get(
-        'APCA_API_DATA_URL', 'https://data.alpaca.markets').rstrip('/')
+class DATE(str):
+    """
+    date string in the format YYYY-MM-DD
+    """
+    def __new__(cls, value):
+        if not value:
+            raise ValueError(f'Unexpected empty string')
+        if not isinstance(value, str):
+            raise TypeError(f'Unexpected type for DATE: "{type(value)}"')
+        if value.count("-") != 2:
+            raise ValueError(f'Unexpected date structure. expected '
+                             f'"YYYY-MM-DD" got {value}')
+        try:
+            dateutil.parser.parse(value)
+        except Exception as e:
+            msg = f"{value} is not a valid date string: {e}"
+            raise Exception(msg)
+        return str.__new__(cls, value)
+
+
+def get_base_url() -> URL:
+    return URL(os.environ.get(
+        'APCA_API_BASE_URL', 'https://api.alpaca.markets').rstrip('/'))
+
+
+def get_data_url() -> URL:
+    return URL(os.environ.get(
+        'APCA_API_DATA_URL', 'https://data.alpaca.markets').rstrip('/'))
 
 
 def get_credentials(key_id: str = None,

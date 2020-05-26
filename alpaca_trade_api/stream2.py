@@ -3,18 +3,16 @@ import json
 import os
 import re
 import websockets
-from .common import get_base_url, get_data_url, get_credentials
+from .common import get_base_url, get_data_url, get_credentials, URL
 from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
 from .entity import Trade, Quote, Agg
 import logging
 from typing import List, Callable
 
-Url = str
-
 
 class _StreamConn(object):
-    def __init__(self, key_id: str, secret_key: str, base_url: Url):
+    def __init__(self, key_id: str, secret_key: str, base_url: URL):
         self._key_id = key_id
         self._secret_key = secret_key
         self._base_url = re.sub(r'^http', 'ws', base_url)
@@ -181,8 +179,8 @@ class StreamConn(object):
             self,
             key_id: str = None,
             secret_key: str = None,
-            base_url: Url = None,
-            data_url: Url = None,
+            base_url: URL = None,
+            data_url: URL = None,
             data_stream: str = None):
         _key_id, _secret_key, _ = get_credentials(key_id, secret_key)
         _base_url = base_url or get_base_url()

@@ -8,7 +8,7 @@ from .common import (
     get_base_url,
     get_data_url,
     get_credentials,
-    get_api_version,
+    get_api_version, URL,
 )
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
@@ -65,15 +65,15 @@ class APIError(Exception):
 
 class REST(object):
     def __init__(self,
-                 key_id=None,
-                 secret_key=None,
-                 base_url=None,
-                 api_version=None,
+                 key_id: str = None,
+                 secret_key: str = None,
+                 base_url: URL = None,
+                 api_version: str = None,
                  oauth=None
                  ):
         self._key_id, self._secret_key, self._oauth = get_credentials(
             key_id, secret_key, oauth)
-        self._base_url = base_url or get_base_url()
+        self._base_url: URL = URL(base_url or get_base_url())
         self._api_version = get_api_version(api_version)
         self._session = requests.Session()
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
@@ -88,12 +88,12 @@ class REST(object):
                  method,
                  path,
                  data=None,
-                 base_url=None,
-                 api_version=None
+                 base_url: URL = None,
+                 api_version: str = None
                  ):
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
-        url = base_url + '/' + version + path
+        url: URL = URL(base_url + '/' + version + path)
         headers = {}
         if self._oauth:
             headers['Authorization'] = 'Bearer ' + self._oauth
@@ -129,7 +129,7 @@ class REST(object):
                 retry -= 1
                 continue
 
-    def _one_request(self, method, url, opts, retry):
+    def _one_request(self, method: str, url: URL, opts: dict, retry: int):
         """
         Perform one request, possibly raising RetryException in the case
         the response is 429. Otherwise, if error text contain "code" string,
@@ -167,7 +167,7 @@ class REST(object):
         return self._request('DELETE', path, data)
 
     def data_get(self, path, data=None):
-        base_url = get_data_url()
+        base_url: URL = get_data_url()
         return self._request(
             'GET', path, data, base_url=base_url, api_version='v1'
         )

@@ -15,7 +15,7 @@ class URL(str):
             if not (isinstance(v0, str) or isinstance(v0, URL)):
                 raise TypeError(f'Unexpected type for URL: "{type(v0)}"')
             if not (v0.startswith('http://') or v0.startswith('https://') or
-                v0.startswith('ws://') or v0.startswith('wss://')):
+                    v0.startswith('ws://') or v0.startswith('wss://')):
                 raise ValueError(f'Passed string value "{v0}" is not an'
                                  f' "http*://" or "ws*://" URL')
         return str.__new__(cls, *value)

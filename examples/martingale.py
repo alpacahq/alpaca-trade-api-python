@@ -86,8 +86,7 @@ class MartingaleTrader(object):
         # Listen for second aggregates and perform trading logic
         @conn.on(r'A$', [self.symbol])
         async def handle_agg(conn, channel, data):
-            self.tick_index = (self.tick_index + 1) % (self.tick_size)
-            print(self.tick_index)
+            self.tick_index = (self.tick_index + 1) % self.tick_size
             if self.tick_index == 0:
                 # It's time to update
 
@@ -96,7 +95,7 @@ class MartingaleTrader(object):
                 tick_close = data.close
                 self.last_price = tick_close
 
-                await self.process_current_tick(tick_open, tick_close)
+                self.process_current_tick(tick_open, tick_close)
 
         # Listen for quote data and perform trading logic
         @conn.on(r'T\..+', [self.symbol])
@@ -106,8 +105,7 @@ class MartingaleTrader(object):
                 # don't react every tick unless at least 1 second past
                 return
             self.last_trade_time = now
-            self.tick_index = (self.tick_index + 1) % (self.tick_size)
-            print(self.tick_index)
+            self.tick_index = (self.tick_index + 1) % self.tick_size
             if self.tick_index == 0:
                 # It's time to update
 
@@ -116,7 +114,7 @@ class MartingaleTrader(object):
                 tick_close = data.price
                 self.last_price = tick_close
 
-                await self.process_current_tick(tick_open, tick_close)
+                self.process_current_tick(tick_open, tick_close)
 
         # Listen for updates to our orders
         @conn.on(r'trade_updates')
@@ -150,7 +148,7 @@ class MartingaleTrader(object):
         else:
             conn.run([f'alpacadatav1/T.{self.symbol}', 'trade_updates'])
 
-    async def process_current_tick(self, tick_open, tick_close):
+    def process_current_tick(self, tick_open, tick_close):
         # Update streak info
         diff = truncate(tick_close, 2) - truncate(tick_open, 2)
         if diff != 0:

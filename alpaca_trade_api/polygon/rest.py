@@ -85,7 +85,6 @@ class REST(object):
                            limit: int = None
                            ) -> TradesV2:
         """
-        https://
         polygon.io/docs/#get_v2_ticks_stocks_trades__ticker___date__anchor
         :param symbol
         :param date: DATE in this format YYYY-MM-DD
@@ -133,7 +132,6 @@ class REST(object):
                            limit: int = None
                            ) -> QuotesV2:
         """
-        https://
         polygon.io/docs/#get_v2_ticks_stocks_nbbo__ticker___date__anchor
         :param symbol
         :param date: DATE in this format YYYY-MM-DD

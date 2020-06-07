@@ -265,7 +265,8 @@ class REST(object):
         :param limit_price: str of float
         :param stop_price: str of float
         :param client_order_id:
-        :param extended_hours:
+        :param extended_hours: bool. If true, order will be eligible to execute
+               in premarket/afterhours.
         :param order_class: simple, bracket, oco or oto
         :param take_profit: dict with field "limit_price" e.g
                {"limit_price": "298.95"}
@@ -572,7 +573,8 @@ class REST(object):
                M for month and A for year. Defaults to 1M.
         :param timeframe: The resolution of time window. 1Min, 5Min, 15Min,
                1H, or 1D
-        :param extended_hours: bool
+        :param extended_hours: bool. If true, include extended hours in the
+               result.
         """
         params = {}
         if date_start is not None:

@@ -8,17 +8,17 @@ from .entity import (
     Quote, Trade, Agg, Entity,
     trade_mapping, quote_mapping, agg_mapping
 )
-from alpaca_trade_api.common import get_polygon_credentials
+from alpaca_trade_api.common import get_polygon_credentials, URL
 import logging
 
 
 class StreamConn(object):
-    def __init__(self, key_id=None):
+    def __init__(self, key_id: str = None):
         self._key_id = get_polygon_credentials(key_id)
-        self._endpoint = os.environ.get(
+        self._endpoint: URL = URL(os.environ.get(
             'POLYGON_WS_URL',
             'wss://alpaca.socket.polygon.io/stocks'
-        ).rstrip('/')
+        ).rstrip('/'))
         self._handlers = {}
         self._handler_symbols = {}
         self._streams = set([])

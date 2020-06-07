@@ -3,15 +3,16 @@ import json
 import os
 import re
 import websockets
-from .common import get_base_url, get_data_url, get_credentials
+from .common import get_base_url, get_data_url, get_credentials, URL
 from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
 from .entity import Trade, Quote, Agg
 import logging
+from typing import List, Callable
 
 
 class _StreamConn(object):
-    def __init__(self, key_id, secret_key, base_url):
+    def __init__(self, key_id: str, secret_key: str, base_url: URL):
         self._key_id = key_id
         self._secret_key = secret_key
         self._base_url = re.sub(r'^http', 'ws', base_url)
@@ -157,7 +158,7 @@ class _StreamConn(object):
 
         return decorator
 
-    def register(self, channel_pat, func, symbols=None):
+    def register(self, channel_pat, func: Callable, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):
@@ -176,11 +177,11 @@ class StreamConn(object):
 
     def __init__(
             self,
-            key_id=None,
-            secret_key=None,
-            base_url=None,
-            data_url=None,
-            data_stream=None):
+            key_id: str = None,
+            secret_key: str = None,
+            base_url: URL = None,
+            data_url: URL = None,
+            data_stream: str = None):
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._data_url = data_url or get_data_url()
@@ -230,7 +231,7 @@ class StreamConn(object):
         else:
             await conn.connect()
 
-    async def subscribe(self, channels):
+    async def subscribe(self, channels: List[str]):
         '''Start subscribing to channels.
         If the necessary connection isn't open yet, it opens now.
         This may raise ValueError if a channel is not recognized.
@@ -254,7 +255,7 @@ class StreamConn(object):
             await self._ensure_ws(self.data_ws)
             await self.data_ws.subscribe(data_channels)
 
-    async def unsubscribe(self, channels):
+    async def unsubscribe(self, channels: List[str]):
         '''Handle unsubscribing from channels.'''
 
         data_channels = [
@@ -271,7 +272,7 @@ class StreamConn(object):
             self.data_ws.consume(),
         )
 
-    def run(self, initial_channels=[]):
+    def run(self, initial_channels: List[str] = []):
         '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
@@ -324,7 +325,7 @@ class StreamConn(object):
 
         return decorator
 
-    def register(self, channel_pat, func, symbols=None):
+    def register(self, channel_pat, func: Callable, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):

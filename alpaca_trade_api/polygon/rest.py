@@ -7,7 +7,7 @@ from .entity import (
     Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
     Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker,
-    DailyOpenClose, Entity
+    DailyOpenClose
 )
 from alpaca_trade_api.common import get_polygon_credentials, URL, DATE
 from deprecated import deprecated

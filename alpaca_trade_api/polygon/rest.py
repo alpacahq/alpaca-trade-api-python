@@ -26,6 +26,29 @@ def _is_list_like(o) -> bool:
     return isinstance(o, (list, set, tuple))
 
 
+def format_date_for_api_call(date):
+    """
+    we support different date formats:
+    - string
+    - datetime.date
+    - datetime.datetime
+    - timestamp number
+    - pd.Timestamp
+    that gives the user the freedom to use the API in a very flexible way
+    """
+    if isinstance(date, datetime.datetime):
+        return date.date().isoformat()
+    elif isinstance(date, datetime.date):
+        return date.isoformat()
+    elif isinstance(date, str):  # string date
+        return dateutil.parser.parse(date).date().isoformat()
+    elif isinstance(date, int) or isinstance(date, float):
+        # timestamp number
+        return int(date)
+    else:
+        raise Exception(f"Unsupported date format: {date}")
+
+
 class REST(object):
 
     def __init__(self, api_key: str, staging: bool = False):
@@ -174,27 +197,19 @@ class REST(object):
         :param timespan: Size of the time window: minute, hour, day, week,
                month, quarter, year
         :param _from: acceptable types: isoformat string, timestamp int,
-        datetime object
-        :param to: same
+               datetime object
+        :param to: same as _from
         :param unadjusted
         :param limit: max samples to retrieve
         :return:
         """
         path_template = '/aggs/ticker/{symbol}/range/{multiplier}/' \
                         '{timespan}/{_from}/{to}'
-        if isinstance(_from, int):
-            pass
-        elif isinstance(_from, datetime.datetime):
-            _from = _from.date().isoformat()
-            to = to.date().isoformat()
-        else:  # string or character stream
-            _from = dateutil.parser.parse(_from).date().isoformat()
-            to = dateutil.parser.parse(to).date().isoformat()
         path = path_template.format(symbol=symbol,
                                     multiplier=multiplier,
                                     timespan=timespan,
-                                    _from=_from,
-                                    to=to
+                                    _from=format_date_for_api_call(_from),
+                                    to=format_date_for_api_call(to)
                                     )
         params = {'unadjusted': unadjusted}
         if limit:

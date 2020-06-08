@@ -187,14 +187,14 @@ class REST(object):
         elif isinstance(_from, datetime.datetime):
             _from = _from.date().isoformat()
             to = to.date().isoformat()
-        else: # string or character stream
+        else:  # string or character stream
             _from = dateutil.parser.parse(_from).date().isoformat()
             to = dateutil.parser.parse(to).date().isoformat()
         path = path_template.format(symbol=symbol,
-                                        multiplier=multiplier,
-                                        timespan=timespan,
-                                        _from=_from,
-                                        to=to
+                                    multiplier=multiplier,
+                                    timespan=timespan,
+                                    _from=_from,
+                                    to=to
                                     )
         params = {'unadjusted': unadjusted}
         if limit:

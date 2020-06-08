@@ -2,15 +2,11 @@ from typing import List
 import dateutil.parser
 import requests
 from .entity import (
-    Aggsv2, Aggsv2Set,
-    Trade, Trades, TradesV2,
-    Quote, Quotes, QuotesV2,
-    Exchange, SymbolTypeMap, ConditionMap,
-    Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker,
-    DailyOpenClose
+    Aggsv2, Aggsv2Set, Trade, TradesV2, Quote, QuotesV2,
+    Exchange, SymbolTypeMap, ConditionMap, Company, Dividends, Splits,
+    Earnings, Financials, NewsList, Ticker, DailyOpenClose
 )
 from alpaca_trade_api.common import get_polygon_credentials, URL, DATE
-from deprecated import deprecated
 
 
 Exchanges = List[Exchange]

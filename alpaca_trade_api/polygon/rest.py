@@ -228,8 +228,8 @@ class REST(object):
         return self._get_symbol(symbol, 'dividends', Dividends)
 
     def splits(self, symbol: str) -> Splits:
-        path = '/meta/symbols/{}/splits'.format(symbol)
-        return Splits(self.get(path))
+        path = f'/reference/splits/{symbol}'
+        return Splits(self.get(path, version='v2')['results'])
 
     def earnings(self, symbol: str) -> Earnings:
         return self._get_symbol(symbol, 'earnings', Earnings)

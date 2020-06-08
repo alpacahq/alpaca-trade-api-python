@@ -93,21 +93,6 @@ class REST(object):
 
         return TradesV2(raw)
 
-    @deprecated(
-        'historic_quotes v1 is deprecated and will be removed from the ' +
-        'Polygon API in the future. Please upgrade to historic_quotes_v2.'
-    )
-    def historic_quotes(self, symbol, date, offset=None, limit=None) -> Quotes:
-        path = '/historic/quotes/{}/{}'.format(symbol, date)
-        params = {}
-        if offset is not None:
-            params['offset'] = offset
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Quotes(raw)
-
     def historic_quotes_v2(self,
                            symbol: str,
                            date: DATE,

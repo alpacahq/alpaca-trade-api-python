@@ -61,21 +61,6 @@ class REST(object):
         path = '/meta/symbol-types'
         return SymbolTypeMap(self.get(path))
 
-    @deprecated(
-        'historic_trades v1 is deprecated and will be removed from the ' +
-        'Polygon API in the future. Please upgrade to historic_trades_v2.'
-    )
-    def historic_trades(self, symbol: str, date, offset=None, limit=None):
-        path: str = f'/historic/trades/{symbol}/{date}'
-        params = {}
-        if offset is not None:
-            params['offset'] = offset
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Trades(raw)
-
     def historic_trades_v2(self,
                            symbol: str,
                            date: DATE,

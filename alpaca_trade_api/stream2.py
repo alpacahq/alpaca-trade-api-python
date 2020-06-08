@@ -3,15 +3,16 @@ import json
 import os
 import re
 import websockets
-from .common import get_base_url, get_data_url, get_credentials
+from .common import get_base_url, get_data_url, get_credentials, URL
 from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
 from . import polygon
 from .entity import Trade, Quote, Agg
 import logging
+from typing import List, Callable
 
 
 class _StreamConn(object):
-    def __init__(self, key_id, secret_key, base_url):
+    def __init__(self, key_id: str, secret_key: str, base_url: URL):
         self._key_id = key_id
         self._secret_key = secret_key
         self._base_url = re.sub(r'^http', 'ws', base_url)
@@ -157,7 +158,7 @@ class _StreamConn(object):
 
         return decorator
 
-    def register(self, channel_pat, func, symbols=None):
+    def register(self, channel_pat, func: Callable, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):
@@ -176,14 +177,14 @@ class StreamConn(object):
 
     def __init__(
             self,
-            key_id=None,
-            secret_key=None,
-            base_url=None,
-            data_url=None,
-            data_stream=None):
-        _key_id, _secret_key, _ = get_credentials(key_id, secret_key)
-        _base_url = base_url or get_base_url()
-        _data_url = data_url or get_data_url()
+            key_id: str = None,
+            secret_key: str = None,
+            base_url: URL = None,
+            data_url: URL = None,
+            data_stream: str = None):
+        self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
+        self._base_url = base_url or get_base_url()
+        self._data_url = data_url or get_data_url()
         if data_stream is not None:
             if data_stream in ('alpacadatav1', 'polygon'):
                 _data_stream = data_stream
@@ -194,14 +195,19 @@ class StreamConn(object):
             _data_stream = 'alpacadatav1'
         self._data_stream = _data_stream
 
-        self.trading_ws = _StreamConn(_key_id, _secret_key, _base_url)
+        self.trading_ws = _StreamConn(self._key_id,
+                                      self._secret_key,
+                                      self._base_url)
 
         if self._data_stream == 'polygon':
             self.data_ws = polygon.StreamConn(
-                _key_id + '-staging' if 'staging' in _base_url else _key_id)
+                self._key_id + '-staging' if 'staging' in self._base_url else
+                self._key_id)
             self._data_prefixes = (('Q.', 'T.', 'A.', 'AM.'))
         else:
-            self.data_ws = _StreamConn(_key_id, _secret_key, _data_url)
+            self.data_ws = _StreamConn(self._key_id,
+                                       self._secret_key,
+                                       self._data_url)
             self._data_prefixes = (
                 ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
@@ -225,7 +231,7 @@ class StreamConn(object):
         else:
             await conn.connect()
 
-    async def subscribe(self, channels):
+    async def subscribe(self, channels: List[str]):
         '''Start subscribing to channels.
         If the necessary connection isn't open yet, it opens now.
         This may raise ValueError if a channel is not recognized.
@@ -249,7 +255,7 @@ class StreamConn(object):
             await self._ensure_ws(self.data_ws)
             await self.data_ws.subscribe(data_channels)
 
-    async def unsubscribe(self, channels):
+    async def unsubscribe(self, channels: List[str]):
         '''Handle unsubscribing from channels.'''
 
         data_channels = [
@@ -266,28 +272,51 @@ class StreamConn(object):
             self.data_ws.consume(),
         )
 
-    def run(self, initial_channels=[]):
+    def run(self, initial_channels: List[str] = []):
         '''Run forever and block until exception is raised.
         initial_channels is the channels to start with.
         '''
         loop = self.loop
-        try:
-            loop.run_until_complete(self.subscribe(initial_channels))
-            loop.run_until_complete(self.consume())
-        except KeyboardInterrupt:
-            logging.info("Exiting on Interrupt")
-        finally:
-            loop.run_until_complete(self.close())
-            loop.close()
+        should_renew = True  # should renew connection if it disconnects
+        while should_renew:
+            try:
+                if loop.is_closed():
+                    self.loop = asyncio.new_event_loop()
+                    loop = self.loop
+                loop.run_until_complete(self.subscribe(initial_channels))
+                loop.run_until_complete(self.consume())
+            except KeyboardInterrupt:
+                logging.info("Exiting on Interrupt")
+                should_renew = False
+            except Exception as e:
+                logging.error(f"error while consuming ws messages: {e}")
+                loop.run_until_complete(self.close(should_renew))
+                if loop.is_running():
+                    loop.close()
 
-    async def close(self):
-        '''Close any of open connections'''
+    async def close(self, renew):
+        """
+        Close any of open connections
+        :param renew: should re-open connection?
+        """
         if self.trading_ws is not None:
             await self.trading_ws.close()
             self.trading_ws = None
         if self.data_ws is not None:
             await self.data_ws.close()
             self.data_ws = None
+        if renew:
+            self.trading_ws = _StreamConn(self._key_id,
+                                          self._secret_key,
+                                          self._base_url)
+            if self._data_stream == 'polygon':
+                self.data_ws = polygon.StreamConn(
+                    self._key_id + '-staging' if 'staging' in
+                    self._base_url else self._key_id)
+            else:
+                self.data_ws = _StreamConn(self._key_id,
+                                           self._secret_key,
+                                           self._data_url)
 
     def on(self, channel_pat, symbols=None):
         def decorator(func):
@@ -296,7 +325,7 @@ class StreamConn(object):
 
         return decorator
 
-    def register(self, channel_pat, func, symbols=None):
+    def register(self, channel_pat, func: Callable, symbols=None):
         if not asyncio.iscoroutinefunction(func):
             raise ValueError('handler must be a coroutine function')
         if isinstance(channel_pat, str):

@@ -172,8 +172,8 @@ def test_polygon(reqmock):
 
     # Splits
     reqmock.get(
-        endpoint('/meta/symbols/AAPL/splits'),
-        text='''[{"forfactor": 1}]''',
+        endpoint('/reference/splits/AAPL', api_version='v2'),
+        text='''{"results": [{"forfactor": 1}]}''',
     )
     ret = cli.splits('AAPL')
     assert ret[0].forfactor == 1

@@ -296,11 +296,11 @@ import alpaca_trade_api as tradeapi
 api = tradeapi.REST()
 # all of these examples work
 aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from='2019-01-01', to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=dateutil.parser.parse('2019-01-01'), to='2019-01-10').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=dateutil.parser.parse('2019-01-01').date(), to='2019-01-10').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01-01'), to='2019-01-10').df
-# timestamp should be in milliseconds
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=dateutil.parser.parse('2019-01-01').timestamp()*1000, to='2019-01-10').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.datetime(2019, 1, 1), to='2019-02-01').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.date(2019, 1, 1), to='2019-02-01').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01-01'), to='2019-02-01').df
+# timestamp should be in milliseconds datetime.datetime(2019, 1, 1).timestamp()*1000 == 1546293600000
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=1546293600000, to='2019-02-01').df
 ```
 
 ## polygon/REST

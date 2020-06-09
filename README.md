@@ -343,7 +343,7 @@ object.
   - `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`
 - `_from` is an Eastern Time timestamp string/object that filters the result
  for the lower bound, inclusive. we accept the date in these formats: 
- datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp(),
+ datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp,
   isoformat string (YYYY-MM-DD)
 - `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field
 - `unadjusted` can be set to true if results should not be adjusted for splits.

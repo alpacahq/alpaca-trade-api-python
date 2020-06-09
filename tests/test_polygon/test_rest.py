@@ -1,4 +1,4 @@
-import dateutil.parser
+import datetime
 import pandas as pd
 from alpaca_trade_api.polygon import REST
 import pytest
@@ -186,17 +186,18 @@ def test_polygon(reqmock):
     with pytest.raises(AttributeError):
         aggs[0].foo
 
-    # test different supported date formats
+    # test different supported date formats, just make sure they are parsed
+    # correctly by the sdk. don't care about the response
     cli.historic_agg_v2(
         'AAPL', 1, 'day',
-        _from=dateutil.parser.parse('2018-2-2'),
+        _from=datetime.datetime(2018, 2, 2),
         to='2018-2-5'
     )
 
     # test different supported date formats
     cli.historic_agg_v2(
         'AAPL', 1, 'day',
-        _from=dateutil.parser.parse('2018-2-2').date(),
+        _from=datetime.date(2018, 2, 2),
         to='2018-2-5'
     )
 

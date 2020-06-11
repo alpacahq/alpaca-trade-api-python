@@ -99,6 +99,7 @@ class Aggsv2(list):
             "c": "close",
             "v": "volume",
             "t": "timestamp",
+            "vw": "vwap",
         }
 
         return [
@@ -109,7 +110,8 @@ class Aggsv2(list):
     @property
     def df(self):
         if not hasattr(self, '_df'):
-            columns = ('timestamp', 'open', 'high', 'low', 'close', 'volume')
+            columns = ('timestamp', 'open', 'high', 'low', 'close',
+                       'volume', 'vwap')
             df = pd.DataFrame(
                 self.rename_keys(),
                 columns=columns

@@ -7,6 +7,11 @@ NY = 'America/New_York'
 class Entity(object):
     def __init__(self, raw):
         self._raw = raw
+        if 'from' in self._raw:
+            # can't use python keyword 'from'. if the api returns it,
+            # we switch it to _from, which is usable for the users.
+            self._raw['_from'] = self._raw['from']
+            del self._raw['from']
 
     def __getattr__(self, key):
         if key in self._raw:

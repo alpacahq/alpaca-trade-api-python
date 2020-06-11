@@ -1,3 +1,5 @@
+import datetime
+import pandas as pd
 from alpaca_trade_api.polygon import REST
 import pytest
 import requests_mock
@@ -140,12 +142,7 @@ def test_polygon(reqmock):
         quotes[0].foo
 
     # Historic Aggregates V2
-    reqmock.get(
-        endpoint(
-            '/aggs/ticker/AAPL/range/1/day/2018-02-02/2018-02-05',
-            params='unadjusted=False', api_version='v2'
-        ),
-        text='''
+    aggs_response = '''
 {
   "ticker": "AAPL",
   "status": "OK",
@@ -162,7 +159,21 @@ def test_polygon(reqmock):
       "t": 1517529605000
     }
   ]
-}''')
+}'''
+
+    reqmock.get(
+        endpoint(
+            '/aggs/ticker/AAPL/range/1/day/2018-02-02/2018-02-05',
+            params='unadjusted=False', api_version='v2'
+        ),
+        text=aggs_response)
+
+    reqmock.get(
+        endpoint(
+            '/aggs/ticker/AAPL/range/1/day/1546300800000/2018-02-05',
+            params='unadjusted=False', api_version='v2'
+        ),
+        text=aggs_response)
 
     aggs = cli.historic_agg_v2(
         'AAPL', 1, 'day',
@@ -174,6 +185,41 @@ def test_polygon(reqmock):
     assert aggs.df.iloc[0].high == 173.21
     with pytest.raises(AttributeError):
         aggs[0].foo
+
+    # test different supported date formats, just make sure they are parsed
+    # correctly by the sdk. don't care about the response
+    cli.historic_agg_v2(
+        'AAPL', 1, 'day',
+        _from=datetime.datetime(2018, 2, 2),
+        to='2018-2-5'
+    )
+
+    # test different supported date formats
+    cli.historic_agg_v2(
+        'AAPL', 1, 'day',
+        _from=datetime.date(2018, 2, 2),
+        to='2018-2-5'
+    )
+
+    # test different supported date formats
+    cli.historic_agg_v2(
+        'AAPL', 1, 'day',
+        _from=pd.Timestamp('2018-2-2'),
+        to='2018-2-5'
+    )
+
+    cli.historic_agg_v2(
+        'AAPL', 1, 'day',
+        _from=pd.Timestamp('2019-01-01').timestamp()*1000,
+        to='2018-2-5'
+    )
+
+    with pytest.raises(Exception):
+        cli.historic_agg_v2(
+            'AAPL', 1, 'day',
+            _from="bad format",
+            to='2018-2-5'
+        )
 
     # Last Trade
     reqmock.get(

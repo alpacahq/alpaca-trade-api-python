@@ -1,0 +1,8 @@
+asyncio-nats-client
+pandas
+requests
+urllib3<1.25
+websocket-client
+websockets>=8.0
+deprecated
+alpha_vantage

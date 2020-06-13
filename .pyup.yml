@@ -10,7 +10,7 @@ pin: True
 
 # set the default branch
 # default: empty, the default branch on GitHub
-branch: pyup_integration
+branch: master
 
 # update schedule
 # default: empty

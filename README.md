@@ -294,7 +294,13 @@ The example below gives AAPL daily OHLCV data in a DataFrame format.
 import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST()
+# all of these examples work
 aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from='2019-01-01', to='2019-02-01').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.datetime(2019, 1, 1), to='2019-02-01').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.date(2019, 1, 1), to='2019-02-01').df
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01-01'), to='2019-02-01').df
+# timestamp should be in milliseconds datetime.datetime(2019, 1, 1).timestamp()*1000 == 1546293600000
+aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=1546293600000, to='2019-02-01').df
 ```
 
 ## polygon/REST
@@ -335,8 +341,11 @@ object.
 - `multiplier` is an integer affecting the amount of data contained in each Agg object.
 - `timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values:
   - `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`
-- `_from` is an Eastern Time timestamp string that filters the result for the lower bound, inclusive.
-- `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive.
+- `_from` is an Eastern Time timestamp string/object that filters the result
+ for the lower bound, inclusive. we accept the date in these formats: 
+ datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp,
+  isoformat string (YYYY-MM-DD)
+- `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field
 - `unadjusted` can be set to true if results should not be adjusted for splits.
 - `limit` is an integer to limit the number of results.  3000 is the default and max value.
 

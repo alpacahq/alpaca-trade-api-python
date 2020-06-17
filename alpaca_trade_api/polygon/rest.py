@@ -300,7 +300,8 @@ class REST(object):
             self.get(path, version='v2')['tickers']
         ]
 
-    def symbol_list_paginated(self, page: int, per_page: int) -> Symbols:
+    def symbol_list_paginated(self, page: int = 1,
+                              per_page: int = 50) -> Symbols:
         """
         this api /v2/reference/tickers returns paginated data.
         the user could specify the page to get data for

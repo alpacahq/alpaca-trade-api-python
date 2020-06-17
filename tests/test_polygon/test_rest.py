@@ -342,7 +342,7 @@ def test_polygon(reqmock):
 
     # paginated symbol list
     reqmock.get(
-        endpoint('/meta/symbols/AAPL/news', api_version='v2'),
+        endpoint('/reference/tickers', api_version='v2'),
         text='''
 [
   {

@@ -315,6 +315,7 @@ class NewsList(EntityList):
 class Ticker(Entity):
     pass
 
+
 class Symbol(Entity):
     pass
 

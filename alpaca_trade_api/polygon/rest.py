@@ -309,7 +309,7 @@ class REST(object):
         :param per_page: number of results per page
         :return:
         """
-        path = f'/reference/tickers'
+        path = '/reference/tickers'
         return [Symbol(s) for s in self.get(path,
                                             version='v2',
                                             params={

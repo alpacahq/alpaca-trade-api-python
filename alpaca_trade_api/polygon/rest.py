@@ -8,7 +8,7 @@ from .entity import (
     Quote, Quotes, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap,
     Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker,
-    DailyOpenClose
+    DailyOpenClose, Symbol
 )
 from alpaca_trade_api.common import get_polygon_credentials, URL, DATE
 from deprecated import deprecated
@@ -16,6 +16,7 @@ from deprecated import deprecated
 
 Exchanges = List[Exchange]
 Tickers = List[Ticker]
+Symbols = List[Symbol]
 
 
 def _is_list_like(o) -> bool:
@@ -298,6 +299,24 @@ class REST(object):
             Ticker(ticker) for ticker in
             self.get(path, version='v2')['tickers']
         ]
+
+    def symbol_list_paginated(self, page: int, per_page: int) -> Symbols:
+        """
+        this api /v2/reference/tickers returns paginated data.
+        the user could specify the page to get data for
+        :param page: page number
+        :param per_page: number of results per page
+        :return:
+        """
+        path = f'/reference/tickers'
+        return [Symbol(s) for s in self.get(path,
+                                            version='v2',
+                                            params={
+                                                "page": page,
+                                                "active": "true",
+                                                "perpage": per_page,
+                                                "market": "STOCKS"
+                                            })['tickers']]
 
     def snapshot(self, symbol: str) -> Ticker:
         path = '/snapshot/locale/us/markets/stocks/tickers/{}'.format(symbol)

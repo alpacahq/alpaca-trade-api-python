@@ -344,7 +344,7 @@ def test_polygon(reqmock):
     reqmock.get(
         endpoint('/reference/tickers', api_version='v2'),
         text='''
-[
+{"page": 1, "perPage": 30, "count": 32657, "status": "OK", "tickers": [
   {
     "ticker": "AAPL",
     "name": "Apple Inc.",
@@ -383,7 +383,7 @@ def test_polygon(reqmock):
     "updated": "2019-01-15T05:21:28.437Z",
     "url": "https://api.polygon.io/v2/reference/tickers/GOOG"
   }
-]''')
+]}''')
     cli.symbol_list_paginated(1, 2)
     # nothing to assert in the mock data. jsut checking params are parsed
     # correctly

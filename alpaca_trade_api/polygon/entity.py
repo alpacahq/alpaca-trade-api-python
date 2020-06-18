@@ -11,7 +11,6 @@ class Entity(object):
             # can't use python keyword 'from'. if the api returns it,
             # we switch it to _from, which is usable for the users.
             self._raw['_from'] = self._raw['from']
-            del self._raw['from']
 
     def __getattr__(self, key):
         if key in self._raw:

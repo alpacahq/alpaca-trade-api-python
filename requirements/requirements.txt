@@ -3,5 +3,5 @@ requests==2.24.0
 urllib3==1.25.9
 websocket-client==0.57.0
 websockets>=8.0
-deprecated
+deprecated==1.2.10
 alpha_vantage

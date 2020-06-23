@@ -41,6 +41,26 @@ class DATE(str):
         return str.__new__(cls, value)
 
 
+class FLOAT(str):
+    """
+    api allows passing floats or float as strings.
+    let's make sure that param passed is one of the two, so we don't pass
+    invalid strings all the way to the servers.
+    """
+    def __new__(cls, value):
+        if not value:
+            raise ValueError('Unexpected empty string')
+        if isinstance(value, float) or isinstance(value, int):
+            pass  # we're good
+        elif isinstance(value, str):
+            value = value.strip()  # make sure no spaces
+            if isinstance(float(value), float):
+                pass  # we're good
+        else:
+            raise ValueError(f'Unexpected float format "{value}"')
+        return value
+
+
 def get_base_url() -> URL:
     return URL(os.environ.get(
         'APCA_API_BASE_URL', 'https://api.alpaca.markets').rstrip('/'))

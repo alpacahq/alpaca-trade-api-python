@@ -1,5 +1,5 @@
 pandas==1.0.5
-requests
+requests==2.24.0
 urllib3<1.25
 websocket-client
 websockets>=8.0

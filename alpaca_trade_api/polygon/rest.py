@@ -3,15 +3,11 @@ from typing import List
 import dateutil.parser
 import requests
 from .entity import (
-    Aggsv2, Aggsv2Set,
-    Trade, Trades, TradesV2,
-    Quote, Quotes, QuotesV2,
-    Exchange, SymbolTypeMap, ConditionMap,
-    Company, Dividends, Splits, Earnings, Financials, NewsList, Ticker,
-    DailyOpenClose
+    Aggsv2, Aggsv2Set, Trade, TradesV2, Quote, QuotesV2,
+    Exchange, SymbolTypeMap, ConditionMap, Company, Dividends, Splits,
+    Earnings, Financials, NewsList, Ticker, DailyOpenClose
 )
 from alpaca_trade_api.common import get_polygon_credentials, URL, DATE
-from deprecated import deprecated
 
 
 Exchanges = List[Exchange]
@@ -85,21 +81,6 @@ class REST(object):
         path = '/meta/symbol-types'
         return SymbolTypeMap(self.get(path))
 
-    @deprecated(
-        'historic_trades v1 is deprecated and will be removed from the ' +
-        'Polygon API in the future. Please upgrade to historic_trades_v2.'
-    )
-    def historic_trades(self, symbol: str, date, offset=None, limit=None):
-        path: str = f'/historic/trades/{symbol}/{date}'
-        params = {}
-        if offset is not None:
-            params['offset'] = offset
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Trades(raw)
-
     def historic_trades_v2(self,
                            symbol: str,
                            date: DATE,
@@ -131,21 +112,6 @@ class REST(object):
         raw = self.get(path, params, 'v2')
 
         return TradesV2(raw)
-
-    @deprecated(
-        'historic_quotes v1 is deprecated and will be removed from the ' +
-        'Polygon API in the future. Please upgrade to historic_quotes_v2.'
-    )
-    def historic_quotes(self, symbol, date, offset=None, limit=None) -> Quotes:
-        path = '/historic/quotes/{}/{}'.format(symbol, date)
-        params = {}
-        if offset is not None:
-            params['offset'] = offset
-        if limit is not None:
-            params['limit'] = limit
-        raw = self.get(path, params)
-
-        return Quotes(raw)
 
     def historic_quotes_v2(self,
                            symbol: str,
@@ -272,8 +238,8 @@ class REST(object):
         return self._get_symbol(symbol, 'dividends', Dividends)
 
     def splits(self, symbol: str) -> Splits:
-        path = '/meta/symbols/{}/splits'.format(symbol)
-        return Splits(self.get(path))
+        path = f'/reference/splits/{symbol}'
+        return Splits(self.get(path, version='v2')['results'])
 
     def earnings(self, symbol: str) -> Earnings:
         return self._get_symbol(symbol, 'earnings', Earnings)

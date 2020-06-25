@@ -7,6 +7,10 @@ NY = 'America/New_York'
 class Entity(object):
     def __init__(self, raw):
         self._raw = raw
+        if 'from' in self._raw:
+            # can't use python keyword 'from'. if the api returns it,
+            # we switch it to _from, which is usable for the users.
+            self._raw['_from'] = self._raw['from']
 
     def __getattr__(self, key):
         if key in self._raw:
@@ -99,6 +103,7 @@ class Aggsv2(list):
             "c": "close",
             "v": "volume",
             "t": "timestamp",
+            "vw": "vwap",
         }
 
         return [
@@ -109,7 +114,8 @@ class Aggsv2(list):
     @property
     def df(self):
         if not hasattr(self, '_df'):
-            columns = ('timestamp', 'open', 'high', 'low', 'close', 'volume')
+            columns = ('timestamp', 'open', 'high', 'low', 'close',
+                       'volume', 'vwap')
             df = pd.DataFrame(
                 self.rename_keys(),
                 columns=columns

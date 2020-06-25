@@ -56,91 +56,6 @@ def test_polygon(reqmock):
     tmap = cli.symbol_type_map()
     assert tmap.cs == 'Common Stock'
 
-    # Historic Trades
-    reqmock.get(
-        endpoint('/historic/trades/AAPL/2018-2-2') +
-        '&limit=100&offset=1000',
-        text='''
-{
-  "day": "2018-2-2",
-  "map": {
-    "c1": "condition1",
-    "c2": "condition2",
-    "c3": "condition3",
-    "c4": "condition4",
-    "e": "exchange",
-    "p": "price",
-    "s": "size",
-    "t": "timestamp"
-  },
-  "msLatency": 8,
-  "status": "success",
-  "symbol": "AAPL",
-  "ticks": [
-    {
-      "c1": 14,
-      "c2": 12,
-      "c3": 0,
-      "c4": 0,
-      "e": 12,
-      "p": 172.17,
-      "s": 50,
-      "t": 1517529601006
-    }
-  ]
-}''')
-
-    trades = cli.historic_trades('AAPL', '2018-2-2',
-                                 limit=100, offset=1000)
-    assert trades[0].price == 172.17
-    assert trades[0].timestamp.month == 2
-    assert len(trades) == 1
-    assert trades.df.iloc[0].price == 172.17
-
-    # Historic Quotes
-    reqmock.get(
-        endpoint('/historic/quotes/AAPL/2018-2-2') +
-        '&limit=100&offset=1000',
-        text='''
-{
-  "day": "2018-2-2",
-  "map": {
-    "aE": "askexchange",
-    "aP": "askprice",
-    "aS": "asksize",
-    "bE": "bidexchange",
-    "bP": "bidprice",
-    "bS": "bidsize",
-    "c": "condition",
-    "t": "timestamp"
-  },
-  "msLatency": 3,
-  "status": "success",
-  "symbol": "AAPL",
-  "ticks": [
-    {
-      "c": 0,
-      "bE": 11,
-      "aE": 12,
-      "aP": 173.15,
-      "bP": 173.13,
-      "bS": 25,
-      "aS": 55,
-      "t": 1517529601006
-    }
-  ]
-}''')
-
-    quotes = cli.historic_quotes('AAPL', '2018-2-2',
-                                 limit=100, offset=1000)
-    assert quotes[0].askprice == 173.15
-    assert quotes[0].timestamp.month == 2
-    assert len(quotes) == 1
-    assert quotes.df.iloc[0].bidprice == 173.13
-
-    with pytest.raises(AttributeError):
-        quotes[0].foo
-
     # Historic Aggregates V2
     aggs_response = '''
 {
@@ -303,8 +218,8 @@ def test_polygon(reqmock):
 
     # Splits
     reqmock.get(
-        endpoint('/meta/symbols/AAPL/splits'),
-        text='''[{"forfactor": 1}]''',
+        endpoint('/reference/splits/AAPL', api_version='v2'),
+        text='''{"results": [{"forfactor": 1}]}''',
     )
     ret = cli.splits('AAPL')
     assert ret[0].forfactor == 1

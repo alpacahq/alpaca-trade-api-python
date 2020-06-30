@@ -1,7 +1,7 @@
 pandas==1.0.5
 requests==2.24.0
 urllib3==1.25.9
-websocket-client
+websocket-client==0.57.0
 websockets>=8.0
 deprecated
 alpha_vantage

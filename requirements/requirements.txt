@@ -1,6 +1,6 @@
 pandas==1.0.5
 requests==2.24.0
-urllib3<1.25
+urllib3==1.25.9
 websocket-client
 websockets>=8.0
 deprecated

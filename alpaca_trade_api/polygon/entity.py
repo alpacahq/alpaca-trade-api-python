@@ -322,6 +322,10 @@ class Ticker(Entity):
     pass
 
 
+class Symbol(Entity):
+    pass
+
+
 class DailyOpenClose(Entity):
     pass
 

@@ -292,8 +292,14 @@ class REST(object):
         if order_class is not None:
             params['order_class'] = order_class
         if take_profit is not None:
+            if 'limit_price' in take_profit:
+                take_profit['limit_price'] = FLOAT(take_profit['limit_price'])
             params['take_profit'] = take_profit
         if stop_loss is not None:
+            if 'limit_price' in stop_loss:
+                stop_loss['limit_price'] = FLOAT(stop_loss['limit_price'])
+            if 'stop_price' in stop_loss:
+                stop_loss['stop_price'] = FLOAT(stop_loss['stop_price'])
             params['stop_loss'] = stop_loss
         resp = self.post('/orders', params)
         return Order(resp)

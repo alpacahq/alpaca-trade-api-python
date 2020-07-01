@@ -8,7 +8,7 @@ from .common import (
     get_base_url,
     get_data_url,
     get_credentials,
-    get_api_version, URL,
+    get_api_version, URL, FLOAT,
 )
 from .entity import (
     Account, AccountConfigurations, AccountActivity,
@@ -282,9 +282,9 @@ class REST(object):
             'time_in_force': time_in_force,
         }
         if limit_price is not None:
-            params['limit_price'] = limit_price
+            params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
-            params['stop_price'] = stop_price
+            params['stop_price'] = FLOAT(stop_price)
         if client_order_id is not None:
             params['client_order_id'] = client_order_id
         if extended_hours is not None:
@@ -292,8 +292,14 @@ class REST(object):
         if order_class is not None:
             params['order_class'] = order_class
         if take_profit is not None:
+            if 'limit_price' in take_profit:
+                take_profit['limit_price'] = FLOAT(take_profit['limit_price'])
             params['take_profit'] = take_profit
         if stop_loss is not None:
+            if 'limit_price' in stop_loss:
+                stop_loss['limit_price'] = FLOAT(stop_loss['limit_price'])
+            if 'stop_price' in stop_loss:
+                stop_loss['stop_price'] = FLOAT(stop_loss['stop_price'])
             params['stop_loss'] = stop_loss
         resp = self.post('/orders', params)
         return Order(resp)
@@ -332,9 +338,9 @@ class REST(object):
         if qty is not None:
             params['qty'] = qty
         if limit_price is not None:
-            params['limit_price'] = limit_price
+            params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
-            params['stop_price'] = stop_price
+            params['stop_price'] = FLOAT(stop_price)
         if time_in_force is not None:
             params['time_in_force'] = time_in_force
         if client_order_id is not None:

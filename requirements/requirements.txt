@@ -1,4 +1,4 @@
-pandas
+pandas==1.0.5
 requests
 urllib3<1.25
 websocket-client

@@ -250,7 +250,7 @@ class LongShort:
     equity = int(float(self.alpaca.get_account().equity))
 
     self.shortAmount = equity * 0.30
-    self.longAmount = equity + self.shortAmount
+    self.longAmount = equity - self.shortAmount
 
     respGetTPLong = []
     tGetTPLong = threading.Thread(target=self.getTotalPrice, args=[self.long, respGetTPLong])

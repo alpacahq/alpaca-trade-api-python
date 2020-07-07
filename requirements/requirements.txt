@@ -1,6 +1,6 @@
-pandas<0.23
-requests==2.24.0
-urllib3==1.24.3
-websocket-client==0.57.0
-websockets>=8.0
-alpha_vantage==2.2.0
+pandas>0.22
+requests>=2.24.0,<3
+urllib3>=1.24.3,<1.26
+websocket-client>=0.56.0,<1
+websockets>=8.0,<9
+alpha_vantage>=2,<3

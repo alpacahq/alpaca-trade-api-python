@@ -1,4 +1,4 @@
-pandas>0.22
+pandas>=0.18.1
 requests>=2.24.0,<3
 urllib3>=1.24.3,<1.26
 websocket-client>=0.56.0,<1

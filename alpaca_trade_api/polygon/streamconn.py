@@ -17,7 +17,7 @@ class StreamConn(object):
         self._key_id = get_polygon_credentials(key_id)
         self._endpoint: URL = URL(os.environ.get(
             'POLYGON_WS_URL',
-            'wss://alpaca.socket.polygon.io/stocks'
+            'wss://socket.polygon.io/stocks'
         ).rstrip('/'))
         self._handlers = {}
         self._handler_symbols = {}

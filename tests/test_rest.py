@@ -40,6 +40,14 @@ def test_api(reqmock):
     }
 ''')
 
+    if not os.environ.get("TEST_ENV1"):
+        print("*"*10)
+        print("*"*10)
+        print(os.environ.get("TEST_ENV"))
+        print("*"*10)
+        print("*"*10)
+        raise Exception("Circle CI env variable")
+
     account = api.get_account()
     assert account.status == 'ACTIVE'
     assert 'Account(' in str(account)

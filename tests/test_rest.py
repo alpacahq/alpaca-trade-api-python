@@ -43,7 +43,7 @@ def test_api(reqmock):
     if not os.environ.get("TEST_ENV1"):
         print("*"*10)
         print("*"*10)
-        print(os.environ.get("TEST_ENV"))
+        print("OK" if "shlomi" == os.environ.get("TEST_ENV") else "not OK")
         print("*"*10)
         print("*"*10)
         raise Exception("Circle CI env variable")

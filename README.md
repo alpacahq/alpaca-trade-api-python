@@ -304,6 +304,17 @@ aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01
 # timestamp should be in milliseconds datetime.datetime(2019, 1, 1).timestamp()*1000 == 1546293600000
 aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=1546293600000, to='2019-02-01').df
 ```
+and here's a minute example usage:
+```py
+import pytz
+NY = 'America/New_York'
+
+start = pytz.timezone(NY).localize(datetime(2020,1,2,9,30)).timestamp()*1000  # timestamp in micro seconds
+# another alternative will be: start = pd.Timestamp('2020-01-02 09:30', tz=NY).value/1e6
+end = pytz.timezone(NY).localize(datetime(2020,1,2,16,0)).timestamp()*1000
+df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
+
+```
 
 ## polygon/REST
 It is initialized through alpaca `REST` object.

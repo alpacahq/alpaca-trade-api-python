@@ -309,9 +309,11 @@ and here's a minute example usage:
 import pytz
 NY = 'America/New_York'
 
-start=pytz.timezone(NY).localize(datetime(2020,1,2,9,30)).timestamp()*1000  # timestamp in micro seconds
-end=pytz.timezone(NY).localize(datetime(2020,1,2,16,0)).timestamp()*1000
-df=api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
+start = pytz.timezone(NY).localize(datetime(2020,1,2,9,30)).timestamp()*1000  # timestamp in micro seconds
+# another alternative will be: start = pd.Timestamp('2020-01-02 09:30', tz=NY).value/1e6
+end = pytz.timezone(NY).localize(datetime(2020,1,2,16,0)).timestamp()*1000
+df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
+
 ```
 
 ## polygon/REST

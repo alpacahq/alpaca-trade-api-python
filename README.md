@@ -27,7 +27,7 @@ In order to call Alpaca's trade API, you need to sign up for a account and obtai
 ```python
 import alpaca_trade_api as tradeapi
 
-api = tradeapi.REST('<key_id>', '<secret_key>', api_version='v2') # or use ENV Vars shown below
+api = tradeapi.REST('<key_id>', '<secret_key>', base_url='https://paper-api.alpaca.markets') # or use ENV Vars shown below
 account = api.get_account()
 api.list_positions()
 ```

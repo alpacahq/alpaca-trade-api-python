@@ -200,6 +200,10 @@ is raised. This module itself does not provide any threading
 capability, so if you need to consume the messages pushed from the
 server, you need to run it in a background thread.
 
+We provide 2 price data websockets. The polygon data, and the alpaca data.
+We default to Alpaca data, and one must explicitly specify the polygon data stream in order to use that.
+It is done by passing the `data_stream` keyword to the `__init__()` function of `StreamConn` (options: `'alpacadatav1', 'polygon'`)
+
 This class provides a unique interface to the two interfaces, both
 Alpaca's account/trade updates events and Polygon's price updates.
 One connection is established when the `subscribe()` is called with

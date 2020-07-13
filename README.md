@@ -351,10 +351,6 @@ object.
 - `unadjusted` can be set to true if results should not be adjusted for splits.
 - `limit` is an integer to limit the number of results.  3000 is the default and max value.
 
-Specify the `_from` parameter if you specify the `to` parameter since when `to` is
-specified `_from` is assumed to be the beginning of history.  Otherwise, when you
-use only the `limit` or no parameters, the result is returned from the latest point.
-
 The returned entities have fields relabeled with the longer name instead of shorter ones.
 For example, the `o` field is renamed to `open`.
 

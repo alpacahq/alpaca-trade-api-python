@@ -57,7 +57,7 @@ class _StreamConn(object):
 
         self._ws = ws
         await self._dispatch('authorized', msg)
-
+        logging.info(f"connected to: {self._endpoint}")
         self._consume_task = asyncio.ensure_future(self._consume_msg())
 
     async def consume(self):

@@ -43,6 +43,7 @@ class StreamConn(object):
                     .format(msg))
             )
         await self._dispatch(msg)
+        logging.info(f"connected to: {self._endpoint}")
         if await self.authenticate():
             self._consume_task = asyncio.ensure_future(self._consume_msg())
         else:

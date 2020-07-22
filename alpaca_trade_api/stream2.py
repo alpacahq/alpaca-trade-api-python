@@ -291,9 +291,8 @@ class StreamConn(object):
                 logging.info("Exiting on Interrupt")
                 should_renew = False
             except Exception as e:
-                m = f"error while consuming ws messages: " \
-                    f"{'consume cancelled' if isinstance(e, CancelledError) else e}"
-                logging.error(m)
+                m = 'consume cancelled' if isinstance(e, CancelledError) else e
+                logging.error(f"error while consuming ws messages: {m}")
                 loop.run_until_complete(self.close(should_renew))
                 if loop.is_running():
                     loop.close()

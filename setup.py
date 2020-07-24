@@ -34,7 +34,6 @@ setup(
     packages=[
         'alpaca_trade_api',
         'alpaca_trade_api.polygon',
-        'alpaca_trade_api.alpha_vantage',
     ],
     install_requires=REQUIREMENTS,
     tests_require=REQUIREMENTS_TEST,

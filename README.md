@@ -285,7 +285,14 @@ same `channel_pat` will overwrite the old handler.
 Deregisters the event handler function that was previously registered via `on` or
 `register` method.
 
-
+## Logging
+You should define a logger in your app in order to make sure you get all the messages from the different components.<br>
+It will help you debug, and make sure you don't miss issues when they occur.<br>
+The simplest way to define a logger, if you have no experience with the python logger - will be something like this:
+```py
+import logging
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+```
 ---
 # Polygon API Service
 

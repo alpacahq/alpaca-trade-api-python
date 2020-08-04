@@ -78,14 +78,14 @@ def test_polygon(reqmock):
 
     reqmock.get(
         endpoint(
-            '/aggs/ticker/AAPL/range/1/day/2018-02-02/2018-02-05',
+            '/aggs/ticker/AAPL/range/1/day/2018-02-02/2018-02-06',
             params='unadjusted=False', api_version='v2'
         ),
         text=aggs_response)
 
     reqmock.get(
         endpoint(
-            '/aggs/ticker/AAPL/range/1/day/1546300800000/2018-02-05',
+            '/aggs/ticker/AAPL/range/1/day/1546300800000/2018-02-06',
             params='unadjusted=False', api_version='v2'
         ),
         text=aggs_response)

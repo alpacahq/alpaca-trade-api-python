@@ -6,7 +6,7 @@
 # alpaca-trade-api-python
 
 `alpaca-trade-api-python` is a python library for the [Alpaca Commission Free Trading API](https://alpaca.markets).
-It allows rapid trading algo development easily, with support for the
+It allows rapid trading algo development easily, with support for
 both REST and streaming data interfaces. For details of each API behavior,
 please see the online [API document](https://docs.alpaca.markets).
 
@@ -21,7 +21,7 @@ $ pip3 install alpaca-trade-api
 
 ## Example
 
-In order to call Alpaca's trade API, you need to sign up for a account and obtain API key pairs. Replace <key_id> and <secret_key> with what you get from the web console.
+In order to call Alpaca's trade API, you need to sign up for an account and obtain API key pairs. Replace <key_id> and <secret_key> with what you get from the web console.
 
 ### REST example
 ```python
@@ -42,7 +42,7 @@ The HTTP API document is located at https://docs.alpaca.markets/
 
 ## API Version
 
-API Version now defaults to 'v2', however if you still have a 'v1' account, you may need to specify api_version='v1' to properly use the API until you migrate.
+API Version now defaults to 'v2', however, if you still have a 'v1' account, you may need to specify api_version='v1' to properly use the API until you migrate.
 
 ## Authentication
 
@@ -53,7 +53,7 @@ outlined below.
 
 ## Alpaca Environment Variables
 
-The Alpaca SDK will check the environment for a number of variables which can be used rather than hard-coding these into your scripts.
+The Alpaca SDK will check the environment for a number of variables that can be used rather than hard-coding these into your scripts.
 
 | Environment                      | default                                                                                | Description                                                                                                            |
 | -------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -73,7 +73,7 @@ The `REST` class is the entry point for the API request.  The instance of this
 class provides all REST API calls such as account, orders, positions,
 and bars.
 
-Each returned object is wrapped by a subclass of `Entity` class (or a list of it).
+Each returned object is wrapped by a subclass of the `Entity` class (or a list of it).
 This helper class provides property access (the "dot notation") to the
 json object, backed by the original object stored in the `_raw` field.
 It also converts certain types to the appropriate python object.
@@ -87,7 +87,7 @@ account.status
 => 'ACTIVE'
 ```
 
-The `Entity` class also converts timestamp string field to a pandas.Timestamp
+The `Entity` class also converts the timestamp string field to a pandas.Timestamp
 object.  Its `_raw` property returns the original raw primitive data unmarshaled
 from the response JSON text.
 
@@ -220,9 +220,9 @@ exception is raised, and each event handler is called asynchronously
 upon the message arrivals.
 
 The `run` method tries to reconnect to the server in the event of
-connection failure.  In this case you may want to reset your state
+connection failure.  In this case, you may want to reset your state
 which is best in the `connect` event.  The method still raises
-exception in the case any other unknown error happens inside the
+an exception in the case any other unknown error happens inside the
 event loop.
 
 The `msg` object passed to each handler is wrapped by the entity
@@ -284,8 +284,29 @@ same `channel_pat` will overwrite the old handler.
 Deregisters the event handler function that was previously registered via `on` or
 `register` method.
 
+#### Debugging
+Websocket exceptions may occur during execution.
+It will usually happen during the `consume()` method, which basically is the 
+websocket steady-state.<br>
+exceptions during the consume method may occur due to:
+- server disconnections
+- error while handling the response data
 
----
+We handle the first issue by reconnecting the websocket every time there's a disconnection.
+The second issue, is usually a user's code issue. To help you find it, we added a flag to the 
+StreamConn object called `debug`. It is set to False by default, but you can turn it on to get a more
+verbose logs when this exception happens.
+Turn it on like so `StreamConn(debug=True)`  
+
+## Logging
+You should define a logger in your app in order to make sure you get all the messages from the different components.<br>
+It will help you debug, and make sure you don't miss issues when they occur.<br>
+The simplest way to define a logger, if you have no experience with the python logger - will be something like this:
+```py
+import logging
+logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+```
+
 # Polygon API Service
 
 Alpaca's API key ID can be used to access Polygon API, the documentation for
@@ -320,7 +341,7 @@ df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
 ```
 
 ## polygon/REST
-It is initialized through alpaca `REST` object.
+It is initialized through the alpaca `REST` object.
 
 ### polygon/REST.exchanges()
 Returns a list of `Exchange` entity.
@@ -331,7 +352,7 @@ Returns a `SymbolTypeMap` object.
 ### polygon/REST.historic_trades_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
 Returns a `TradesV2` which is a list of `Trade` entities.
 
-- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
+- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only.
 - `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
 - `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
 - `limit` is an integer for the number of ticks to return.  Default and max is 50000.
@@ -342,7 +363,7 @@ Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2
 ### polygon/REST.historic_quotes_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
 Returns a `QuotesV2` which is a list of `Quote` entities.
 
-- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day onyl.
+- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only.
 - `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
 - `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
 - `limit` is an integer for the number of ticks to return.  Default and max is 50000.
@@ -357,8 +378,7 @@ object.
 - `multiplier` is an integer affecting the amount of data contained in each Agg object.
 - `timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values:
   - `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`
-- `_from` is an Eastern Time timestamp string/object that filters the result
- for the lower bound, inclusive. we accept the date in these formats: 
+- `_from` is an Eastern Time timestamp string/object that filters the result for the lower bound, inclusive. we accept the date in these formats: 
  datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp,
   isoformat string (YYYY-MM-DD)
 - `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field
@@ -411,5 +431,5 @@ For technical issues particular to this module, please report the
 issue on this GitHub repository. Any API issues can be reported through
 Alpaca's customer support.
 
-New features, as well as bug fixes, by sending pull request is always
+New features, as well as bug fixes, by sending a pull request is always
 welcomed.

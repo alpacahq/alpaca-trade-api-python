@@ -48,17 +48,11 @@ class FLOAT(str):
     invalid strings all the way to the servers.
     """
     def __new__(cls, value):
-        if not value:
-            raise ValueError('Unexpected empty string')
         if isinstance(value, float) or isinstance(value, int):
-            pass  # we're good
-        elif isinstance(value, str):
-            value = value.strip()  # make sure no spaces
-            if isinstance(float(value), float):
-                pass  # we're good
-        else:
-            raise ValueError(f'Unexpected float format "{value}"')
-        return value
+            return value
+        if isinstance(value, str):
+            return float(value.strip())
+        raise ValueError(f'Unexpected float format "{value}"')
 
 
 def get_base_url() -> URL:

@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+import traceback
 from asyncio import CancelledError
 
 import websockets
@@ -183,7 +184,9 @@ class StreamConn(object):
             secret_key: str = None,
             base_url: URL = None,
             data_url: URL = None,
-            data_stream: str = None):
+            data_stream: str = None,
+            debug: bool = False
+    ):
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._data_url = data_url or get_data_url()
@@ -196,6 +199,7 @@ class StreamConn(object):
         else:
             _data_stream = 'alpacadatav1'
         self._data_stream = _data_stream
+        self._debug = debug
 
         self.trading_ws = _StreamConn(self._key_id,
                                       self._secret_key,
@@ -293,6 +297,8 @@ class StreamConn(object):
             except Exception as e:
                 m = 'consume cancelled' if isinstance(e, CancelledError) else e
                 logging.error(f"error while consuming ws messages: {m}")
+                if self._debug:
+                    traceback.print_exc()
                 loop.run_until_complete(self.close(should_renew))
                 if loop.is_running():
                     loop.close()

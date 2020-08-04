@@ -285,6 +285,20 @@ same `channel_pat` will overwrite the old handler.
 Deregisters the event handler function that was previously registered via `on` or
 `register` method.
 
+#### Debugging
+Websocket exceptions may occur during execution.
+It will usually happen during the `consume()` method, which basically is the 
+websocket steady-state.<br>
+exceptions during the consume method may occur due to:
+- server disconnections
+- error while handling the response data
+
+We handle the first issue by reconnecting the websocket every time there's a disconnection.
+The second issue, is usually a user's code issue. To help you find it, we added a flag to the 
+StreamConn object called `debug`. It is set to False by default, but you can turn it on to get a more
+verbose logs when this exception happens.
+Turn it on like so `StreamConn(debug=True)`  
+
 ## Logging
 You should define a logger in your app in order to make sure you get all the messages from the different components.<br>
 It will help you debug, and make sure you don't miss issues when they occur.<br>
@@ -293,7 +307,7 @@ The simplest way to define a logger, if you have no experience with the python l
 import logging
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 ```
----
+
 # Polygon API Service
 
 Alpaca's API key ID can be used to access Polygon API, the documentation for

@@ -537,9 +537,16 @@ class REST(object):
         resp = self.get('/watchlists/{}'.format((watchlist_id)))
         return Watchlist(resp)
 
-    def add_watchlist(self, watchlist_name: str) -> Watchlists:
-        resp = self.post('/watchlists', data=dict(name=watchlist_name))
-        return [Watchlist(o) for o in resp]
+    def create_watchlist(self,
+                         watchlist_name: str,
+                         symbols = None) -> Watchlist:
+        params = {
+            'name': watchlist_name,
+        }
+        if symbols is not None:
+            params['symbols'] = symbols
+        resp = self.post('/watchlists', data=params)
+        return Watchlist(resp)
 
     def add_to_watchlist(self, watchlist_id: str, symbol: str) -> Watchlist:
         resp = self.post(

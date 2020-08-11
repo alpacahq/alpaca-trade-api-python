@@ -157,6 +157,9 @@ class REST(object):
 
     def post(self, path, data=None):
         return self._request('POST', path, data)
+    
+    def put(self, path, data=None):
+        return self._request('PUT', path, data)
 
     def patch(self, path, data=None):
         return self._request('PATCH', path, data)

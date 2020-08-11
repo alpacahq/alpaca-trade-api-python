@@ -253,7 +253,8 @@ class REST(object):
                      extended_hours: bool = None,
                      order_class: str = None,
                      take_profit: dict = None,
-                     stop_loss: dict = None):
+                     stop_loss: dict = None,
+                     **kwargs):
         """
         :param symbol: symbol or asset ID
         :param qty: int
@@ -278,6 +279,7 @@ class REST(object):
             'side':          side,
             'type':          type,
             'time_in_force': time_in_force,
+            **kwargs
         }
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)

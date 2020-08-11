@@ -548,15 +548,15 @@ class REST(object):
         return Watchlist(resp)
 
     def update_watchlist(self,
-                         watchlist_id,
+                         watchlist_id: str,
                          name: str = None,
-                         symbols=None) -> Watchlist:
+                         symbols = None) -> Watchlist:
         params = {}
         if name is not None:
             params['name'] = name
         if symbols is not None:
             params['symbols'] = symbols
-        resp = self.patch('/watchlists/{}'.format(watchlist_id), data=params)
+        resp = self.put('/watchlists/{}'.format(watchlist_id), data=params)
         return Watchlist(resp)
 
     def delete_watchlist(self, watchlist_id: str) -> None:

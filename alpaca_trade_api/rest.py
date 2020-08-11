@@ -539,6 +539,14 @@ class REST(object):
         resp = self.get('/watchlists/{}'.format((watchlist_id)))
         return Watchlist(resp)
 
+    def get_watchlist_by_name(self, watchlist_name: str) -> Watchlist:
+        """Get a watchlist identified by its name"""
+        params = {
+            'name': watchlist_name,
+        }
+        resp = self.get('/watchlists:by_name', data=params)
+        return Watchlist(resp)
+
     def create_watchlist(self,
                          watchlist_name: str,
                          symbols = None) -> Watchlist:

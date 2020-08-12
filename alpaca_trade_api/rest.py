@@ -157,7 +157,7 @@ class REST(object):
 
     def post(self, path, data=None):
         return self._request('POST', path, data)
-    
+
     def put(self, path, data=None):
         return self._request('PUT', path, data)
 
@@ -551,7 +551,7 @@ class REST(object):
 
     def create_watchlist(self,
                          watchlist_name: str,
-                         symbols = None) -> Watchlist:
+                         symbols=None) -> Watchlist:
         """Create a new watchlist with an optional initial set of assets"""
         params = {
             'name': watchlist_name,
@@ -562,7 +562,7 @@ class REST(object):
         return Watchlist(resp)
 
     def add_to_watchlist(self, watchlist_id: str, symbol: str) -> Watchlist:
-        """Append the asset for a symbol to the end of a watchlist's asset list""" 
+        """Add an asset to the watchlist"""
         resp = self.post(
             '/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol)
         )
@@ -571,7 +571,7 @@ class REST(object):
     def update_watchlist(self,
                          watchlist_id: str,
                          name: str = None,
-                         symbols = None) -> Watchlist:
+                         symbols=None) -> Watchlist:
         """Update a watchlist's name and/or asset list"""
         params = {}
         if name is not None:

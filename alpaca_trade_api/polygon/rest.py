@@ -46,6 +46,30 @@ def format_date_for_api_call(date):
         raise Exception(f"Unsupported date format: {date}")
 
 
+def fix_daily_bar_date(date, timespan):
+    """
+    the polygon api does not include the end date for daily bars, or this:
+    historic_agg_v2("SPY", 1, "day", _from="2020-07-22", to="2020-07-24").df
+    results in this:
+    timestamp
+    2020-07-22 00:00:00-04:00  324.62  327.20  ...  57917101.0  325.8703
+    2020-07-23 00:00:00-04:00  326.47  327.23  ...  75841843.0  324.3429
+
+    the 24th data is missing
+    for minute bars, it does include the end date
+
+    so basically this method will add 1 day (if 'to' is not today, we don't
+    have today's data until tomorrow) to the 'to' field
+    """
+    if timespan == 'day':
+        date = dateutil.parser.parse(date)
+        today = datetime.datetime.utcnow().date()
+        if today != date.date():
+            date = date + datetime.timedelta(days=1)
+        date = date.date().isoformat()
+    return date
+
+
 class REST(object):
 
     def __init__(self, api_key: str, staging: bool = False):
@@ -172,12 +196,13 @@ class REST(object):
         """
         path_template = '/aggs/ticker/{symbol}/range/{multiplier}/' \
                         '{timespan}/{_from}/{to}'
-        path = path_template.format(symbol=symbol,
-                                    multiplier=multiplier,
-                                    timespan=timespan,
-                                    _from=format_date_for_api_call(_from),
-                                    to=format_date_for_api_call(to)
-                                    )
+        path = path_template.format(
+            symbol=symbol,
+            multiplier=multiplier,
+            timespan=timespan,
+            _from=format_date_for_api_call(_from),
+            to=fix_daily_bar_date(format_date_for_api_call(to), timespan)
+        )
         params = {'unadjusted': unadjusted}
         if limit:
             params['limit'] = limit

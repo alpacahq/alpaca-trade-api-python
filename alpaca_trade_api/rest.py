@@ -16,7 +16,6 @@ from .entity import (
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
 from . import polygon
-from . import alpha_vantage
 
 logger = logging.getLogger(__name__)
 Positions = List[Position]
@@ -82,7 +81,6 @@ class REST(object):
             'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
             self._key_id, 'staging' in self._base_url)
-        self.alpha_vantage = alpha_vantage.REST(self._key_id)
 
     def _request(self,
                  method,
@@ -159,6 +157,9 @@ class REST(object):
 
     def post(self, path, data=None):
         return self._request('POST', path, data)
+
+    def put(self, path, data=None):
+        return self._request('PUT', path, data)
 
     def patch(self, path, data=None):
         return self._request('PATCH', path, data)
@@ -283,7 +284,7 @@ class REST(object):
             'qty':           qty,
             'side':          side,
             'type':          type,
-            'time_in_force': time_in_force,
+            'time_in_force': time_in_force
         }
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
@@ -332,7 +333,6 @@ class REST(object):
             qty: str = None,
             limit_price: str = None,
             stop_price: str = None,
-            trail: str = None,
             time_in_force: str = None,
             client_order_id: str = None
     ) -> Order:
@@ -341,7 +341,6 @@ class REST(object):
         :param qty: str of int
         :param limit_price: str of float
         :param stop_price: str of float
-        :param trail: str of float
         :param time_in_force: day, gtc, opg, cls, ioc, fok
         """
         params = {}
@@ -351,8 +350,6 @@ class REST(object):
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
             params['stop_price'] = FLOAT(stop_price)
-        if trail is not None:
-            params['trail'] = FLOAT(trail)
         if time_in_force is not None:
             params['time_in_force'] = time_in_force
         if client_order_id is not None:
@@ -541,39 +538,61 @@ class REST(object):
         return [Calendar(o) for o in resp]
 
     def get_watchlists(self) -> Watchlists:
+        """Get the list of watchlists registered under the account"""
         resp = self.get('/watchlists')
         return [Watchlist(o) for o in resp]
 
     def get_watchlist(self, watchlist_id: str) -> Watchlist:
+        """Get a watchlist identified by the ID"""
         resp = self.get('/watchlists/{}'.format((watchlist_id)))
         return Watchlist(resp)
 
-    def add_watchlist(self, watchlist_name: str) -> Watchlists:
-        resp = self.post('/watchlists', data=dict(name=watchlist_name))
-        return [Watchlist(o) for o in resp]
+    def get_watchlist_by_name(self, watchlist_name: str) -> Watchlist:
+        """Get a watchlist identified by its name"""
+        params = {
+            'name': watchlist_name,
+        }
+        resp = self.get('/watchlists:by_name', data=params)
+        return Watchlist(resp)
+
+    def create_watchlist(self,
+                         watchlist_name: str,
+                         symbols=None) -> Watchlist:
+        """Create a new watchlist with an optional initial set of assets"""
+        params = {
+            'name': watchlist_name,
+        }
+        if symbols is not None:
+            params['symbols'] = symbols
+        resp = self.post('/watchlists', data=params)
+        return Watchlist(resp)
 
     def add_to_watchlist(self, watchlist_id: str, symbol: str) -> Watchlist:
+        """Add an asset to the watchlist"""
         resp = self.post(
             '/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol)
         )
         return Watchlist(resp)
 
     def update_watchlist(self,
-                         watchlist_id,
+                         watchlist_id: str,
                          name: str = None,
                          symbols=None) -> Watchlist:
+        """Update a watchlist's name and/or asset list"""
         params = {}
         if name is not None:
             params['name'] = name
         if symbols is not None:
             params['symbols'] = symbols
-        resp = self.patch('/watchlists/{}'.format(watchlist_id), data=params)
+        resp = self.put('/watchlists/{}'.format(watchlist_id), data=params)
         return Watchlist(resp)
 
     def delete_watchlist(self, watchlist_id: str) -> None:
+        """Delete a watchlist identified by the ID permanently"""
         self.delete('/watchlists/{}'.format(watchlist_id))
 
     def delete_from_watchlist(self, watchlist_id: str, symbol: str) -> None:
+        """Remove an asset from the watchlist's asset list"""
         self.delete('/watchlists/{}/{}'.format(watchlist_id, symbol))
 
     def get_portfolio_history(self,

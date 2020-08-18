@@ -48,17 +48,11 @@ class FLOAT(str):
     invalid strings all the way to the servers.
     """
     def __new__(cls, value):
-        if not value:
-            raise ValueError('Unexpected empty string')
         if isinstance(value, float) or isinstance(value, int):
-            pass  # we're good
-        elif isinstance(value, str):
-            value = value.strip()  # make sure no spaces
-            if isinstance(float(value), float):
-                pass  # we're good
-        else:
-            raise ValueError(f'Unexpected float format "{value}"')
-        return value
+            return value
+        if isinstance(value, str):
+            return float(value.strip())
+        raise ValueError(f'Unexpected float format "{value}"')
 
 
 def get_base_url() -> URL:
@@ -98,14 +92,6 @@ def get_polygon_credentials(alpaca_key: str = None) -> str:
     if key_id is None:
         raise ValueError('Key ID must be given to access Polygon API'
                          ' (env: APCA_API_KEY_ID or POLYGON_KEY_ID)')
-    return key_id
-
-
-def get_alpha_vantage_credentials(alpha_vantage_key: str = None) -> str:
-    key_id = alpha_vantage_key or os.environ.get('ALPHAVANTAGE_API_KEY')
-    if key_id is None:
-        raise ValueError('Key ID must be given to access Alpha Vantage API'
-                         ' (env: ALPHAVANTAGE_API_KEY)')
     return key_id
 
 

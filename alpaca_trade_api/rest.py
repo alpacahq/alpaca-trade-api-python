@@ -263,7 +263,7 @@ class REST(object):
         :param symbol: symbol or asset ID
         :param qty: int
         :param side: buy or sell
-        :param type: market, limit, stop, or stop_limit
+        :param type: market, limit, stop, stop_limit or trailing_stop
         :param time_in_force: day, gtc, opg, cls, ioc, fok
         :param limit_price: str of float
         :param stop_price: str of float

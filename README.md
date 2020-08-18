@@ -109,7 +109,7 @@ Calls `GET /account` and returns an `Account` entity.
 Calls `GET /orders` and returns a list of `Order` entities.
 `after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()`
 
-### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None)
+### REST.submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None)
 Calls `POST /orders` and returns an `Order` entity.
 
 Below is an example of submitting a bracket order.

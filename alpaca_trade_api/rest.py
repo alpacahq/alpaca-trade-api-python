@@ -257,7 +257,8 @@ class REST(object):
                      order_class: str = None,
                      take_profit: dict = None,
                      stop_loss: dict = None,
-                     **kwargs):
+                     trail_price: str = None,
+                     trail_percent: str = None):
         """
         :param symbol: symbol or asset ID
         :param qty: int
@@ -274,6 +275,8 @@ class REST(object):
                {"limit_price": "298.95"}
         :param stop_loss: dict with fields "stop_price" and "limit_price" e.g
                {"stop_price": "297.95", "limit_price": "298.95"}
+        :param trail_price: str of float
+        :param trail_percent: str of float
         """
         """Request a new order"""
         params = {
@@ -281,8 +284,7 @@ class REST(object):
             'qty':           qty,
             'side':          side,
             'type':          type,
-            'time_in_force': time_in_force,
-            **kwargs
+            'time_in_force': time_in_force
         }
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
@@ -304,6 +306,10 @@ class REST(object):
             if 'stop_price' in stop_loss:
                 stop_loss['stop_price'] = FLOAT(stop_loss['stop_price'])
             params['stop_loss'] = stop_loss
+        if trail_price is not None:
+            params['trail_price'] = trail_price
+        if trail_percent is not None:
+            params['trail_percent'] = trail_percent
         resp = self.post('/orders', params)
         return Order(resp)
 

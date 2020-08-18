@@ -97,5 +97,6 @@ ENV/
 # vim swap file
 *.swp
 
-# vscode
+# IDE
 /.vscode/
+.idea/

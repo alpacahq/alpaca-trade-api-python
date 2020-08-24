@@ -102,6 +102,9 @@ def test_orders(reqmock):
     "filled_at": "2018-03-09T19:05:27Z",
     "failed_at": "2018-03-09T19:05:27Z",
     "filled_qty": "0",
+    "hwm": None,
+    "trail_percent": None,
+    "trail_price": None,
     "failured_reason": "string",
     "cancel_requested_at": "2018-03-09T19:05:27Z",
     "submitted_at": "2018-03-09T19:05:27Z"
@@ -133,6 +136,9 @@ def test_orders(reqmock):
   "filled_at": "2018-03-09T19:05:27Z",
   "failed_at": "2018-03-09T19:05:27Z",
   "filled_qty": "0",
+  "hwm": None,
+  "trail_percent": None,
+  "trail_price": None,
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T19:05:27Z",
   "submitted_at": "2018-03-09T19:05:27Z"
@@ -218,6 +224,9 @@ def test_orders(reqmock):
   "filled_at": "2018-03-09T05:50:50Z",
   "failed_at": "2018-03-09T05:50:50Z",
   "filled_qty": "0",
+  "hwm": None,
+  "trail_percent": None,
+  "trail_price": None,
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T05:50:50Z",
   "submitted_at": "2018-03-09T05:50:50Z"
@@ -249,6 +258,9 @@ def test_orders(reqmock):
   "filled_at": "2018-03-09T05:50:50Z",
   "failed_at": "2018-03-09T05:50:50Z",
   "filled_qty": "0",
+  "hwm": None,
+  "trail_percent": None,
+  "trail_price": None,
   "failured_reason": "string",
   "cancel_requested_at": "2018-03-09T05:50:50Z",
   "submitted_at": "2018-03-09T05:50:50Z"

@@ -333,6 +333,7 @@ class REST(object):
             qty: str = None,
             limit_price: str = None,
             stop_price: str = None,
+            trail: str = None,
             time_in_force: str = None,
             client_order_id: str = None
     ) -> Order:
@@ -341,7 +342,12 @@ class REST(object):
         :param qty: str of int
         :param limit_price: str of float
         :param stop_price: str of float
+        :param trail: str of float, represents trailing_price or
+               trailing_percent. determined by the original order.
         :param time_in_force: day, gtc, opg, cls, ioc, fok
+
+        note: you cannot replace type of order. so, it was trailing_stop(e.g)
+              it will remain trailing_stop.
         """
         params = {}
         if qty is not None:
@@ -350,6 +356,8 @@ class REST(object):
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
             params['stop_price'] = FLOAT(stop_price)
+        if trail is not None:
+            params['trail'] = FLOAT(trail)
         if time_in_force is not None:
             params['time_in_force'] = time_in_force
         if client_order_id is not None:

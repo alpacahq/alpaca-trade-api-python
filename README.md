@@ -293,87 +293,26 @@ df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
 ## polygon/REST
 It is initialized through the alpaca `REST` object.
 
-### polygon/REST.exchanges()
-Returns a list of `Exchange` entity.
-
-### polygon/REST.symbol_type_map()
-Returns a `SymbolTypeMap` object.
-
-### polygon/REST.historic_trades_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
-Returns a `TradesV2` which is a list of `Trade` entities.
-
-- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only.
-- `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
-- `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
-- `limit` is an integer for the number of ticks to return.  Default and max is 50000.
-
-### polygon/TradesV2.df
-Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2`.
-
-### polygon/REST.historic_quotes_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)
-Returns a `QuotesV2` which is a list of `Quote` entities.
-
-- `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only.
-- `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive.
-- `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results.
-- `limit` is an integer for the number of ticks to return.  Default and max is 50000.
-
-### polygon/QuotesV2.df
-Returns a pandas DataFrame object with the ticks returned by the `historic_quotes_v2`.
-
-### polygon/REST.historic_agg_v2(self, symbol, multiplier, timespan, _from, to, unadjusted=False, limit=None)
-Returns an `AggsV2` which is a list of `Agg` entities. `AggsV2.df` gives you the DataFrame
-object.
-
-- `multiplier` is an integer affecting the amount of data contained in each Agg object.
-- `timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values:
-  - `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`
-- `_from` is an Eastern Time timestamp string/object that filters the result for the lower bound, inclusive. we accept the date in these formats: 
- datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp,
-  isoformat string (YYYY-MM-DD)
-- `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field
-- `unadjusted` can be set to true if results should not be adjusted for splits.
-- `limit` is an integer to limit the number of results.  3000 is the default and max value.
-
-The returned entities have fields relabeled with the longer name instead of shorter ones.
-For example, the `o` field is renamed to `open`.
-
-### polygon/Aggs.df
-Returns a pandas DataFrame object with the ticks returned by `hitoric_agg_v2`.
-
-### polygon/REST.daily_open_close(symbol, date)
-Returns a `DailyOpenClose` entity.
-
-### poylgon/REST.last_trade(symbol)
-Returns a `Trade` entity representing the last trade for the symbol.
-
-### polygon/REST.last_quote(symbol)
-Returns a `Quote` entity representing the last quote for the symbol.
-
-### polygon/REST.condition_map(ticktype='trades')
-Returns a `ConditionMap` entity.
-
-### polygon/REST.company(symbol)
-Returns a `Company` entity if `symbol` is string, or a
-dict[symbol -> `Company`] if `symbol` is a list of string.
-
-### polygon/REST.dividends(symbol)
-Returns a `Dividends` entity if `symbol` is string, or a
-dict[symbol -> `Dividends`] if `symbol is a list of string.
-
-### polygon/REST.splits(symbol)
-Returns a `Splits` entity for the symbol.
-
-### polygon/REST.earnings(symbol)
-Returns an `Earnings` entity if `symbol` is string, or a
-dict[symbol -> `Earnings`] if `symbol` is a list of string.
-
-### polygon/REST.financials(symbol)
-Returns an `Financials` entity if `symbol` is string, or a
-dict[symbol -> `Financials`] if `symbol` is a list of string.
-
-### polygon/REST.news(symbol)
-Returns a `NewsList` entity for the symbol.
+| REST Method                           | Description                                                                            | 
+| --------------------------------      | -------------------------------------------------------------------------------------- |
+| exchanges()                           |  Returns a list of `Exchange` entity.|
+| symbol_type_map()                     |  Returns a `SymbolTypeMap` object.|
+| historic_trades_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None) |  Returns a `TradesV2` which is a list of `Trade` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
+| TradesV2.df                           | Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2`. |
+| historic_quotes_v2(symbol, date,timestamp=None, timestamp_limit=None, reverse=None, limit=None)|  Returns a `QuotesV2` which is a list of `Quote` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
+| QuotesV2.df                           | Returns a pandas DataFrame object with the ticks returned by the `historic_quotes_v2`.|
+| historic_agg_v2(self, symbol, multiplier, timespan, _from, to, unadjusted=False, limit=None)|  Returns an `AggsV2` which is a list of `Agg` entities. `AggsV2.df` gives you the DataFrame object.<br> - `multiplier` is an integer affecting the amount of data contained in each Agg object. <br> -`timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values: `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`. <br> - `_from` is an Eastern Time timestamp string/object that filters the result for the lower bound, inclusive. we accept the date in these formats: datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp, isoformat string (YYYY-MM-DD).<br> -  `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field.<br> -  `unadjusted` can be set to true if results should not be adjusted for splits.<br> -  `limit` is an integer to limit the number of results.  3000 is the default and max value. <br>The returned entities have fields relabeled with the longer name instead of shorter ones. For example, the `o` field is renamed to `open`.|
+| Aggs.df                               |  Returns a pandas DataFrame object with the ticks returned by `hitoric_agg_v2`.|
+| daily_open_close(symbol, date)        |  Returns a `DailyOpenClose` entity.|
+| last_trade(symbol)                    |  Returns a `Trade` entity representing the last trade for the symbol.|
+| last_quote(symbol)                    |  Returns a `Quote` entity representing the last quote for the symbol.|
+| condition_map(ticktype='trades')      |  Returns a `ConditionMap` entity.|
+| company(symbol)                       |  Returns a `Company` entity if `symbol` is string, or a dict[symbol -> `Company`] if `symbol` is a list of string.|
+| dividends(symbol)                     |  Returns a `Dividends` entity if `symbol` is string, or a dict[symbol -> `Dividends`] if `symbol` is a list of string.|
+| splits(symbol)                        |  Returns a `Splits` entity for the symbol.|
+| earnings(symbol)                      |  Returns an `Earnings` entity if `symbol` is string, or a dict[symbol -> `Earnings`] if `symbol` is a list of string.|
+| financials(symbol)                    | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
+| news(symbol)                          |  Returns a `NewsList` entity for the symbol.|
 
 ## Support and Contribution
 

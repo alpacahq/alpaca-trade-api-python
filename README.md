@@ -224,28 +224,15 @@ conn.run(['trade_updates', 'AM.*'])
 You will likely call the `run` method in a thread since it will keep running
 unless an exception is raised.
 
-### StreamConn.subscribe(channels)
-Request "listen" to the server.  `channels` must be a list of string channel names.
+| StreamConn Method                     | Description                                                                            | 
+| --------------------------------      | -------------------------------------------------------------------------------------- |
+| subscribe(channels)                   |  Request "listen" to the server.  `channels` must be a list of string channel names.|
+| unsubscribe(channels)                 |  Request to stop "listening" to the server.  `channels` must be a list of string channel names.|
+| run(channels)                         |  Goes into an infinite loop and awaits for messages from the server.  You should set up event listeners using the `on` or `register` method before calling `run`. |
+| on(channel_pat)                       |  As in the above example, this is a decorator method to add an event handler function. `channel_pat` is used as a regular expression pattern to filter stream names.|
+| register(channel_pat, func)           |  Registers a function as an event handler that is triggered by the stream events that match with `channel_path` regular expression. Calling this method with the same `channel_pat` will overwrite the old handler.|
+| deregister(channel_pat)               | Deregisters the event handler function that was previously registered via `on` or `register` method. |
 
-### StreamConn.unsubscribe(channels)
-Request to stop "listening" to the server.  `channels` must be a list of string channel names.
-
-### StreamConn.run(channels)
-Goes into an infinite loop and awaits for messages from the server.  You should
-set up event listeners using the `on` or `register` method before calling `run`.
-
-### StreamConn.on(channel_pat)
-As in the above example, this is a decorator method to add an event handler function.
-`channel_pat` is used as a regular expression pattern to filter stream names.
-
-### StreamConn.register(channel_pat, func)
-Registers a function as an event handler that is triggered by the stream events
-that match with `channel_path` regular expression. Calling this method with the
-same `channel_pat` will overwrite the old handler.
-
-### StreamConn.deregister(channel_pat)
-Deregisters the event handler function that was previously registered via `on` or
-`register` method.
 
 #### Debugging
 Websocket exceptions may occur during execution.

@@ -30,7 +30,7 @@ class _StreamConn(object):
         self._consume_task = None
 
     async def _connect(self):
-        ws = await websockets.connect(self._endpoint)
+        ws = await websockets.connect(self._endpoint, close_timeout=1)
         await ws.send(json.dumps({
             'action': 'authenticate',
             'data': {
@@ -80,7 +80,7 @@ class _StreamConn(object):
                     await self._dispatch(stream, msg)
         except websockets.WebSocketException as wse:
             logging.warn(wse)
-            await self.close()
+            self._ws = None
             asyncio.ensure_future(self._ensure_ws())
 
     async def _ensure_ws(self):
@@ -91,7 +91,7 @@ class _StreamConn(object):
             try:
                 await self._connect()
                 if self._streams:
-                    await self.subscribe(self._streams)
+                    await self.subscribe(list(self._streams))
                 break
             except websockets.WebSocketException as wse:
                 logging.warn(wse)

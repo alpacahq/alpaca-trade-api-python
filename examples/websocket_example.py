@@ -27,10 +27,6 @@ if __name__ == '__main__':
         async def on_second_bars(conn, channel, bar):
             print('bars', bar)
 
-    @conn.on(r'^trade_updates$')
-    async def on_account_updates(conn, channel, account):
-        print('account', account)
-
     @conn.on(r'^AM\..+$')
     async def on_minute_bars(conn, channel, bar):
         print('bars', bar)

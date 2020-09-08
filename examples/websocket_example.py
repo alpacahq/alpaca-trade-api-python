@@ -46,6 +46,6 @@ if __name__ == '__main__':
 
 
     if USE_POLYGON:
-        conn.run(['trade_updates', 'AM.AAPL'])
+        conn.run(['trade_updates', 'AM.AAPL', 'Q.AA', 'T.*'])
     else:
         conn.run(['trade_updates', 'alpacadatav1/AM.AAPL'])

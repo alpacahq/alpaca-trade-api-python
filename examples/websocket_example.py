@@ -40,6 +40,11 @@ if __name__ == '__main__':
         quote_count += 1
 
 
+    @conn.on(r'T\..+', ['AAPL'])
+    async def on_trades(conn, channel, trade):
+        print('trade', trade)
+
+
     # blocks forever
     # conn.run(['trade_updates', 'AM.*', 'alpacadatav1/Q.AAPL'])
     # conn.run(['trade_updates', 'AM.*'])

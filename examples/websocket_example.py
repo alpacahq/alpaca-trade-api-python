@@ -31,10 +31,6 @@ if __name__ == '__main__':
     async def on_minute_bars(conn, channel, bar):
         print('bars', bar)
 
-    # @conn.on(r'^AM*$')
-    # async def on_minute_bars(conn, channel, bar):
-    #     print('bars', bar)
-
     quote_count = 0  # don't print too much quotes
     @conn.on(r'Q\..+', ['AAPL'])
     async def on_minute_bars(conn, channel, bar):

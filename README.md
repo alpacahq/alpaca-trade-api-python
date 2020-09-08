@@ -107,26 +107,26 @@ You can access the following information through this object.
 
 ### API REST Methods
 
-| Rest Method                                      | Description                                                                                | 
-| --------------------------------                 | -------------------------------------------------------------------------------------- |
-| get_account()                                    |  Calls `GET /account` and returns an `Account` entity.|
-| get_order_by_client_order_id(client_order_id)    |  Calls `GET /orders` with client_order_id and returns an `Order` entity.|
-| list_orders(status=None, limit=None, after=None, until=None, direction=None, nested=None) | Calls `GET /orders` and returns a list of `Order` entities. `after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()` |
-| submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None)| Calls `POST /orders` and returns an `Order` entity. |
-| get_order(order_id)                              |  Calls `GET /orders/{order_id}` and returns an `Order` entity.|
-| cancel_order(order_id)                           | Calls `DELETE /orders/{order_id}` |
-| cancel_all_orders()                              |  Calls `DELETE /orders`|
-| list_positions()                                 |  Calls `GET /positions` and returns a list of `Position` entities|
-| get_position(symbol)                             |  Calls `GET /positions/{symbol}` and returns a `Position` entity.|
-| list_assets(status=None, asset_class=None)       |  Calls `GET /assets` and returns a list of `Asset` entities|
-| get_asset(symbol)                                |  Calls `GET /assets/{symbol}` and returns an `Asset` entity|
-| get_barset(symbols, timeframe, limit, start=None, end=None, after=None, until=None) |  Calls `GET /bars/{timeframe}` for the given symbols, and returns a Barset with `limit` Bar objects for each of the the requested symbols. `timeframe` can be one of `minute`, `1Min`, `5Min`, `15Min`, `day` or `1D`. `minute` is an alias of `1Min`. Similarly, `day` is an alias of `1D`. `start`, `end`, `after`, and `until` need to be string format, which you can obtain with `pd.Timestamp().isoformat()` `after` cannot be used with `start` and `until` cannot be used with `end`.|
-| get_aggs(symbol, timespan, multiplier, _from, to)|  Calls `GET /aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from}/{to}` and returns the `Aggs` entity. `multiplier` is the size of the timespan multiplier. `timespan` is the size of the time window, can be one of `minute`, `hour`, `day`, `week`, `month`, `quarter` or `year`. `_from` and `to` must be in `YYYY-MM-DD` format, e.g. `2020-01-15`.| 
-| get_last_trade(symbol)                           |  Calls `GET /last/stocks/{symbol}` and returns a `Trade` entity|
-| get_last_quote(symbol)                           |  Calls `GET /last_quote/stocks/{symbol}` and returns a `Quote` entity|
-| get_clock()                                      |  Calls `GET /clock` and returns a `Clock` entity|
-| get_calendar(start=None, end=None)               |  Calls `GET /calendar` and returns a `Calendar` entity|
-| get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None) |  Calls `GET /account/portfolio/history` and returns a PortfolioHistory entity. PortfolioHistory.df can be used to get the results as a dataframe|
+| Rest Method                                      | End Point          |   Result                                                                                | 
+| --------------------------------                 | -------------------| ------------------------------------------------------------------ |
+| get_account()                                    | `GET /account` and | `Account` entity.|
+| get_order_by_client_order_id(client_order_id)    | `GET /orders` with client_order_id | `Order` entity.|
+| list_orders(status=None, limit=None, after=None, until=None, direction=None, nested=None) | `GET /orders` | list of `Order` entities. `after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()` |
+| submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None)| `POST /orders` |  `Order` entity. |
+| get_order(order_id)                              | `GET /orders/{order_id}` | `Order` entity.|
+| cancel_order(order_id)                           | `DELETE /orders/{order_id}` | |
+| cancel_all_orders()                              | `DELETE /orders`| |
+| list_positions()                                 | `GET /positions` | list of `Position` entities|
+| get_position(symbol)                             | `GET /positions/{symbol}` | `Position` entity.|
+| list_assets(status=None, asset_class=None)       | `GET /assets` | list of `Asset` entities|
+| get_asset(symbol)                                | `GET /assets/{symbol}` | `Asset` entity|
+| get_barset(symbols, timeframe, limit, start=None, end=None, after=None, until=None) | `GET /bars/{timeframe}` | Barset with `limit` Bar objects for each of the the requested symbols. `timeframe` can be one of `minute`, `1Min`, `5Min`, `15Min`, `day` or `1D`. `minute` is an alias of `1Min`. Similarly, `day` is an alias of `1D`. `start`, `end`, `after`, and `until` need to be string format, which you can obtain with `pd.Timestamp().isoformat()` `after` cannot be used with `start` and `until` cannot be used with `end`.|
+| get_aggs(symbol, timespan, multiplier, _from, to)| `GET /aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from}/{to}` | `Aggs` entity. `multiplier` is the size of the timespan multiplier. `timespan` is the size of the time window, can be one of `minute`, `hour`, `day`, `week`, `month`, `quarter` or `year`. `_from` and `to` must be in `YYYY-MM-DD` format, e.g. `2020-01-15`.| 
+| get_last_trade(symbol)                           | `GET /last/stocks/{symbol}` | `Trade` entity|
+| get_last_quote(symbol)                           | `GET /last_quote/stocks/{symbol}` | `Quote` entity|
+| get_clock()                                      | `GET /clock` | `Clock` entity|
+| get_calendar(start=None, end=None)               | `GET /calendar` | `Calendar` entity|
+| get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None) | `GET /account/portfolio/history` | PortfolioHistory entity. PortfolioHistory.df can be used to get the results as a dataframe|
 
 ### Rest Examples
 

@@ -16,7 +16,6 @@ if __name__ == '__main__':
             ALPACA_SECRET_KEY,
             base_url=URL('https://paper-api.alpaca.markets'),
             data_url=URL('https://data.alpaca.markets'),
-            # data_url=URL('ws://127.0.0.1:8765'),
             data_stream='polygon' if USE_POLYGON else 'alpacadatav1'
         )
     if USE_POLYGON:

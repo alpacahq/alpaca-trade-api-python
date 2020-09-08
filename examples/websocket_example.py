@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     quote_count = 0  # don't print too much quotes
     @conn.on(r'Q\..+', ['AAPL'])
-    async def on_minute_bars(conn, channel, bar):
+    async def on_quotes(conn, channel, bar):
         global quote_count
         if quote_count % 10 == 0:
             print('bars', bar)

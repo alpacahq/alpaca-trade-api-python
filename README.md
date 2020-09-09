@@ -43,6 +43,12 @@ NY = 'America/New_York'
 start=pd.Timestamp('2020-08-01', tz=NY).isoformat()
 end=pd.Timestamp('2020-08-30', tz=NY).isoformat()
 print(api.get_barset(['AAPL', 'GOOG'], 'day', start=start, end=end).df)
+
+# Minute data example
+start=pd.Timestamp('2020-08-28 9:30', tz=NY).isoformat()
+end=pd.Timestamp('2020-08-28 16:00', tz=NY).isoformat()
+print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
+
 ```
 please note the exact format of the dates
 

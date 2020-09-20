@@ -23,26 +23,54 @@ if __name__ == '__main__':
         async def on_status(conn, channel, data):
             print('polygon status update', data)
 
-        @conn.on(r'^A*$')
-        async def on_second_bars(conn, channel, bar):
+        sec_agg_count = 0  # don't print too much quotes
+        @conn.on(r'A.*')
+        async def on_agg(conn, channel, bars):
+            global sec_agg_count
+            if sec_agg_count % 1000 == 0:
+                print('sec bars', bars)
+            sec_agg_count += 1
+
+        quote_count = 0  # don't print too much quotes
+        @conn.on(r'Q.*')
+        async def on_quotes(conn, channel, quote):
+            global quote_count
+            if quote_count % 1000 == 0:
+                print('quote', quote)
+            quote_count += 1
+
+        agg_count = 0  # don't print too much quotes
+        @conn.on(r'AM.*')
+        async def on_agg(conn, channel, bars):
+            global agg_count
+            if agg_count % 1000 == 0:
+                print('bars', bars)
+            agg_count += 1
+
+        trade_count = 0  # don't print too much quotes
+        @conn.on(r'T.*')
+        async def on_trades(conn, channel, trade):
+            global trade_count
+            if trade_count % 1000 == 0:
+                print('trade', trade)
+            trade_count += 1
+
+    else:
+        @conn.on(r'^AM\..+$')
+        async def on_minute_bars(conn, channel, bar):
             print('bars', bar)
 
-    @conn.on(r'^AM\..+$')
-    async def on_minute_bars(conn, channel, bar):
-        print('bars', bar)
+        quote_count = 0  # don't print too much quotes
+        @conn.on(r'Q\..+')
+        async def on_quotes(conn, channel, quote):
+            global quote_count
+            if quote_count % 10 == 0:
+                print('quote', quote)
+            quote_count += 1
 
-    quote_count = 0  # don't print too much quotes
-    @conn.on(r'Q\..+', ['AAPL'])
-    async def on_quotes(conn, channel, quote):
-        global quote_count
-        if quote_count % 10 == 0:
-            print('bars', quote)
-        quote_count += 1
-
-
-    @conn.on(r'T\..+', ['AAPL'])
-    async def on_trades(conn, channel, trade):
-        print('trade', trade)
+        @conn.on(r'T\..+')
+        async def on_trades(conn, channel, trade):
+            print('trade', trade)
 
 
     if USE_POLYGON:

@@ -76,4 +76,18 @@ if __name__ == '__main__':
     if USE_POLYGON:
         conn.run(['trade_updates', 'AM.AAPL', 'Q.AA', 'T.*'])
     else:
-        conn.run(['trade_updates', 'alpacadatav1/AM.AAPL'])
+        # these won't work:
+        # conn.run(['T.*'])
+        # conn.run(['Q.*'])
+        # conn.run(['alpacadatav1/Q.*'])
+        # conn.run(['T.TSLA'])
+        # conn.run(['Q.TSLA'])
+
+        # these are fine:
+        # conn.run(['AM.*'])
+        # conn.run(['alpacadatav1/AM.*'])
+
+        # conn.run(['alpacadatav1/AM.TSLA'])
+        # conn.run(['alpacadatav1/Q.GOOG'])
+        conn.run(['alpacadatav1/T.TSLA'])
+

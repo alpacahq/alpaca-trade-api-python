@@ -206,6 +206,11 @@ class StreamConn(object):
                                       self._base_url)
 
         if self._data_stream == 'polygon':
+            # DATA_PROXY_WS is used for the alpaca-proxy-agent.
+            # this is how we set the polygon ws to go through the proxy agent
+            endpoint = os.environ.get("DATA_PROXY_WS", '')
+            if endpoint:
+                os.environ['POLYGON_WS_URL'] = endpoint
             self.data_ws = polygon.StreamConn(
                 self._key_id + '-staging' if 'staging' in self._base_url else
                 self._key_id)

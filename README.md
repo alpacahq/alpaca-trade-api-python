@@ -70,7 +70,7 @@ The Alpaca SDK will check the environment for a number of variables that can be 
 | APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
 | POLYGON_WS_URL                   | wss://socket.polygon.io/stocks                                                         | Endpoint for streaming polygon data.  You likely don't need to change this unless you want to proxy it for example     |
 | POLYGON_KEY_ID                   |                                                                                        | Your Polygon key, if it's not the same as your Alpaca API key. Most users will not need to set this to access Polygon. |
-| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described here: https://github.com/shlomikushchi/alpaca-proxy-agent |
+| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
 
 ## REST
 

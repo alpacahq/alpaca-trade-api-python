@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timedelta
 from pytz import timezone
 
-stocks_to_hold = 150 # Max 200
+stocks_to_hold = 150  # Max 200
 
 # Only stocks with prices in this range will be considered.
 max_stock_price = 26
@@ -16,24 +16,25 @@ min_stock_price = 6
 # API datetimes will match this format. (-04:00 represents the market's TZ.)
 api_time_format = '%Y-%m-%dT%H:%M:%S.%f-04:00'
 
+
 # Rate stocks based on the volume's deviation from the previous 5 days and
 # momentum. Returns a dataframe mapping stock symbols to ratings and prices.
 # Note: If algo_time is None, the API's default behavior of the current time
 # as `end` will be used. We use this for live trading.
 def get_ratings(symbols, algo_time):
     assets = api.list_assets()
-    assets = [asset for asset in assets if asset.tradable ]
+    assets = [asset for asset in assets if asset.tradable]
     ratings = pd.DataFrame(columns=['symbol', 'rating', 'price'])
     index = 0
-    batch_size = 200 # The maximum number of stocks to request data for
-    window_size = 5 # The number of days of data to consider
+    batch_size = 200  # The maximum number of stocks to request data for
+    window_size = 5  # The number of days of data to consider
     formatted_time = None
     if algo_time is not None:
-        # Convert the time to something compatable with the Alpaca API.
+        # Convert the time to something compatible with the Alpaca API.
         formatted_time = algo_time.date().strftime(api_time_format)
     while index < len(assets):
         symbol_batch = [
-            asset.symbol for asset in assets[index:index+batch_size]
+            asset.symbol for asset in assets[index:index + batch_size]
         ]
         # Retrieve data for this batch of symbols.
         barset = api.get_barset(
@@ -56,7 +57,7 @@ def get_ratings(symbols, algo_time):
 
                 # Now, if the stock is within our target range, rate it.
                 price = bars[-1].c
-                if price <= max_stock_price and price >= min_stock_price:
+                if max_stock_price >= price >= min_stock_price:
                     price_change = price - bars[0].c
                     # Calculate standard deviation of previous volumes
                     past_volumes = [bar.v for bar in bars[:-1]]
@@ -68,11 +69,11 @@ def get_ratings(symbols, algo_time):
                     volume_change = bars[-1].v - bars[-2].v
                     volume_factor = volume_change / volume_stdev
                     # Rating = Number of volume standard deviations * momentum.
-                    rating = price_change/bars[0].c * volume_factor
+                    rating = price_change / bars[0].c * volume_factor
                     if rating > 0:
                         ratings = ratings.append({
                             'symbol': symbol,
-                            'rating': price_change/bars[0].c * volume_factor,
+                            'rating': price_change / bars[0].c * volume_factor,
                             'price': price
                         }, ignore_index=True)
         index += 200
@@ -94,6 +95,7 @@ def get_shares_to_buy(ratings_df, portfolio):
 # Returns a string version of a timestamp compatible with the Alpaca API.
 def api_format(dt):
     return dt.strftime(api_time_format)
+
 
 def backtest(api, days_to_test, portfolio_amount):
     # This is the collection of stocks that will be used for backtesting.
@@ -143,7 +145,7 @@ def backtest(api, days_to_test, portfolio_amount):
     )['SPY']
     sp500_change = (sp500_bars[-1].c - sp500_bars[0].c) / sp500_bars[0].c
     print('S&P 500 change during backtesting window: {:.4f}%'.format(
-        sp500_change*100)
+        sp500_change * 100)
     )
 
     return portfolio_amount
@@ -169,7 +171,7 @@ def get_value_of_assets(api, shares_bought, on_date):
 
 
 def run_live(api):
-    cycle = 0 # Only used to print a "waiting" message every few minutes.
+    cycle = 0  # Only used to print a "waiting" message every few minutes.
 
     # See if we've already bought or sold positions today. If so, we don't want to do it again.
     # Useful in case the script is restarted during market hours.
@@ -235,8 +237,7 @@ def run_live(api):
             if cycle % 10 == 0:
                 print("Waiting for next market day...")
         time.sleep(30)
-        cycle+=1
-
+        cycle += 1
 
 
 if __name__ == '__main__':
@@ -251,7 +252,7 @@ if __name__ == '__main__':
             testing_days = int(sys.argv[3])
             portfolio_value = backtest(api, testing_days, start_value)
             portfolio_change = (portfolio_value - start_value) / start_value
-            print('Portfolio change: {:.4f}%'.format(portfolio_change*100))
+            print('Portfolio change: {:.4f}%'.format(portfolio_change * 100))
         elif sys.argv[1] == 'run':
             run_live(api)
         else:

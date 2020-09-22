@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         "--all", "-a",
-        help="Watch the A.* feed as well, which can overwelm and backup during active times",
+        help="Watch the A.* feed as well, which can become overwhelmed and backup during active times",
         action='store_true')
 
     parser.add_argument(

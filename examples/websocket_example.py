@@ -96,5 +96,6 @@ if __name__ == '__main__':
 
         # conn.run(['alpacadatav1/AM.TSLA'])
         # conn.run(['alpacadatav1/Q.GOOG'])
+        # conn.run(['trade_updates', 'alpacadatav1/Q.GOOG', 'alpacadatav1/AM.TSLA'])
         conn.run(['alpacadatav1/T.TSLA'])
 

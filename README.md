@@ -36,6 +36,8 @@ account = api.get_account()
 api.list_positions()
 ```
 
+please note the exact format of the dates
+
 ## Example Scripts
 
 Please see the `examples/` folder for some example scripts that make use of this API
@@ -131,6 +133,7 @@ You can access the following information through this object.
 
 ### Rest Examples
 
+##### Using `submit_order()`
 Below is an example of submitting a bracket order.
 ```py
 api.submit_order(
@@ -148,6 +151,21 @@ api.submit_order(
         limit_price='295.5',
     )
 )
+```
+
+##### Using `get_barset()`
+```python 
+import pandas as pd
+NY = 'America/New_York'
+start=pd.Timestamp('2020-08-01', tz=NY).isoformat()
+end=pd.Timestamp('2020-08-30', tz=NY).isoformat()
+print(api.get_barset(['AAPL', 'GOOG'], 'day', start=start, end=end).df)
+
+# Minute data example
+start=pd.Timestamp('2020-08-28 9:30', tz=NY).isoformat()
+end=pd.Timestamp('2020-08-28 16:00', tz=NY).isoformat()
+print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
+
 ```
 
 ---

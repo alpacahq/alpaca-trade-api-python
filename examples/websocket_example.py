@@ -77,11 +77,10 @@ if __name__ == '__main__':
         # you could use either one of these:
         # conn.run(['trade_updates', 'AM.AAPL', 'Q.AA', 'T.*'])
         # conn.run(['trade_updates', 'AM.AAPL', 'Q.AA', 'T.*'])
-        # conn.run(['trade_updates', 'AM.*', 'A.*', 'Q.*', 'T.*'])
+        # conn.run(['AM.*', 'A.*', 'Q.*', 'T.*'])
         # conn.run(['trade_updates', 'Q.*', 'T.*'])
         # conn.run(['trade_updates', 'AM.*', 'A.*'])
-        conn.run(['trade_updates', 'AM.*', 'A.*', 'Q.*', 'T.*'])
-        # conn.run(['Q.AAPL'])
+        conn.run(['Q.AAPL'])
     else:
         # these won't work:
         # conn.run(['T.*'])

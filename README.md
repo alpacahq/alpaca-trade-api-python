@@ -340,7 +340,7 @@ The websocket connection is limited to 1 connection per account. <br>
 For that exact purpose this ![project](https://github.com/shlomikushchi/alpaca-proxy-agent)  was created<br>
 The steps to execute this are:
 * Run the Alpaca Proxy Agent as described in the project's README
-* Define this env variable: `DATA_PROXY_WS` to be the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://192.168.99.100:8765`)
+* Define this env variable: `DATA_PROXY_WS` to be the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
 * execute your algorithm. it will connect to the servers through the proxy agent allowing you to execute multiple strategies
 
 

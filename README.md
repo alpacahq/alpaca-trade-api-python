@@ -333,6 +333,17 @@ It is initialized through the alpaca `REST` object.
 | financials(symbol)                    | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
 | news(symbol)                          |  Returns a `NewsList` entity for the symbol.|
 
+
+## Running Multiple Strategies
+There's a way to execute more than one algorithm at once.<br>
+The websocket connection is limited to 1 connection per account. <br>
+For that exact purpose this ![project](https://github.com/shlomikushchi/alpaca-proxy-agent)  was created<br>
+The steps to execute this are:
+* Run the Alpaca Proxy Agent as described in the project's README
+* Define this env variable: `DATA_PROXY_WS` to be the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://192.168.99.100:8765`)
+* execute your algorithm. it will connect to the servers through the proxy agent allowing you to execute multiple strategies
+
+
 ## Support and Contribution
 
 For technical issues particular to this module, please report the

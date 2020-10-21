@@ -61,12 +61,13 @@ def fix_daily_bar_date(date, timespan):
     so basically this method will add 1 day (if 'to' is not today, we don't
     have today's data until tomorrow) to the 'to' field
     """
-    if timespan == 'day':
-        date = dateutil.parser.parse(date)
-        today = datetime.datetime.utcnow().date()
-        if today != date.date():
-            date = date + datetime.timedelta(days=1)
-        date = date.date().isoformat()
+    if not isinstance(date, int):
+        if timespan == 'day':
+            date = dateutil.parser.parse(date)
+            today = datetime.datetime.utcnow().date()
+            if today != date.date():
+                date = date + datetime.timedelta(days=1)
+            date = date.date().isoformat()
     return date
 
 

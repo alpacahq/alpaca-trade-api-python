@@ -33,7 +33,7 @@ class StreamConn(object):
         await self._dispatch({'ev': 'status',
                               'status': 'connecting',
                               'message': 'Connecting to Polygon'})
-        self._ws = await websockets.connect(self._endpoint)
+        self._ws = await websockets.connect(self._endpoint, close_timeout=1)
         self._stream = self._recv()
 
         msg = await self._next()

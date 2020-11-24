@@ -168,6 +168,8 @@ print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
 
 ```
 
+please note that if you are using limit, it is calculated from the end date. and if end date is not specified, "now" is used. <br>Take that under consideration when using start date with a limit. 
+
 ---
 
 ## StreamConn

@@ -1,6 +1,8 @@
 import pandas as pd
 import pprint
 
+from collections import defaultdict
+
 NY = 'America/New_York'
 
 
@@ -93,14 +95,8 @@ class Aggsv2(list):
         ])
 
     def _raw_results(self):
-        results = self._raw.get('results')
-        if not results:
-            # this is not very pythonic but it's written like this because
-            # the raw response for empty aggs was None, and this:
-            # self._raw.get('results', []) returns None, not [] which breaks
-            # when we try to iterate it.
-            return []
-        return results
+        self._raw = self._raw or defaultdict(lambda: [])
+        return self._raw['results']
 
     def rename_keys(self):
         colmap = {

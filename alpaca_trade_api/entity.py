@@ -270,6 +270,8 @@ class Calendar(Entity):
                 return pd.Timestamp(val)
             elif key in ('open', 'close'):
                 return pd.Timestamp(val).time()
+            elif key in ('session_open', 'session_close'):
+                return pd.Timestamp(val[:2] + ':' + val[-2:]).time()
             else:
                 return val
         return super().__getattr__(key)

@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import List
 import dateutil.parser
 import requests
@@ -13,6 +14,24 @@ from alpaca_trade_api.common import get_polygon_credentials, URL, DATE
 Exchanges = List[Exchange]
 Tickers = List[Ticker]
 Symbols = List[Symbol]
+
+
+class FinancialsReportType(Enum):
+    "https://polygon.io/docs/get_v2_reference_financials__stocksTicker__anchor"
+    Y = "Year"
+    YA = "Year annualized"
+    Q = "Quarter"
+    QA = "Quarter Annualized"
+    T = "Trailing twelve months"
+    TA = "trailing twelve months annualized"
+
+
+class FinancialsSort(Enum):
+    "https://polygon.io/docs/get_v2_reference_financials__stocksTicker__anchor"
+    ReportPeriodAsc = "reportPeriod"
+    ReportPeriodDesc = "-reportPeriod"
+    CalendarDateAsc = "calendarDate"
+    CalendarDateDesc = "-calendarDate"
 
 
 def _is_list_like(o) -> bool:
@@ -272,6 +291,19 @@ class REST(object):
 
     def financials(self, symbol: str) -> Financials:
         return self._get_symbol(symbol, 'financials', Financials)
+
+    def financials_v2(self, symbol: str,
+                      limit: int,
+                      report_type: FinancialsReportType,
+                      sort: FinancialsSort
+                      ) -> Financials:
+        path = f'/reference/financials/{symbol}'
+        params = {"limit":    limit,
+                  "type": report_type.name,
+                  "sort":  sort.value,
+                  }
+        return Financials(self.get(path, version='v2',
+                                       params=params)['results'])
 
     def news(self, symbol: str) -> NewsList:
         path = '/meta/symbols/{}/news'.format(symbol)

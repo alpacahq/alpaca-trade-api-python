@@ -3,3 +3,4 @@ requests>2,<3
 urllib3>1.24,<1.26
 websocket-client>=0.56.0,<1
 websockets>=8.0,<9
+numpy<=1.19.4

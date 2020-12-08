@@ -258,7 +258,7 @@ def test_polygon(reqmock):
             "payoutRatio": 0.251,
             "updated": "2020-05-01",
             "workingCapital": 57101000000,
-            "earningsBeforeInterestTaxesDepreciationAmortizationUSD": 
+            "earningsBeforeInterestTaxesDepreciationAmortizationUSD":
             78284000000,
             "priceEarnings": 20.003,
             "dividendYield": 0.012,
@@ -296,7 +296,7 @@ def test_polygon(reqmock):
             "earningBeforeInterestTaxesUSD": 72903000000,
             "effectOfExchangeRateChangesOnCash": 0,
             "updated": "2020-05-01",
-            "earningsBeforeInterestTaxesDepreciationAmortizationUSD": 
+            "earningsBeforeInterestTaxesDepreciationAmortizationUSD":
             83806000000,
             "netIncome": 59531000000,
             "enterpriseValue": 1045194782820,

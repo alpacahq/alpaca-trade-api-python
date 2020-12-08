@@ -303,7 +303,7 @@ class REST(object):
                   "sort":  sort.value,
                   }
         return Financials(self.get(path, version='v2',
-                                       params=params)['results'])
+                                   params=params)['results'])
 
     def news(self, symbol: str) -> NewsList:
         path = '/meta/symbols/{}/news'.format(symbol)

@@ -170,7 +170,7 @@ class REST(object):
     def data_get(self, path, data=None):
         base_url: URL = get_data_url()
         return self._request(
-            'GET', path, data, base_url=base_url, api_version='v1'
+            'GET', path, data, base_url=base_url
         )
 
     def get_account(self) -> Account:

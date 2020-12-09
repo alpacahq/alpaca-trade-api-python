@@ -330,7 +330,7 @@ It is initialized through the alpaca `REST` object.
 | dividends(symbol)                     |  Returns a `Dividends` entity if `symbol` is string, or a dict[symbol -> `Dividends`] if `symbol` is a list of string.|
 | splits(symbol)                        |  Returns a `Splits` entity for the symbol.|
 | earnings(symbol)                      |  Returns an `Earnings` entity if `symbol` is string, or a dict[symbol -> `Earnings`] if `symbol` is a list of string.|
-| financials(symbol)                    | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
+| financials_v2(symbol, limit, ,sort)   | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
 | news(symbol)                          |  Returns a `NewsList` entity for the symbol.|
 
 

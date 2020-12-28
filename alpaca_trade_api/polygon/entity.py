@@ -343,7 +343,10 @@ trade_mapping = {
     "x": "exchange",
     "p": "price",
     "s": "size",
-    "t": "timestamp"
+    "t": "timestamp",
+    "f": "trf_timestamp",
+    "y": "exchange_timestamp",
+    "e": "trade_correction"
 }
 
 quote_mapping = {

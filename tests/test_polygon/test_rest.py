@@ -1,8 +1,10 @@
 import datetime
 import pandas as pd
+from alpaca_trade_api import polygon
 from alpaca_trade_api.polygon import REST
 import pytest
 import requests_mock
+from alpaca_trade_api.polygon.rest import FinancialsReportType, FinancialsSort
 
 
 @pytest.fixture
@@ -243,6 +245,82 @@ def test_polygon(reqmock):
     assert ret[0].reportDateStr == '2018-09-01'
     ret = cli.financials(['AAPL'])
     assert ret['AAPL'][0].reportDateStr == '2018-09-01'
+
+    # Financials v2
+    reqmock.get(
+        endpoint('/reference/financials/AAPL', api_version='v2'),
+        text='''
+        {
+    "status": "OK",
+    "results": [
+        {
+            "earningsPerBasicShare": 11.97,
+            "payoutRatio": 0.251,
+            "updated": "2020-05-01",
+            "workingCapital": 57101000000,
+            "earningsBeforeInterestTaxesDepreciationAmortizationUSD":
+            78284000000,
+            "priceEarnings": 20.003,
+            "dividendYield": 0.012,
+            "period": "Y",
+            "earningsBeforeInterestTaxesDepreciationAmortization": 78284000000,
+            "earningBeforeInterestTaxesUSD": 65737000000,
+            "preferredDividendsIncomeStatementImpact": 0,
+            "dividendsPerBasicCommonShare": 3,
+            "earningsBeforeTax": 65737000000,
+            "dateKey": "2019-10-31",
+            "earningsPerDilutedShare": 11.89,
+            "earningsPerBasicShareUSD": 11.97,
+            "ticker": "AAPL",
+            "earningBeforeInterestTaxes": 65737000000
+        },
+        {
+            "earningsPerBasicShare": 12.01,
+            "enterpriseValueOverEBIT": 14,
+            "workingCapital": 14473000000,
+            "priceToBookValue": 8.928,
+            "weightedAverageSharesDiluted": 5000109000,
+            "period": "Y",
+            "priceSales": 3.602,
+            "earningsBeforeInterestTaxesDepreciationAmortization": 83806000000,
+            "tradeAndNonTradeReceivables": 48995000000,
+            "totalLiabilities": 258578000000,
+            "earningsPerDilutedShare": 11.91,
+            "calendarDate": "2018-12-31",
+            "earningsPerBasicShareUSD": 12.01,
+            "earningsBeforeTax": 72903000000,
+            "priceEarnings": 16.069,
+            "netIncomeCommonStockUSD": 59531000000,
+            "netIncomeCommonStock": 59531000000,
+            "enterpriseValueOverEBITDA": 12.472,
+            "earningBeforeInterestTaxesUSD": 72903000000,
+            "effectOfExchangeRateChangesOnCash": 0,
+            "updated": "2020-05-01",
+            "earningsBeforeInterestTaxesDepreciationAmortizationUSD":
+            83806000000,
+            "netIncome": 59531000000,
+            "enterpriseValue": 1045194782820,
+            "tradeAndNonTradePayables": 55888000000,
+            "dateKey": "2018-11-05",
+            "ticker": "AAPL",
+            "weightedAverageShares": 4955377000,
+            "preferredDividendsIncomeStatementImpact": 0,
+            "earningBeforeInterestTaxes": 72903000000
+        }
+    ]
+}
+        ''',
+    )
+
+    ret = cli.financials_v2('AAPL',
+                            2,
+                            FinancialsReportType.Y,
+                            FinancialsSort.CalendarDateDesc)
+
+    assert len(ret) == 2
+    assert type(ret) == polygon.entity.Financials
+    assert type(ret[0]) == polygon.entity.Financial
+    assert ret[0].ticker == "AAPL"
 
     # News
     reqmock.get(

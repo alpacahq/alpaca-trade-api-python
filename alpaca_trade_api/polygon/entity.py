@@ -1,5 +1,6 @@
 import pandas as pd
 import pprint
+from collections import defaultdict
 
 NY = 'America/New_York'
 
@@ -93,13 +94,14 @@ class Aggsv2(list):
         ])
 
     def _raw_results(self):
-        results = self._raw.get('results')
-        if not results:
-            # this is not very pythonic but it's written like this because
-            # the raw response for empty aggs was None, and this:
-            # self._raw.get('results', []) returns None, not [] which breaks
-            # when we try to iterate it.
-            return []
+        """
+        if self._raw is None, we can't access its attributes.
+        the first lines handles that.
+        if self._raw exists but it has no 'results' the second line will
+        handle that
+        """
+        self._raw = self._raw or defaultdict(lambda: [])
+        results = self._raw.get('results', [])
         return results
 
     def rename_keys(self):
@@ -343,7 +345,14 @@ trade_mapping = {
     "x": "exchange",
     "p": "price",
     "s": "size",
-    "t": "timestamp"
+    "t": "timestamp",
+    "f": "trf_timestamp",
+    "y": "participant_timestamp",
+    "e": "trade_correction",
+    "i": "id",
+    "r": "trf_id",
+    "q": "sequence_number",
+    "z": "tape"
 }
 
 quote_mapping = {

@@ -15,9 +15,13 @@ from typing import List, Callable
 
 
 class _StreamConn(object):
-    def __init__(self, key_id: str, secret_key: str, base_url: URL):
+    def __init__(self, key_id: str,
+                 secret_key: str,
+                 base_url: URL,
+                 oauth: str = None):
         self._key_id = key_id
         self._secret_key = secret_key
+        self._oauth = oauth
         self._base_url = re.sub(r'^http', 'ws', base_url)
         self._endpoint = self._base_url + '/stream'
         self._handlers = {}
@@ -30,14 +34,18 @@ class _StreamConn(object):
         self._consume_task = None
 
     async def _connect(self):
-        ws = await websockets.connect(self._endpoint)
-        await ws.send(json.dumps({
+        message = {
             'action': 'authenticate',
             'data': {
+                'oauth_token': self._oauth
+            } if self._oauth else {
                 'key_id': self._key_id,
                 'secret_key': self._secret_key,
             }
-        }))
+        }
+
+        ws = await websockets.connect(self._endpoint)
+        await ws.send(json.dumps(message))
         r = await ws.recv()
         if isinstance(r, bytes):
             r = r.decode('utf-8')
@@ -182,12 +190,14 @@ class StreamConn(object):
             self,
             key_id: str = None,
             secret_key: str = None,
+            oauth: str = None,
             base_url: URL = None,
             data_url: URL = None,
             data_stream: str = None,
             debug: bool = False
     ):
-        self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
+        self._key_id, self._secret_key, self._oauth = \
+            get_credentials(key_id, secret_key, oauth)
         self._base_url = base_url or get_base_url()
         self._data_url = data_url or get_data_url()
         if data_stream is not None:
@@ -203,7 +213,8 @@ class StreamConn(object):
 
         self.trading_ws = _StreamConn(self._key_id,
                                       self._secret_key,
-                                      self._base_url)
+                                      self._base_url,
+                                      self._oauth)
 
         if self._data_stream == 'polygon':
             # DATA_PROXY_WS is used for the alpaca-proxy-agent.
@@ -218,7 +229,8 @@ class StreamConn(object):
         else:
             self.data_ws = _StreamConn(self._key_id,
                                        self._secret_key,
-                                       self._data_url)
+                                       self._data_url,
+                                       self._oauth)
             self._data_prefixes = (
                 ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
@@ -322,7 +334,8 @@ class StreamConn(object):
         if renew:
             self.trading_ws = _StreamConn(self._key_id,
                                           self._secret_key,
-                                          self._base_url)
+                                          self._base_url,
+                                          self._oauth)
             if self._data_stream == 'polygon':
                 self.data_ws = polygon.StreamConn(
                     self._key_id + '-staging' if 'staging' in
@@ -330,7 +343,8 @@ class StreamConn(object):
             else:
                 self.data_ws = _StreamConn(self._key_id,
                                            self._secret_key,
-                                           self._data_url)
+                                           self._data_url,
+                                           self._oauth)
 
     def on(self, channel_pat, symbols=None):
         def decorator(func):

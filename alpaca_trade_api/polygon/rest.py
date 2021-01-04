@@ -229,7 +229,7 @@ class REST(object):
         return Aggsv2(raw)
 
     def grouped_daily(self, date, unadjusted: bool = False) -> Aggsv2Set:
-        path = f'/aggs/grouped/locale/US/market/STOCKS/{date}'
+        path = f'/aggs/grouped/locale/us/market/stocks/{date}'
         params = {'unadjusted': unadjusted}
         raw = self.get(path, params, version='v2')
         return Aggsv2Set(raw)

@@ -345,7 +345,14 @@ trade_mapping = {
     "x": "exchange",
     "p": "price",
     "s": "size",
-    "t": "timestamp"
+    "t": "timestamp",
+    "f": "trf_timestamp",
+    "y": "participant_timestamp",
+    "e": "trade_correction",
+    "i": "id",
+    "r": "trf_id",
+    "q": "sequence_number",
+    "z": "tape"
 }
 
 quote_mapping = {

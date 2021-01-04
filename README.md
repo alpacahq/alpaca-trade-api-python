@@ -18,6 +18,16 @@ Note this module supports only python version 3.6 and above, due to
 the async/await and websockets module dependency.
 
 ## Install
+We support python 3.x. If you want to work with python < 3.7 please note that these package dropped support for python <3.7 for the following versions:
+```
+pandas >= 1.2.0
+numpy >= 1.20.0
+scipy >= 1.6.0
+```
+The solution - manually install these package before installing alpaca-trade-api. e.g:
+```
+pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
+```
 
 ```bash
 $ pip3 install alpaca-trade-api

@@ -23,6 +23,7 @@ class Entity(object):
             name=self.__class__.__name__,
             raw=pprint.pformat(self._raw, indent=4),
         )
+    
 
 class Agg(Entity):
     def __getattr__(self, key):
@@ -92,8 +93,14 @@ class Aggsv2(list):
         ])
 
     def _raw_results(self):
-        self._raw = self._raw or defaultdict(lambda: [])
-        return self._raw['results']
+        results = self._raw.get('results')
+        if not results:
+            # this is not very pythonic but it's written like this because
+            # the raw response for empty aggs was None, and this:
+            # self._raw.get('results', []) returns None, not [] which breaks
+            # when we try to iterate it.
+            return []
+        return results
 
     def rename_keys(self):
         colmap = {

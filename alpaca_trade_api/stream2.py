@@ -118,7 +118,7 @@ class _StreamConn(object):
             await self._ws.send(json.dumps({
                 'action': 'listen',
                 'data': {
-                    'streams': channels,
+                    'streams': list(channels),
                 }
             }))
 
@@ -129,7 +129,7 @@ class _StreamConn(object):
             await self._ws.send(json.dumps({
                 'action': 'unlisten',
                 'data': {
-                    'streams': channels,
+                    'streams': list(channels),
                 }
             }))
 

@@ -153,7 +153,7 @@ class StreamConn(object):
             self._streams |= set(channels)
             await self._ws.send(json.dumps({
                 'action': 'subscribe',
-                'params': streams
+                'params': list(streams)
             }))
 
     async def unsubscribe(self, channels):
@@ -167,7 +167,7 @@ class StreamConn(object):
             self._streams -= set(channels)
             await self._ws.send(json.dumps({
                 'action': 'unsubscribe',
-                'params': streams
+                'params': list(streams)
             }))
 
     def run(self, initial_channels=[]):

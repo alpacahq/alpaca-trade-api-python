@@ -25,6 +25,12 @@ class Entity(object):
             raw=pprint.pformat(self._raw, indent=4),
         )
 
+    def __getstate__(self):
+        return self._raw
+
+    def __setstate__(self, state):
+        self._raw = state
+
 
 class Agg(Entity):
     def __getattr__(self, key):

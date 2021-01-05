@@ -118,6 +118,10 @@ jobs:
           name: make sure install works
           command: |
             python setup.py install
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
 
   build-python39:
     docker:
@@ -129,6 +133,10 @@ jobs:
           name: make sure install works
           command: |
             python setup.py install
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
 
 workflows:
   version: 2

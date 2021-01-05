@@ -23,7 +23,6 @@ class Entity(object):
             name=self.__class__.__name__,
             raw=pprint.pformat(self._raw, indent=4),
         )
-    
 
 class Agg(Entity):
     def __getattr__(self, key):

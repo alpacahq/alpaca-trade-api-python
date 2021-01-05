@@ -104,6 +104,8 @@ class _StreamConn(object):
     async def subscribe(self, channels):
         if isinstance(channels, str):
             channels = [channels]
+        if isinstance(channels, set):
+            channels = list(channels)
         if len(channels) > 0:
             await self._ensure_ws()
             self._streams |= set(channels)

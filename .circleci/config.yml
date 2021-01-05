@@ -35,7 +35,7 @@ jobs:
           path: test-reports_py2.7.13
           destination: test-reports2.7.13
 
-  build-python36:
+  build-test-python36:
     docker:
       - image: python:3.6.4
     working_directory: ~/repo
@@ -72,7 +72,7 @@ jobs:
           path: test-reports3.6.4
           destination: test-reports3.6.4
 
-  build-python37:
+  build-test-python37:
     docker:
       - image: python:3.7
     working_directory: ~/repo
@@ -143,7 +143,7 @@ workflows:
   build:
     jobs:
       # - build-python27
-      - build-python36
-      - build-python37
+      - build-test-python36
+      - build-test-python37
       - build-python38
       - build-python39

@@ -1,8 +1,6 @@
 import pandas as pd
 import pprint
 
-from collections import defaultdict
-
 NY = 'America/New_York'
 
 
@@ -25,13 +23,6 @@ class Entity(object):
             name=self.__class__.__name__,
             raw=pprint.pformat(self._raw, indent=4),
         )
-
-    def __getstate__(self):
-        return self._raw
-
-    def __setstate__(self, state):
-        self._raw = state
-
 
 class Agg(Entity):
     def __getattr__(self, key):

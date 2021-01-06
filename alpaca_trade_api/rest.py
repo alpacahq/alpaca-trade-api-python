@@ -86,7 +86,7 @@ class REST(object):
         self._retry_codes = [int(o) for o in os.environ.get(
             'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
-            self._key_id, 'staging' in self._base_url)
+            self._key_id, 'staging' in self._base_url, self._use_raw_data)
 
     def _request(self,
                  method,

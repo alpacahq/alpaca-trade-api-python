@@ -71,6 +71,10 @@ class REST(object):
                  oauth=None,
                  raw_data: bool = False
                  ):
+        """
+        :param raw_data: should we return api response raw or wrap it with
+                         Entity objects.
+        """
         self._key_id, self._secret_key, self._oauth = get_credentials(
             key_id, secret_key, oauth)
         self._base_url: URL = URL(base_url or get_base_url())
@@ -659,7 +663,6 @@ class REST(object):
             params['extended_hours'] = extended_hours
         resp = self.get('/account/portfolio/history', data=params)
         return self.response_wrapper(resp, PortfolioHistory)
-
 
     def __enter__(self):
         return self

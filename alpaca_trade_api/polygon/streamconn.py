@@ -13,7 +13,11 @@ import logging
 
 
 class StreamConn(object):
-    def __init__(self, key_id: str = None):
+    def __init__(self, key_id: str = None, raw_data: bool = False):
+        """
+        :param raw_data: should we return stream data raw or wrap it with
+                         Entity objects.
+        """
         self._key_id = get_polygon_credentials(key_id)
         self._endpoint: URL = URL(os.environ.get(
             'POLYGON_WS_URL',
@@ -28,6 +32,7 @@ class StreamConn(object):
         self._retries = 0
         self.loop = asyncio.get_event_loop()
         self._consume_task = None
+        self._use_raw_data = raw_data
 
     async def connect(self):
         await self._dispatch({'ev': 'status',
@@ -210,8 +215,11 @@ class StreamConn(object):
             if pat.match(channel):
                 handled_symbols = self._handler_symbols.get(handler)
                 if handled_symbols is None or msg['sym'] in handled_symbols:
-                    ent = self._cast(channel, msg)
-                    await handler(self, channel, ent)
+                    if self._use_raw_data:
+                        await handler(self, channel, msg)
+                    else:
+                        ent = self._cast(channel, msg)
+                        await handler(self, channel, ent)
 
     def register(self, channel_pat, func, symbols=None):
         if not asyncio.iscoroutinefunction(func):

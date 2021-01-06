@@ -368,7 +368,6 @@ class REST(object):
         resp = self.get(path, version='v2')
         return self.response_wrapper(resp, Ticker)
 
-
     def response_wrapper(self, obj, entity: Entity):
         """
         To allow the user to get raw response from the api, we wrap all

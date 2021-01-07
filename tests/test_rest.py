@@ -22,6 +22,8 @@ def reqmock():
 
 def test_api(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
 
     # Get a list of accounts
     reqmock.get('https://api.alpaca.markets/v1/account', text='''
@@ -43,6 +45,8 @@ def test_api(reqmock):
     account = api.get_account()
     assert account.status == 'ACTIVE'
     assert 'Account(' in str(account)
+    assert type(account) == tradeapi.entity.Account
+    assert type(api_raw.get_account()) == dict
 
     # Get a list of assets
     reqmock.get('https://api.alpaca.markets/v1/assets', text='''[
@@ -58,6 +62,8 @@ def test_api(reqmock):
 ]''')
     assets = api.list_assets()
     assert assets[0].name == 'Apple inc.'
+    assert type(assets[0]) == tradeapi.entity.Asset
+    assert type(api_raw.list_assets()) == list
 
     # Get an asset
     asset_id = '904837e3-3b76-47ec-b432-046db621571b'
@@ -73,10 +79,14 @@ def test_api(reqmock):
   }''')
     asset = api.get_asset(asset_id)
     assert asset.name == 'Apple inc.'
+    assert type(asset) == tradeapi.entity.Asset
+    assert type(api_raw.get_asset(asset_id)) == dict
 
 
 def test_orders(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
 
     # Get a list of orders
     reqmock.get(
@@ -112,6 +122,8 @@ def test_orders(reqmock):
 ]''')
     orders = api.list_orders('all')
     assert orders[0].type == 'market'
+    assert type(orders[0]) == tradeapi.entity.Order
+    assert type(api_raw.list_orders()) == list
 
     # Create an order
     reqmock.post(
@@ -155,6 +167,16 @@ def test_orders(reqmock):
     )
     assert order.qty == "15"
     assert order.created_at.hour == 19
+    assert type(order) == tradeapi.entity.Order
+    assert type(api_raw.submit_order(
+        symbol='904837e3-3b76-47ec-b432-046db621571b',
+        qty=15,
+        side='buy',
+        type='market',
+        time_in_force='day',
+        limit_price='107.00',
+        stop_price='106.00',
+        client_order_id='904837e3-3b76-47ec-b432-046db621571b',)) == dict
     # now let's test some different acceptable "float" formats
     api.submit_order(
         symbol='904837e3-3b76-47ec-b432-046db621571b',
@@ -233,6 +255,8 @@ def test_orders(reqmock):
 }''')
     order = api.get_order_by_client_order_id(client_order_id)
     assert order.submitted_at.minute == 50
+    assert type(order) == tradeapi.entity.Order
+    assert type(api_raw.get_order_by_client_order_id(client_order_id)) == dict
 
     # Get an order
     order_id = '904837e3-3b76-47ec-b432-046db621571b'
@@ -268,6 +292,8 @@ def test_orders(reqmock):
     )
     order = api.get_order(order_id)
     assert order.side == 'buy'
+    assert type(order) == tradeapi.entity.Order
+    assert type(api_raw.get_order(order_id)) == dict
 
     # Cancel an order
     order_id = '904837e3-3b76-47ec-b432-046db621571b'
@@ -281,6 +307,8 @@ def test_orders(reqmock):
 
 def test_positions(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
 
     # Get a list of positions
     reqmock.get(
@@ -300,6 +328,8 @@ def test_positions(reqmock):
     )
     positions = api.list_positions()
     assert positions[0].entry_price == '100.0'
+    assert type(positions[0]) == tradeapi.entity.Position
+    assert type(api_raw.list_positions()) == list
 
     # Get an open position
     asset_id = 'test-asset'
@@ -318,10 +348,14 @@ def test_positions(reqmock):
     )
     position = api.get_position(asset_id)
     assert position.cost_basis == '500.0'
+    assert type(position) == tradeapi.entity.Position
+    assert type(api_raw.get_position(asset_id)) == dict
 
 
 def test_chronos(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
 
     # clock
     reqmock.get(
@@ -336,6 +370,8 @@ def test_chronos(reqmock):
     clock = api.get_clock()
     assert clock.is_open
     assert clock.next_open.day == 1
+    assert type(clock) == tradeapi.entity.Clock
+    assert type(api_raw.get_clock()) == dict
 
     # calendar
     reqmock.get(
@@ -351,10 +387,15 @@ def test_chronos(reqmock):
     calendar = api.get_calendar(start='2018-01-03')
     assert calendar[0].date.day == 3
     assert calendar[0].open.minute == 30
+    assert type(calendar) == list
+    assert type(calendar[0]) == tradeapi.entity.Calendar
+    assert type(api_raw.get_calendar(start='2018-01-03')) == list
 
 
 def test_data(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
     # Bars
     reqmock.get(
         'https://data.alpaca.markets/v1/bars/1D?symbols=AAPL,TSLA&limit=2',
@@ -389,6 +430,8 @@ def test_data(reqmock):
     assert barset['TSLA'][1].h == 346.22
     assert barset['AAPL'][0].t.day == 23
     assert barset['AAPL'].df.index[0].day == 23
+    assert type(barset) == tradeapi.entity.BarSet
+    assert type(api_raw.get_barset('AAPL,TSLA', '1D', limit=2)) == dict
 
     # Aggs
     reqmock.get(
@@ -436,6 +479,9 @@ def test_data(reqmock):
     assert len(aggs) == 3
     assert aggs[0].open == 314.18
     assert aggs.df.iloc[1].high == 323.9
+    assert type(aggs) == tradeapi.entity.Aggs
+    assert type(api_raw.get_aggs(
+        'AAPL', 1, 'day', '2020-02-10', '2020-02-12')) == dict
     with pytest.raises(AttributeError):
         aggs[2].foo
 
@@ -462,6 +508,8 @@ def test_data(reqmock):
     trade = api.get_last_trade('AAPL')
     assert trade.price == 159.59
     assert trade.timestamp.day == 8
+    assert type(trade) == tradeapi.entity.Trade
+    assert type(api_raw.get_last_trade('AAPL')) == dict
 
     # Last quote
     reqmock.get(
@@ -485,10 +533,14 @@ def test_data(reqmock):
     quote = api.get_last_quote('AAPL')
     assert quote.askprice == 159.59
     assert quote.timestamp.day == 8
+    assert type(quote) == tradeapi.entity.Quote
+    assert type(api_raw.get_last_quote('AAPL')) == dict
 
 
 def test_watchlists(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
     # get watchlists
     reqmock.get(
         'https://api.alpaca.markets/v1/watchlists',
@@ -519,6 +571,8 @@ def test_watchlists(reqmock):
     assert watchlists[0].name == 'Primary Watchlist'
     assert watchlists[1].id == 'e65f2f2d-b596-4db6-bd68-1b7ceb77cccc'
     assert watchlists[2].account_id == '1f893862-13b5-4603-b3ca-513980c00c6e'
+    assert type(watchlists[0]) == tradeapi.entity.Watchlist
+    assert type(api_raw.get_watchlists()) == list
 
     # get a watchlist by watchlist_id
     watchlist_id = "e65f2f2d-b596-4db6-bd68-1b7ceb77cccc"
@@ -595,6 +649,8 @@ def test_watchlists(reqmock):
     assert watchlist.assets[0]["marginable"]
     assert watchlist.assets[0]["shortable"]
     assert watchlist.assets[0]["easy_to_borrow"]
+    assert type(watchlist) == tradeapi.entity.Watchlist
+    assert type(api_raw.get_watchlist(watchlist_id)) == dict
 
     # add an asset to a watchlist
     reqmock.post(
@@ -624,6 +680,8 @@ def test_watchlists(reqmock):
     assert watchlist.name == 'Primary Watchlist'
     assert len(watchlist.assets) == 1
     assert watchlist.assets[0]["symbol"] == "AMD"
+    assert type(watchlist) == tradeapi.entity.Watchlist
+    assert type(api_raw.add_to_watchlist(watchlist_id, symbol="AMD")) == dict
 
     # remove an item from a watchlist
     reqmock.delete(
@@ -700,6 +758,8 @@ def test_watchlists(reqmock):
 
 def test_errors(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
+                            raw_data=True)
 
     api._retry = 1
     api._retry_wait = 0

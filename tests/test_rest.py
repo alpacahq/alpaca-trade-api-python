@@ -758,8 +758,6 @@ def test_watchlists(reqmock):
 
 def test_errors(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
-    api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',
-                            raw_data=True)
 
     api._retry = 1
     api._retry_wait = 0

@@ -198,11 +198,11 @@ class StreamConn(object):
             self,
             key_id: str = None,
             secret_key: str = None,
-            oauth: str = None,
             base_url: URL = None,
             data_url: URL = None,
             data_stream: str = None,
             debug: bool = False,
+            oauth: str = None,
             raw_data: bool = False):
         """
         :param base_url: api.alpaca.markets

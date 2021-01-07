@@ -345,6 +345,13 @@ The steps to execute this are:
 * execute your algorithm. it will connect to the servers through the proxy agent allowing you to execute multiple strategies
 
 
+## Raw Data vs Entity Data
+By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use.<br>
+Some users may prefer working with raw python objects (lists, dicts, ...). <br>You have 2 options to get the raw data:
+* Each Entity object as a `_raw` property that extract the raw data from the object.
+* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) <br>you could pass `raw_data` argument
+  to `Rest()` object or the `StreamConn()` object.
+
 ## Support and Contribution
 
 For technical issues particular to this module, please report the

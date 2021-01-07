@@ -299,7 +299,8 @@ class REST(object):
 
     def splits(self, symbol: str) -> Splits:
         path = f'/reference/splits/{symbol}'
-        return Splits(self.get(path, version='v2')['results'])
+        resp = self.get(path, version='v2')['results']
+        return self.response_wrapper(resp, Splits)
 
     def earnings(self, symbol: str) -> Earnings:
         return self._get_symbol(symbol, 'earnings', Earnings)

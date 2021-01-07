@@ -190,11 +190,11 @@ class StreamConn(object):
             self,
             key_id: str = None,
             secret_key: str = None,
-            oauth: str = None,
             base_url: URL = None,
             data_url: URL = None,
             data_stream: str = None,
-            debug: bool = False
+            debug: bool = False,
+            oauth: str = None
     ):
         self._key_id, self._secret_key, self._oauth = \
             get_credentials(key_id, secret_key, oauth)

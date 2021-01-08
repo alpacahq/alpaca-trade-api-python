@@ -133,7 +133,7 @@ class StreamConn(object):
                                       f'Polygon Connection Failed ({e})'})
                 self._ws = None
                 self._retries += 1
-                time.sleep(self._retry_wait * self._retry)
+                await asyncio.sleep(self._retry_wait * self._retry)
         else:
             raise ConnectionError("Max Retries Exceeded")
 

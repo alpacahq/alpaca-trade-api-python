@@ -99,7 +99,7 @@ class _StreamConn(object):
             try:
                 await self._connect()
                 if self._streams:
-                    await self.subscribe(self._streams)
+                    await self.subscribe(list(self._streams))
                 break
             except websockets.WebSocketException as wse:
                 logging.warn(wse)

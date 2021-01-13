@@ -124,7 +124,7 @@ class StreamConn(object):
             try:
                 await self.connect()
                 if self._streams:
-                    await self.subscribe(self._streams)
+                    await self.subscribe(list(self._streams))
                 break
             except Exception as e:
                 await self._dispatch({'ev': 'status',

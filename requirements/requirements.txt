@@ -1,6 +1,6 @@
-pandas<1.2.0  # this package requires python 3.7 for higher versions
-numpy<1.20.0  # this package requires python 3.7 for higher versions
+pandas
+numpy
 requests>2,<3
-urllib3>1.24,<1.26
+urllib3>1.24,<2
 websocket-client>=0.56.0,<1
 websockets>=8.0,<9

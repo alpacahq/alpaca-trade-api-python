@@ -35,7 +35,7 @@ jobs:
           path: test-reports_py2.7.13
           destination: test-reports2.7.13
 
-  build-python36:
+  build-test-python36:
     docker:
       - image: python:3.6.4
     working_directory: ~/repo
@@ -58,6 +58,7 @@ jobs:
       - run:
           name: run tests
           command: |
+            pip install pandas==1.1.5 numpy==1.19.4
             python setup.py install
             pip install flake8 && flake8 alpaca_trade_api tests
             python setup.py test
@@ -71,9 +72,78 @@ jobs:
           path: test-reports3.6.4
           destination: test-reports3.6.4
 
+  build-test-python37:
+    docker:
+      - image: python:3.7
+    working_directory: ~/repo
+    steps:
+      - run: echo "hello python 3.7"
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "setup.py" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      # run tests!
+      # this example uses Django's built-in test-runner
+      # other common Python testing frameworks include pytest and nose
+      # https://pytest.org
+      # https://nose.readthedocs.io
+      - run:
+          name: run tests
+          command: |
+            python setup.py install
+            pip install flake8 && flake8 alpaca_trade_api tests
+            python setup.py test
+
+      - save_cache:
+          paths:
+            - ./eggs
+          key: v1-dependencies-{{ checksum "setup.py" }}
+
+      - store_artifacts:
+          path: test-reports3.7
+          destination: test-reports3.7
+
+  build-python38:
+    docker:
+      - image: python:3.8
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: make sure install works
+          command: |
+            python setup.py install
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
+
+  build-python39:
+    docker:
+      - image: python:3.9
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: make sure install works
+          command: |
+            python setup.py install
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
+
 workflows:
   version: 2
   build:
     jobs:
       # - build-python27
-      - build-python36
+      - build-test-python36
+      - build-test-python37
+      - build-python38
+      - build-python39

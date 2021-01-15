@@ -4,7 +4,7 @@ from typing import List
 import dateutil.parser
 import requests
 from .entity import (
-    Aggsv2, Aggsv2Set, Trade, TradesV2, Quote, QuotesV2,
+    Entity, Aggsv2, Aggsv2Set, Trade, TradesV2, Quote, QuotesV2,
     Exchange, SymbolTypeMap, ConditionMap, Company, Dividends, Splits,
     Earnings, Financials, NewsList, Ticker, DailyOpenClose, Symbol
 )
@@ -92,9 +92,18 @@ def fix_daily_bar_date(date, timespan):
 
 class REST(object):
 
-    def __init__(self, api_key: str, staging: bool = False):
+    def __init__(self, api_key: str,
+                 staging: bool = False,
+                 raw_data: bool = False
+                 ):
+        """
+        :param staging: do we work with the staging server
+        :param raw_data: should we return api response raw or wrap it with
+                         Entity objects.
+        """
         self._api_key: str = get_polygon_credentials(api_key)
         self._staging: bool = staging
+        self._use_raw_data: bool = raw_data
         self._session = requests.Session()
 
     def _request(self, method: str, path: str, params: dict = None,
@@ -120,11 +129,15 @@ class REST(object):
 
     def exchanges(self) -> Exchanges:
         path = '/meta/exchanges'
-        return [Exchange(o) for o in self.get(path)]
+        resp = self.get(path)
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Exchange) for o in resp]
 
     def symbol_type_map(self) -> SymbolTypeMap:
         path = '/meta/symbol-types'
-        return SymbolTypeMap(self.get(path))
+        return self.response_wrapper(self.get(path), SymbolTypeMap)
 
     def historic_trades_v2(self,
                            symbol: str,
@@ -154,9 +167,8 @@ class REST(object):
             params['reverse'] = reverse
         if limit is not None:
             params['limit'] = limit
-        raw = self.get(path, params, 'v2')
-
-        return TradesV2(raw)
+        resp = self.get(path, params, 'v2')
+        return self.response_wrapper(resp, TradesV2)
 
     def historic_quotes_v2(self,
                            symbol: str,
@@ -186,9 +198,8 @@ class REST(object):
             params['reverse'] = reverse
         if limit is not None:
             params['limit'] = limit
-        raw = self.get(path, params, 'v2')
-
-        return QuotesV2(raw)
+        resp = self.get(path, params, 'v2')
+        return self.response_wrapper(resp, QuotesV2)
 
     def historic_agg_v2(self,
                         symbol: str,
@@ -226,39 +237,39 @@ class REST(object):
         params = {'unadjusted': unadjusted}
         if limit:
             params['limit'] = limit
-        raw = self.get(path, params, version='v2')
-        return Aggsv2(raw)
+        resp = self.get(path, params, version='v2')
+        return self.response_wrapper(resp, Aggsv2)
 
     def grouped_daily(self, date, unadjusted: bool = False) -> Aggsv2Set:
         path = f'/aggs/grouped/locale/us/market/stocks/{date}'
         params = {'unadjusted': unadjusted}
-        raw = self.get(path, params, version='v2')
-        return Aggsv2Set(raw)
+        resp = self.get(path, params, version='v2')
+        return self.response_wrapper(resp, Aggsv2Set)
 
     def daily_open_close(self, symbol: str, date) -> DailyOpenClose:
         path = f'/open-close/{symbol}/{date}'
-        raw = self.get(path)
-        return DailyOpenClose(raw)
+        resp = self.get(path)
+        return self.response_wrapper(resp, DailyOpenClose)
 
     def last_trade(self, symbol: str) -> Trade:
         path = '/last/stocks/{}'.format(symbol)
-        raw = self.get(path)
-        return Trade(raw['last'])
+        resp = self.get(path)['last']
+        return self.response_wrapper(resp, Trade)
 
     def last_quote(self, symbol: str) -> Quote:
         path = '/last_quote/stocks/{}'.format(symbol)
-        raw = self.get(path)
+        resp = self.get(path)['last']
         # TODO status check
-        return Quote(raw['last'])
+        return self.response_wrapper(resp, Quote)
 
     def previous_day_bar(self, symbol: str) -> Aggsv2:
         path = '/aggs/ticker/{}/prev'.format(symbol)
-        raw = self.get(path, version='v2')
-        return Aggsv2(raw)
+        resp = self.get(path, version='v2')
+        return self.response_wrapper(resp, Aggsv2)
 
     def condition_map(self, ticktype='trades') -> ConditionMap:
         path = '/meta/conditions/{}'.format(ticktype)
-        return ConditionMap(self.get(path))
+        return self.response_wrapper(self.get(path), ConditionMap)
 
     def company(self, symbol: str) -> Company:
         return self._get_symbol(symbol, 'company', Company)
@@ -275,7 +286,10 @@ class REST(object):
         res = self.get(path, params=params)
         if isinstance(res, list):
             res = {o['symbol']: o for o in res}
-        retmap = {sym: entity(res[sym]) for sym in symbols if sym in res}
+        if self._use_raw_data:
+            retmap = res
+        else:
+            retmap = {sym: entity(res[sym]) for sym in symbols if sym in res}
         if not multi:
             return retmap.get(symbol)
         return retmap
@@ -285,7 +299,8 @@ class REST(object):
 
     def splits(self, symbol: str) -> Splits:
         path = f'/reference/splits/{symbol}'
-        return Splits(self.get(path, version='v2')['results'])
+        resp = self.get(path, version='v2')['results']
+        return self.response_wrapper(resp, Splits)
 
     def earnings(self, symbol: str) -> Earnings:
         return self._get_symbol(symbol, 'earnings', Earnings)
@@ -303,26 +318,28 @@ class REST(object):
                   "type": report_type.name,
                   "sort":  sort.value,
                   }
-        return Financials(self.get(path, version='v2',
-                                   params=params)['results'])
+        resp = self.get(path, version='v2', params=params)['results']
+        return self.response_wrapper(resp, Financials)
 
     def news(self, symbol: str) -> NewsList:
         path = '/meta/symbols/{}/news'.format(symbol)
-        return NewsList(self.get(path))
+        return self.response_wrapper(self.get(path), NewsList)
 
     def gainers_losers(self, direction: str = "gainers") -> Tickers:
         path = '/snapshot/locale/us/markets/stocks/{}'.format(direction)
-        return [
-            Ticker(ticker) for ticker in
-            self.get(path, version='v2')['tickers']
-        ]
+        resp = self.get(path, version='v2')['tickers']
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Ticker) for o in resp]
 
     def all_tickers(self) -> Tickers:
         path = '/snapshot/locale/us/markets/stocks/tickers'
-        return [
-            Ticker(ticker) for ticker in
-            self.get(path, version='v2')['tickers']
-        ]
+        resp = self.get(path, version='v2')['tickers']
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Ticker) for o in resp]
 
     def symbol_list_paginated(self, page: int = 1,
                               per_page: int = 50) -> Symbols:
@@ -334,15 +351,34 @@ class REST(object):
         :return:
         """
         path = '/reference/tickers'
-        return [Symbol(s) for s in self.get(path,
-                                            version='v2',
-                                            params={
-                                                "page": page,
-                                                "active": "true",
-                                                "perpage": per_page,
-                                                "market": "STOCKS"
-                                            })['tickers']]
+        resp = self.get(path,
+                        version='v2',
+                        params={
+                            "page": page,
+                            "active": "true",
+                            "perpage": per_page,
+                            "market": "STOCKS"
+                        })['tickers']
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Symbol) for o in resp]
 
     def snapshot(self, symbol: str) -> Ticker:
         path = '/snapshot/locale/us/markets/stocks/tickers/{}'.format(symbol)
-        return Ticker(self.get(path, version='v2'))
+        resp = self.get(path, version='v2')
+        return self.response_wrapper(resp, Ticker)
+
+    def response_wrapper(self, obj, entity: Entity):
+        """
+        To allow the user to get raw response from the api, we wrap all
+        functions with this method, checking if the user has set raw_data
+        bool. if they didn't, we wrap the response with an Entity object.
+        :param obj: response from server
+        :param entity: derivative object of Entity
+        :return:
+        """
+        if self._use_raw_data:
+            return obj
+        else:
+            return entity(obj)

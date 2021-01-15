@@ -21,6 +21,7 @@ def endpoint(path, params='', api_version='v1'):
 
 def test_polygon(reqmock):
     cli = REST('key-id')
+    cli_raw = REST('key-id', raw_data=True)
 
     # Exchanges
     reqmock.get(endpoint('/meta/exchanges'), text='''
@@ -30,6 +31,8 @@ def test_polygon(reqmock):
     exchanges = cli.exchanges()
     assert exchanges[0].id == 0
     assert 'Exchange(' in str(exchanges[0])
+    assert type(exchanges[0]) == polygon.entity.Exchange
+    assert type(cli_raw.exchanges()) == list
     with pytest.raises(AttributeError):
         exchanges[0].foo
 
@@ -57,6 +60,8 @@ def test_polygon(reqmock):
 
     tmap = cli.symbol_type_map()
     assert tmap.cs == 'Common Stock'
+    assert type(tmap) == polygon.entity.SymbolTypeMap
+    assert type(cli_raw.symbol_type_map()) == dict
 
     # Historic Aggregates V2
     aggs_response = '''
@@ -100,6 +105,12 @@ def test_polygon(reqmock):
     assert aggs[0].open == 173.15
     assert len(aggs) == 1
     assert aggs.df.iloc[0].high == 173.21
+    assert type(aggs) == polygon.entity.Aggsv2
+    assert type(cli_raw.historic_agg_v2(
+        'AAPL', 1, 'day',
+        _from='2018-2-2',
+        to='2018-2-5'
+    )) == dict
     with pytest.raises(AttributeError):
         aggs[0].foo
 
@@ -160,6 +171,8 @@ def test_polygon(reqmock):
     trade = cli.last_trade('AAPL')
     assert trade.price == 159.59
     assert trade.timestamp.day == 8
+    assert type(trade) == polygon.entity.Trade
+    assert type(cli_raw.last_trade('AAPL')) == dict
 
     # Last Quote
     reqmock.get(
@@ -182,6 +195,8 @@ def test_polygon(reqmock):
     quote = cli.last_quote('AAPL')
     assert quote.askprice == 159.59
     assert quote.timestamp.day == 8
+    assert type(quote) == polygon.entity.Quote
+    assert type(cli_raw.last_quote('AAPL')) == dict
 
     # Condition Map
     reqmock.get(
@@ -196,6 +211,8 @@ def test_polygon(reqmock):
 
     cmap = cli.condition_map()
     assert cmap._raw['1'] == 'Regular'
+    assert type(cmap) == polygon.entity.ConditionMap
+    assert type(cli_raw.condition_map()) == dict
 
     # Company
     reqmock.get(
@@ -205,8 +222,14 @@ def test_polygon(reqmock):
 
     ret = cli.company('AAPL')
     assert ret.symbol == 'AAPL'
+    assert type(ret) == polygon.entity.Company
+    assert type(cli_raw.company('AAPL')) == dict
     ret = cli.company(['AAPL'])
     assert ret['AAPL'].symbol == 'AAPL'
+    assert type(ret) == dict
+    assert type(ret['AAPL']) == polygon.entity.Company
+    assert type(cli_raw.company(['AAPL'])) == dict
+    assert type(cli_raw.company(['AAPL'])['AAPL']) == dict
 
     # Dividends
     reqmock.get(
@@ -215,6 +238,8 @@ def test_polygon(reqmock):
     )
     ret = cli.dividends('AAPL')
     assert ret[0].qualified == 'Q'
+    assert type(ret[0]) == polygon.entity.Dividend
+    assert type(cli_raw.dividends('AAPL')[0]) == dict
     ret = cli.dividends(['AAPL'])
     assert ret['AAPL'][0].qualified == 'Q'
 
@@ -225,6 +250,10 @@ def test_polygon(reqmock):
     )
     ret = cli.splits('AAPL')
     assert ret[0].forfactor == 1
+    assert type(ret) == polygon.entity.Splits
+    assert type(ret[0]) == polygon.entity.Split
+    assert type(cli_raw.splits('AAPL')) == list
+    assert type(cli_raw.splits('AAPL')[0]) == dict
 
     # Earnings
     reqmock.get(
@@ -233,8 +262,15 @@ def test_polygon(reqmock):
     )
     ret = cli.earnings('AAPL')
     assert ret[0].actualEPS == 1
+    assert type(ret) == polygon.entity.Earnings
+    assert type(ret[0]) == polygon.entity.Earning
+    assert type(cli_raw.earnings('AAPL')) == list
     ret = cli.earnings(['AAPL'])
     assert ret['AAPL'][0].actualEPS == 1
+    assert type(ret) == dict
+    assert type(ret['AAPL']) == polygon.entity.Earnings
+    assert type(cli_raw.earnings(['AAPL'])) == dict
+    assert type(cli_raw.earnings(['AAPL'])["AAPL"]) == list
 
     # Financials
     reqmock.get(
@@ -243,8 +279,13 @@ def test_polygon(reqmock):
     )
     ret = cli.financials('AAPL')
     assert ret[0].reportDateStr == '2018-09-01'
+    assert type(ret) == polygon.entity.Financials
+    assert type(cli_raw.financials('AAPL')) == list
     ret = cli.financials(['AAPL'])
     assert ret['AAPL'][0].reportDateStr == '2018-09-01'
+    assert type(ret) == dict
+    assert type(ret['AAPL']) == polygon.entity.Financials
+    assert type(cli_raw.financials(['AAPL'])) == dict
 
     # Financials v2
     reqmock.get(
@@ -318,9 +359,13 @@ def test_polygon(reqmock):
                             FinancialsSort.CalendarDateDesc)
 
     assert len(ret) == 2
+    assert ret[0].ticker == "AAPL"
     assert type(ret) == polygon.entity.Financials
     assert type(ret[0]) == polygon.entity.Financial
-    assert ret[0].ticker == "AAPL"
+    assert type(cli_raw.financials_v2('AAPL',
+                                      2,
+                                      FinancialsReportType.Y,
+                                      FinancialsSort.CalendarDateDesc)) == list
 
     # News
     reqmock.get(
@@ -329,6 +374,10 @@ def test_polygon(reqmock):
     )
     ret = cli.news('AAPL')
     assert ret[0].title == 'Apple News'
+    assert type(ret) == polygon.entity.NewsList
+    assert type(ret[0]) == polygon.entity.News
+    assert type(cli_raw.news('AAPL')) == list
+    assert type(cli_raw.news('AAPL')[0]) == dict
 
     with pytest.raises(ValueError):
         cli.company(['AAPL'] * 51)
@@ -377,6 +426,9 @@ def test_polygon(reqmock):
     "url": "https://api.polygon.io/v2/reference/tickers/GOOG"
   }
 ]}''')
-    cli.symbol_list_paginated(1, 2)
-    # nothing to assert in the mock data. jsut checking params are parsed
-    # correctly
+    ret = cli.symbol_list_paginated(1, 2)
+    assert type(ret) == list
+    assert type(ret[0]) == polygon.entity.Symbol
+    assert type(ret) == list
+    assert type(cli_raw.symbol_list_paginated(1, 2)) == list
+    assert type(cli_raw.symbol_list_paginated(1, 2)[0]) == dict

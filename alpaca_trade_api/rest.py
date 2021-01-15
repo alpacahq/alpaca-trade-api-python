@@ -11,7 +11,7 @@ from .common import (
     get_api_version, URL, FLOAT,
 )
 from .entity import (
-    Account, AccountConfigurations, AccountActivity,
+    Entity, Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
@@ -68,19 +68,25 @@ class REST(object):
                  secret_key: str = None,
                  base_url: URL = None,
                  api_version: str = None,
-                 oauth=None
+                 oauth=None,
+                 raw_data: bool = False
                  ):
+        """
+        :param raw_data: should we return api response raw or wrap it with
+                         Entity objects.
+        """
         self._key_id, self._secret_key, self._oauth = get_credentials(
             key_id, secret_key, oauth)
         self._base_url: URL = URL(base_url or get_base_url())
         self._api_version = get_api_version(api_version)
         self._session = requests.Session()
+        self._use_raw_data = raw_data
         self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
         self._retry_codes = [int(o) for o in os.environ.get(
             'APCA_RETRY_CODES', '429,504').split(',')]
         self.polygon = polygon.REST(
-            self._key_id, 'staging' in self._base_url)
+            self._key_id, 'staging' in self._base_url, self._use_raw_data)
 
     def _request(self,
                  method,
@@ -176,12 +182,12 @@ class REST(object):
     def get_account(self) -> Account:
         """Get the account"""
         resp = self.get('/account')
-        return Account(resp)
+        return self.response_wrapper(resp, Account)
 
     def get_account_configurations(self) -> AccountConfigurations:
         """Get account configs"""
         resp = self.get('/account/configurations')
-        return AccountConfigurations(resp)
+        return self.response_wrapper(resp, AccountConfigurations)
 
     def update_account_configurations(
             self,
@@ -205,7 +211,7 @@ class REST(object):
         if suspend_trade is not None:
             params['suspend_trade'] = suspend_trade
         resp = self.patch('/account/configurations', params)
-        return AccountConfigurations(resp)
+        return self.response_wrapper(resp, AccountConfigurations)
 
     def list_orders(self,
                     status: str = None,
@@ -242,7 +248,10 @@ class REST(object):
             params['nested'] = nested
         url = '/orders'
         resp = self.get(url, params)
-        return [Order(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Order) for o in resp]
 
     def submit_order(self,
                      symbol: str,
@@ -311,7 +320,7 @@ class REST(object):
         if trail_percent is not None:
             params['trail_percent'] = trail_percent
         resp = self.post('/orders', params)
-        return Order(resp)
+        return self.response_wrapper(resp, Order)
 
     def get_order_by_client_order_id(self, client_order_id: str) -> Order:
         """Get an order by client order id"""
@@ -319,7 +328,7 @@ class REST(object):
             'client_order_id': client_order_id,
         }
         resp = self.get('/orders:by_client_order_id', params)
-        return Order(resp)
+        return self.response_wrapper(resp, Order)
 
     def get_order(self, order_id: str, nested: bool = None) -> Order:
         """Get an order"""
@@ -327,7 +336,7 @@ class REST(object):
         if nested is not None:
             params['nested'] = nested
         resp = self.get('/orders/{}'.format(order_id), params)
-        return Order(resp)
+        return self.response_wrapper(resp, Order)
 
     def replace_order(
             self,
@@ -365,7 +374,7 @@ class REST(object):
         if client_order_id is not None:
             params['client_order_id'] = client_order_id
         resp = self.patch('/orders/{}'.format(order_id), params)
-        return Order(resp)
+        return self.response_wrapper(resp, Order)
 
     def cancel_order(self, order_id: str) -> None:
         """Cancel an order"""
@@ -378,22 +387,28 @@ class REST(object):
     def list_positions(self) -> Positions:
         """Get a list of open positions"""
         resp = self.get('/positions')
-        return [Position(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(p, Position) for p in resp]
 
     def get_position(self, symbol: str) -> Position:
         """Get an open position"""
         resp = self.get('/positions/{}'.format(symbol))
-        return Position(resp)
+        return self.response_wrapper(resp, Position)
 
-    def close_position(self, symbol: str) -> Order:
+    def close_position(self, symbol: str) -> Position:
         """Liquidates the position for the given symbol at market price"""
         resp = self.delete('/positions/{}'.format(symbol))
-        return Order(resp)
+        return self.response_wrapper(resp, Position)
 
-    def close_all_positions(self) -> Orders:
+    def close_all_positions(self) -> Positions:
         """Liquidates all open positions at market price"""
         resp = self.delete('/positions')
-        return [Order(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Position) for o in resp]
 
     def list_assets(self, status=None, asset_class=None) -> Assets:
         """Get a list of assets"""
@@ -402,12 +417,15 @@ class REST(object):
             'asset_class': asset_class,
         }
         resp = self.get('/assets', params)
-        return [Asset(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Asset) for o in resp]
 
     def get_asset(self, symbol: str) -> Asset:
         """Get an asset"""
         resp = self.get('/assets/{}'.format(symbol))
-        return Asset(resp)
+        return self.response_wrapper(resp, Asset)
 
     def get_barset(self,
                    symbols,
@@ -453,7 +471,7 @@ class REST(object):
         if until is not None:
             params['until'] = until
         resp = self.data_get('/bars/{}'.format(timeframe), params)
-        return BarSet(resp)
+        return self.response_wrapper(resp, BarSet)
 
     def get_aggs(self,
                  symbol: str,
@@ -473,23 +491,23 @@ class REST(object):
         resp = self.data_get('/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
             symbol, multiplier, timespan, _from, to
         ))
-        return Aggs(resp)
+        return self.response_wrapper(resp, Aggs)
 
     def get_last_trade(self, symbol: str) -> Trade:
         """
         Get the last trade for the given symbol
         """
         resp = self.data_get('/last/stocks/{}'.format(symbol))
-        return Trade(resp['last'])
+        return self.response_wrapper(resp['last'], Trade)
 
     def get_last_quote(self, symbol: str) -> Quote:
         """Get the last trade for the given symbol"""
         resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
-        return Quote(resp['last'])
+        return self.response_wrapper(resp['last'], Quote)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')
-        return Clock(resp)
+        return self.response_wrapper(resp, Clock)
 
     def get_activities(
             self,
@@ -531,7 +549,10 @@ class REST(object):
         if page_token is not None:
             params['page_token'] = page_token
         resp = self.get(url, data=params)
-        return [AccountActivity(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, AccountActivity) for o in resp]
 
     def get_calendar(self, start: str = None, end: str = None) -> Calendars:
         """
@@ -545,17 +566,23 @@ class REST(object):
         if end is not None:
             params['end'] = end
         resp = self.get('/calendar', data=params)
-        return [Calendar(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Calendar) for o in resp]
 
     def get_watchlists(self) -> Watchlists:
         """Get the list of watchlists registered under the account"""
         resp = self.get('/watchlists')
-        return [Watchlist(o) for o in resp]
+        if self._use_raw_data:
+            return resp
+        else:
+            return [self.response_wrapper(o, Watchlist) for o in resp]
 
     def get_watchlist(self, watchlist_id: str) -> Watchlist:
         """Get a watchlist identified by the ID"""
         resp = self.get('/watchlists/{}'.format((watchlist_id)))
-        return Watchlist(resp)
+        return self.response_wrapper(resp, Watchlist)
 
     def get_watchlist_by_name(self, watchlist_name: str) -> Watchlist:
         """Get a watchlist identified by its name"""
@@ -563,7 +590,7 @@ class REST(object):
             'name': watchlist_name,
         }
         resp = self.get('/watchlists:by_name', data=params)
-        return Watchlist(resp)
+        return self.response_wrapper(resp, Watchlist)
 
     def create_watchlist(self,
                          watchlist_name: str,
@@ -575,14 +602,14 @@ class REST(object):
         if symbols is not None:
             params['symbols'] = symbols
         resp = self.post('/watchlists', data=params)
-        return Watchlist(resp)
+        return self.response_wrapper(resp, Watchlist)
 
     def add_to_watchlist(self, watchlist_id: str, symbol: str) -> Watchlist:
         """Add an asset to the watchlist"""
         resp = self.post(
             '/watchlists/{}'.format(watchlist_id), data=dict(symbol=symbol)
         )
-        return Watchlist(resp)
+        return self.response_wrapper(resp, Watchlist)
 
     def update_watchlist(self,
                          watchlist_id: str,
@@ -595,7 +622,7 @@ class REST(object):
         if symbols is not None:
             params['symbols'] = symbols
         resp = self.put('/watchlists/{}'.format(watchlist_id), data=params)
-        return Watchlist(resp)
+        return self.response_wrapper(resp, Watchlist)
 
     def delete_watchlist(self, watchlist_id: str) -> None:
         """Delete a watchlist identified by the ID permanently"""
@@ -634,9 +661,8 @@ class REST(object):
             params['timeframe'] = timeframe
         if extended_hours is not None:
             params['extended_hours'] = extended_hours
-        return PortfolioHistory(
-            self.get('/account/portfolio/history', data=params)
-        )
+        resp = self.get('/account/portfolio/history', data=params)
+        return self.response_wrapper(resp, PortfolioHistory)
 
     def __enter__(self):
         return self
@@ -646,3 +672,17 @@ class REST(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    def response_wrapper(self, obj, entity: Entity):
+        """
+        To allow the user to get raw response from the api, we wrap all
+        functions with this method, checking if the user has set raw_data
+        bool. if they didn't, we wrap the response with an Entity object.
+        :param obj: response from server
+        :param entity: derivative object of Entity
+        :return:
+        """
+        if self._use_raw_data:
+            return obj
+        else:
+            return entity(obj)

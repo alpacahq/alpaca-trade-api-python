@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import Iterator, List, Union
 import requests
 from requests.exceptions import HTTPError
 import time
@@ -11,7 +11,7 @@ from .common import (
     get_api_version, URL, FLOAT,
 )
 from .entity import (
-    Entity, Account, AccountConfigurations, AccountActivity,
+    Bar, Entity, Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
@@ -24,6 +24,9 @@ Assets = List[Asset]
 AccountActivities = List[AccountActivity]
 Calendars = List[Calendar]
 Watchlists = List[Watchlist]
+TradeIterator = Iterator[Union[Trade, dict]]
+QuoteIterator = Iterator[Union[Quote, dict]]
+BarIterator = Iterator[Union[Bar, dict]]
 
 
 class RetryException(Exception):
@@ -173,10 +176,10 @@ class REST(object):
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 
-    def data_get(self, path, data=None):
+    def data_get(self, path, data=None, api_version='v1'):
         base_url: URL = get_data_url()
         return self._request(
-            'GET', path, data, base_url=base_url, api_version='v1'
+            'GET', path, data, base_url=base_url, api_version=api_version,
         )
 
     def get_account(self) -> Account:
@@ -504,6 +507,66 @@ class REST(object):
         """Get the last trade for the given symbol"""
         resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
         return self.response_wrapper(resp['last'], Quote)
+
+    def _data_get_v2(self, endpoint: str, symbol: str, **kwargs):
+        page_token = None
+        total_items = 0
+        max_limit = 10000
+        limit = kwargs.get('limit')
+        while True:
+            actual_limit = None
+            if limit:
+                actual_limit = min(int(limit) - total_items, max_limit)
+                if actual_limit < 1:
+                    break
+            data = kwargs
+            data['limit'] = actual_limit
+            data['page_token'] = page_token
+            resp = self.data_get('/stocks/{}/{}'.format(symbol, endpoint),
+                                 data=data, api_version='v2')
+            items = resp.get(endpoint, [])
+            for item in items:
+                yield item
+            total_items += len(items)
+            page_token = resp.get('next_page_token')
+            if not page_token:
+                break
+
+    def get_trades(self,
+                   symbol: str,
+                   start: str,
+                   end: str,
+                   limit: int = None,
+                   ) -> TradeIterator:
+        trades = self._data_get_v2('trades', symbol,
+                                   start=start, end=end, limit=limit)
+        for trade in trades:
+            yield self.response_wrapper(trade, Trade)
+
+    def get_quotes(self,
+                   symbol: str,
+                   start: str,
+                   end: str,
+                   limit: int = None,
+                   ) -> QuoteIterator:
+        quotes = self._data_get_v2('quotes', symbol,
+                                   start=start, end=end, limit=limit)
+        for quote in quotes:
+            yield self.response_wrapper(quote, Quote)
+
+    def get_bars(self,
+                 symbol: str,
+                 timeframe: str,
+                 start: str,
+                 end: str,
+                 adjustment: str = 'all',
+                 limit: int = None,
+                 ) -> BarIterator:
+        bars = self._data_get_v2('bars', symbol,
+                                 timeframe=timeframe, adjustment=adjustment,
+                                 start=start, end=end, limit=limit)
+        for bar in bars:
+            yield self.response_wrapper(bar, Bar)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')

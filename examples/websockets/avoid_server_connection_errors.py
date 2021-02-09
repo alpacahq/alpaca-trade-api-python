@@ -54,5 +54,4 @@ if __name__ == '__main__':
     async def on_trades(conn, channel, trade):
         print('trade', trade)
 
-
     run_connection(conn, channels)

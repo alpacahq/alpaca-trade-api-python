@@ -190,11 +190,14 @@ class StreamConn(object):
 
     async def close(self):
         '''Close any open connections'''
-        if self._consume_task:
-            self._consume_task.cancel()
+        await self.cancel_task()
         if self._ws is not None:
             await self._ws.close()
         self._ws = None
+
+    async def cancel_task(self):
+        if self._consume_task:
+            self._consume_task.cancel()
 
     def _cast(self, subject, data):
         if subject == 'T':

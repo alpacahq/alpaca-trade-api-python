@@ -59,5 +59,5 @@ if __name__ == '__main__':
     while 1:
         threading.Thread(target=consumer_thread).start()
         time.sleep(5)
-        loop.run_until_complete(conn.close(renew=False))
+        loop.run_until_complete(conn.stop_ws())
         time.sleep(20)

@@ -231,7 +231,7 @@ class StreamConn(object):
         self._data_stream = _data_stream
         self._debug = debug
         self._raw_data = raw_data
-        self.stop_stream_queue = queue.Queue()
+        self._stop_stream_queue = queue.Queue()
 
         self.trading_ws = _StreamConn(self._key_id,
                                       self._secret_key,
@@ -342,8 +342,8 @@ class StreamConn(object):
                 logging.error(f"error while consuming ws messages: {m}")
                 if self._debug:
                     traceback.print_exc()
-                if not self.stop_stream_queue.empty():
-                    self.stop_stream_queue.get()
+                if not self._stop_stream_queue.empty():
+                    self._stop_stream_queue.get()
                     should_renew = False
                 loop.run_until_complete(self.close(should_renew))
                 if loop.is_running():
@@ -378,12 +378,11 @@ class StreamConn(object):
                                            self._oauth,
                                            raw_data=self._raw_data)
 
-    async def signal_stop_ws(self):
+    async def stop_ws(self):
         """
-        Signal the ws connections to stop.
-        We set a signal in a Queue and then call cancel_task
+        Signal the ws connections to stop listenning to api stream.
         """
-        self.stop_stream_queue.put_nowait({"should_stop": True})
+        self._stop_stream_queue.put_nowait({"should_stop": True})
         if self.trading_ws is not None:
             logging.info("Stopping the trading websocket connection")
             await self.trading_ws.cancel_task()

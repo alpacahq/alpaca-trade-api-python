@@ -288,6 +288,14 @@ import logging
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 ```
 
+## Websocket best practices
+Under the examples folder you could find several examples to do the following:
+* Different subscriptions(channels) usage with alpaca/polygon streams
+* pause / resume connection
+* change subscriptions/channels of existing connection
+* ws disconnections handler (make sure we reconnect when the internal mechanism fails)
+
+
 # Polygon API Service
 
 Alpaca's API key ID can be used to access Polygon API, the documentation for

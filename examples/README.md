@@ -17,3 +17,13 @@ This shows a basic approach to opening a streaming connection for Polygon market
 ## Martingale
 
 This trading algorithm explores a strategy based on a gambling technique. Trading every few seconds, it maintains a position in the $SPY symbol of a size determined by the number of up or down candles it's experienced in a row. For a more complete explanation, please see [this post](https://forum.alpaca.markets/t/martingale-day-trading-with-the-alpaca-trading-api/).
+
+## Websocket Best practices
+Under this folder you could find several examples to do the following:
+* Different subscriptions(channels) usage with alpaca/polygon streams
+* pause / resume connection
+* change subscriptions of existing connection
+* ws disconnections handler (make sure we reconnect)
+
+
+Use it to integrate with your own code.

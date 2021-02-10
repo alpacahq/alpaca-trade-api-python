@@ -4,6 +4,7 @@ import os
 import re
 import traceback
 from asyncio import CancelledError
+import queue
 
 import websockets
 from .common import get_base_url, get_data_url, get_credentials, URL
@@ -140,11 +141,14 @@ class _StreamConn(object):
             }))
 
     async def close(self):
-        if self._consume_task:
-            self._consume_task.cancel()
+        await self.cancel_task()
         if self._ws:
             await self._ws.close()
             self._ws = None
+
+    async def cancel_task(self):
+        if self._consume_task:
+            self._consume_task.cancel()
 
     def _cast(self, channel, msg):
         if channel == 'account_updates':
@@ -227,6 +231,7 @@ class StreamConn(object):
         self._data_stream = _data_stream
         self._debug = debug
         self._raw_data = raw_data
+        self._stop_stream_queue = queue.Queue()
 
         self.trading_ws = _StreamConn(self._key_id,
                                       self._secret_key,
@@ -337,6 +342,9 @@ class StreamConn(object):
                 logging.error(f"error while consuming ws messages: {m}")
                 if self._debug:
                     traceback.print_exc()
+                if not self._stop_stream_queue.empty():
+                    self._stop_stream_queue.get()
+                    should_renew = False
                 loop.run_until_complete(self.close(should_renew))
                 if loop.is_running():
                     loop.close()
@@ -369,6 +377,18 @@ class StreamConn(object):
                                            self._data_url,
                                            self._oauth,
                                            raw_data=self._raw_data)
+
+    async def stop_ws(self):
+        """
+        Signal the ws connections to stop listenning to api stream.
+        """
+        self._stop_stream_queue.put_nowait({"should_stop": True})
+        if self.trading_ws is not None:
+            logging.info("Stopping the trading websocket connection")
+            await self.trading_ws.cancel_task()
+        if self.data_ws is not None:
+            logging.info("Stopping the data websocket connection")
+            await self.data_ws.cancel_task()
 
     def on(self, channel_pat, symbols=None):
         def decorator(func):

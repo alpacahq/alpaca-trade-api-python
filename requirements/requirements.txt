@@ -1,4 +1,4 @@
-pandas
+pandas==1.2.2
 numpy
 requests>2,<3
 urllib3>1.24,<2

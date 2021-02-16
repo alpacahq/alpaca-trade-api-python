@@ -23,7 +23,7 @@ def run_connection(conn, channels):
     except Exception as e:
         print(f'Exception from websocket connection: {e}')
     finally:
-        send_msg(f"Trying to re-establish connection")
+        print("Trying to re-establish connection")
         time.sleep(3)
         run_connection(conn, channels)
 

@@ -4,8 +4,6 @@ in case of ws disconnection.
 """
 
 import logging
-import threading
-import asyncio
 import time
 from alpaca_trade_api import StreamConn
 from alpaca_trade_api.common import URL

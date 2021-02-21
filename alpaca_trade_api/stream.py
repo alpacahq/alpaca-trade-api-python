@@ -66,27 +66,30 @@ class DataStream:
             raise ValueError('failed to authenticate')
 
     def _cast(self, msg_type, msg):
-        if self._raw_data:
-            return msg
-        # convert msgpack timestamp to nanoseconds
-        if 't' in msg:
-            msg['t'] = msg['t'].seconds * int(1e9) + msg['t'].nanoseconds
-        if msg_type == 't':
-            return Trade({
-                trade_mapping_v2[k]: v
-                for k, v in msg.items() if k in trade_mapping_v2
-            })
-        elif msg_type == 'q':
-            return Quote({
-                quote_mapping_v2[k]: v
-                for k, v in msg.items() if k in quote_mapping_v2
-            })
-        elif msg_type == 'b':
-            return Bar({
-                bar_mapping_v2[k]: v
-                for k, v in msg.items() if k in bar_mapping_v2
-            })
-        return Entity(msg)
+        result = msg
+        if not self._raw_data:
+            # convert msgpack timestamp to nanoseconds
+            if 't' in msg:
+                msg['t'] = msg['t'].seconds * int(1e9) + msg['t'].nanoseconds
+
+            if msg_type == 't':
+                result = Trade({
+                    trade_mapping_v2[k]: v
+                    for k, v in msg.items() if k in trade_mapping_v2
+                })
+            elif msg_type == 'q':
+                result = Quote({
+                    quote_mapping_v2[k]: v
+                    for k, v in msg.items() if k in quote_mapping_v2
+                })
+            elif msg_type == 'b':
+                result = Bar({
+                    bar_mapping_v2[k]: v
+                    for k, v in msg.items() if k in bar_mapping_v2
+                })
+            else:
+                result = Entity(msg)
+        return result
 
     async def _dispatch(self, msg):
         msg_type = msg.get('T')

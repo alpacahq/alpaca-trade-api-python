@@ -28,6 +28,7 @@ TradeIterator = Iterator[Union[Trade, dict]]
 QuoteIterator = Iterator[Union[Quote, dict]]
 BarIterator = Iterator[Union[Bar, dict]]
 
+DATA_V2_MAX_LIMIT = 10000  # max items per api call
 
 class RetryException(Exception):
     pass
@@ -511,12 +512,11 @@ class REST(object):
     def _data_get_v2(self, endpoint: str, symbol: str, **kwargs):
         page_token = None
         total_items = 0
-        max_limit = 10000
         limit = kwargs.get('limit')
         while True:
             actual_limit = None
             if limit:
-                actual_limit = min(int(limit) - total_items, max_limit)
+                actual_limit = min(int(limit) - total_items, DATA_V2_MAX_LIMIT)
                 if actual_limit < 1:
                     break
             data = kwargs

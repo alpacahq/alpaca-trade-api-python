@@ -13,55 +13,11 @@ import re
 import websockets
 
 from .common import get_base_url, get_data_url, get_credentials, URL
-from .entity import Entity, _NanoTimestamped
+from .entity import Entity
+from .entity_v2 import quote_mapping_v2, trade_mapping_v2, bar_mapping_v2, \
+    Trade, Quote, Bar
 
 log = logging.getLogger(__name__)
-
-trade_mapping_v2 = {
-    "i": "id",
-    "S": "symbol",
-    "c": "conditions",
-    "x": "exchange",
-    "p": "price",
-    "s": "size",
-    "t": "timestamp",
-    "z": "tape"
-}
-
-quote_mapping_v2 = {
-    "S": "symbol",
-    "ax": "ask_exchange",
-    "ap": "ask_price",
-    "as": "ask_size",
-    "bx": "bid_exchange",
-    "bp": "bid_price",
-    "bs": "bid_size",
-    "c": "conditions",
-    "t": "timestamp",
-    "z": "tape"
-}
-
-bar_mapping_v2 = {
-    "S": "symbol",
-    "o": "open",
-    "h": "high",
-    "l": "low",
-    "c": "close",
-    "v": "volume",
-    "t": "timestamp"
-}
-
-
-class Trade(_NanoTimestamped, Entity):
-    pass
-
-
-class Quote(_NanoTimestamped, Entity):
-    pass
-
-
-class Bar(_NanoTimestamped, Entity):
-    pass
 
 
 def _ensure_coroutine(handler):

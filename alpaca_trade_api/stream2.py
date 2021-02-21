@@ -1,3 +1,7 @@
+"""
+Stream V1
+The new Alpaca data stream is under stream.py
+"""
 import asyncio
 import json
 import os

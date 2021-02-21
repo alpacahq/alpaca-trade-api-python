@@ -1,3 +1,8 @@
+"""
+Stream V2
+For historic reasons stream2.py contains the old api version.
+Don't get confused
+"""
 import asyncio
 import logging
 import json

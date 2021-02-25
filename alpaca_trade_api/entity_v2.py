@@ -38,14 +38,6 @@ bar_mapping_v2 = {
 }
 
 
-class Trade(_NanoTimestamped, Entity):
-    pass
-
-
-class Quote(_NanoTimestamped, Entity):
-    pass
-
-
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
     Quote = Quote, quote_mapping_v2

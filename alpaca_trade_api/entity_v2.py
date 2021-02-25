@@ -79,4 +79,3 @@ class TradesV2(EntityList):
 class QuotesV2(EntityList):
     def __init__(self, raw):
         super().__init__(EntityListType.Quote, raw)
-

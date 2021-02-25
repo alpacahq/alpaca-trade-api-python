@@ -1,4 +1,7 @@
-from .entity import Entity, _NanoTimestamped
+from enum import Enum
+import pandas as pd
+from .entity import Entity, _NanoTimestamped, Bar, Trade
+
 
 trade_mapping_v2 = {
     "i": "id",
@@ -43,5 +46,45 @@ class Quote(_NanoTimestamped, Entity):
     pass
 
 
-class Bar(_NanoTimestamped, Entity):
-    pass
+class EntityListType(Enum):
+    Trade = Trade, trade_mapping_v2
+    Quote = Quote, quote_mapping_v2
+    Bar = Bar, bar_mapping_v2
+
+
+class EntityList(list):
+    def __init__(self, entity_type: EntityListType, raw):
+        entity = entity_type.value[0]
+        super().__init__([entity(o) for o in raw])
+        self._raw = raw
+        self.mapping = entity_type.value[1]
+
+    @property
+    def df(self):
+        if not hasattr(self, '_df'):
+            df = pd.DataFrame(
+                self._raw,
+            )
+
+            df.columns = [self.mapping[c] for c in df.columns]
+            if not df.empty:
+                df.set_index('timestamp', inplace=True)
+                df.index = pd.DatetimeIndex(df.index)
+            self._df = df
+        return self._df
+
+
+class BarsV2(EntityList):
+    def __init__(self, raw):
+        super().__init__(EntityListType.Bar, raw)
+
+
+class TradesV2(EntityList):
+    def __init__(self, raw):
+        super().__init__(EntityListType.Trade, raw)
+
+
+class QuotesV2(EntityList):
+    def __init__(self, raw):
+        super().__init__(EntityListType.Quote, raw)
+

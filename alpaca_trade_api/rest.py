@@ -4,6 +4,7 @@ from typing import Iterator, List, Union
 import requests
 from requests.exceptions import HTTPError
 import time
+from enum import Enum
 from .common import (
     get_base_url,
     get_data_url,
@@ -15,6 +16,7 @@ from .entity import (
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
+from .entity_v2 import BarsV2, TradesV2, QuotesV2
 from . import polygon
 
 logger = logging.getLogger(__name__)
@@ -65,6 +67,13 @@ class APIError(Exception):
     def response(self):
         if self._http_error is not None:
             return self._http_error.response
+
+
+class TimeFrame(Enum):
+    Day = "1Day"
+    Hour = "1Hour"
+    Minute = "1Min"
+    Sec = "1Sec"
 
 
 class REST(object):
@@ -533,41 +542,94 @@ class REST(object):
             if not page_token:
                 break
 
+    def get_trades_iter(self,
+                   symbol: str,
+                   start: str,
+                   end: str,
+                   limit: int = None,
+                   raw=False) -> TradeIterator:
+        trades = self._data_get_v2('trades', symbol,
+                                   start=start, end=end, limit=limit)
+        for trade in trades:
+            if raw:
+                yield trade
+            else:
+                yield self.response_wrapper(trade, Trade)
+
     def get_trades(self,
                    symbol: str,
                    start: str,
                    end: str,
                    limit: int = None,
-                   ) -> TradeIterator:
-        trades = self._data_get_v2('trades', symbol,
+                   ) -> TradesV2:
+        trades = list(self.get_trades_iter(symbol,
+                                           start,
+                                           end,
+                                           limit,
+                                           raw=True))
+        return TradesV2(trades)
+
+    def get_quotes_iter(self,
+                   symbol: str,
+                   start: str,
+                   end: str,
+                   limit: int = None,
+                   raw=False) -> QuoteIterator:
+        quotes = self._data_get_v2('quotes', symbol,
                                    start=start, end=end, limit=limit)
-        for trade in trades:
-            yield self.response_wrapper(trade, Trade)
+        for quote in quotes:
+            if raw:
+                yield quote
+            else:
+                yield self.response_wrapper(quote, Quote)
 
     def get_quotes(self,
                    symbol: str,
                    start: str,
                    end: str,
                    limit: int = None,
-                   ) -> QuoteIterator:
-        quotes = self._data_get_v2('quotes', symbol,
-                                   start=start, end=end, limit=limit)
-        for quote in quotes:
-            yield self.response_wrapper(quote, Quote)
+                   ) -> QuotesV2:
+        quotes = list(self.get_quotes_iter(symbol,
+                                           start,
+                                           end,
+                                           limit,
+                                           raw=True))
+        return QuotesV2(quotes)
+
+    def get_bars_iter(self,
+                      symbol: str,
+                      timeframe: TimeFrame,
+                      start: str,
+                      end: str,
+                      adjustment: str = 'all',
+                      limit: int = None,
+                      raw=False) -> BarIterator:
+        bars = self._data_get_v2('bars', symbol,
+                                 timeframe=timeframe.value,
+                                 adjustment=adjustment,
+                                 start=start, end=end, limit=limit)
+        for bar in bars:
+            if raw:
+                yield bar
+            else:
+                yield self.response_wrapper(bar, Bar)
 
     def get_bars(self,
                  symbol: str,
-                 timeframe: str,
+                 timeframe: TimeFrame,
                  start: str,
                  end: str,
                  adjustment: str = 'all',
                  limit: int = None,
-                 ) -> BarIterator:
-        bars = self._data_get_v2('bars', symbol,
-                                 timeframe=timeframe, adjustment=adjustment,
-                                 start=start, end=end, limit=limit)
-        for bar in bars:
-            yield self.response_wrapper(bar, Bar)
+                 ) -> BarsV2:
+        bars = list(self.get_bars_iter(symbol,
+                           timeframe,
+                           start,
+                           end,
+                           adjustment,
+                           limit,
+                           raw=True))
+        return BarsV2(bars)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')

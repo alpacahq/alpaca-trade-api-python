@@ -12,7 +12,7 @@ import re
 
 import websockets
 
-from .common import get_base_url, get_data_url, get_credentials, URL
+from .common import get_base_url, get_data_stream_url, get_credentials, URL
 from .entity import Entity
 from .entity_v2 import quote_mapping_v2, trade_mapping_v2, bar_mapping_v2, \
     Trade, Quote, Bar
@@ -36,7 +36,7 @@ class DataStream:
         self._secret_key = secret_key
         self._feed = feed
         base_url = re.sub(r'^http', 'ws', base_url)
-        self._endpoint = base_url + '/v2/stream/' + self._feed
+        self._endpoint = base_url + '/v2/' + self._feed
         self._trade_handlers = {}
         self._quote_handlers = {}
         self._bar_handlers = {}
@@ -62,6 +62,8 @@ class DataStream:
             }))
         r = await self._ws.recv()
         msg = msgpack.unpackb(r)
+        if msg[0]['T'] == 'error':
+            raise ValueError(msg[0].get('msg', 'auth failed'))
         if msg[0]['T'] != 'success' or msg[0]['msg'] != 'authenticated':
             raise ValueError('failed to authenticate')
 
@@ -331,17 +333,18 @@ class Stream:
                  key_id: str = None,
                  secret_key: str = None,
                  base_url: URL = None,
-                 data_url: URL = None,
+                 data_stream_url: URL = None,
                  data_feed: str = 'iex',
                  raw_data: bool = False):
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
-        self._data_url = data_url or get_data_url()
+        self._data_steam_url = data_stream_url or get_data_stream_url()
+        print(self._data_steam_url)
 
         self._trading_ws = TradingStream(self._key_id, self._secret_key,
                                          self._base_url)
         self._data_ws = DataStream(self._key_id, self._secret_key,
-                                   self._data_url, raw_data, data_feed)
+                                   self._data_steam_url, raw_data, data_feed)
 
     def subscribe_trade_updates(self, handler):
         self._trading_ws.subscribe_trade_updates(handler)

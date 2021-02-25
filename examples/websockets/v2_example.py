@@ -19,7 +19,8 @@ async def print_trade_update(tu):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    stream = Stream(raw_data=True)
+    feed = 'iex'  # <- replace to SIP if you have PRO subscription
+    stream = Stream(data_feed=feed, raw_data=True)
     stream.subscribe_trade_updates(print_trade_update)
     stream.subscribe_trades(print_trade, 'AAPL')
     stream.subscribe_quotes(print_quote, 'IBM')

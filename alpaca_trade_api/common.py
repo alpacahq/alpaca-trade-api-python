@@ -65,6 +65,13 @@ def get_data_url() -> URL:
         'APCA_API_DATA_URL', 'https://data.alpaca.markets').rstrip('/'))
 
 
+def get_data_stream_url() -> URL:
+    return URL(os.environ.get(
+        'APCA_API_STREAM_URL',
+        'https://stream.data.alpaca.markets').rstrip('/')
+    )
+
+
 def get_credentials(key_id: str = None,
                     secret_key: str = None,
                     oauth: str = None) -> Credentials:

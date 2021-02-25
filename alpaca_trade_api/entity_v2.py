@@ -1,6 +1,6 @@
 from enum import Enum
 import pandas as pd
-from .entity import Entity, _NanoTimestamped, Bar, Trade
+from .entity import Bar, Trade, Quote
 
 
 trade_mapping_v2 = {

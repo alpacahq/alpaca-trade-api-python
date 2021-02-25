@@ -543,11 +543,11 @@ class REST(object):
                 break
 
     def get_trades_iter(self,
-                   symbol: str,
-                   start: str,
-                   end: str,
-                   limit: int = None,
-                   raw=False) -> TradeIterator:
+                        symbol: str,
+                        start: str,
+                        end: str,
+                        limit: int = None,
+                        raw=False) -> TradeIterator:
         trades = self._data_get_v2('trades', symbol,
                                    start=start, end=end, limit=limit)
         for trade in trades:
@@ -570,11 +570,11 @@ class REST(object):
         return TradesV2(trades)
 
     def get_quotes_iter(self,
-                   symbol: str,
-                   start: str,
-                   end: str,
-                   limit: int = None,
-                   raw=False) -> QuoteIterator:
+                        symbol: str,
+                        start: str,
+                        end: str,
+                        limit: int = None,
+                        raw=False) -> QuoteIterator:
         quotes = self._data_get_v2('quotes', symbol,
                                    start=start, end=end, limit=limit)
         for quote in quotes:
@@ -623,12 +623,12 @@ class REST(object):
                  limit: int = None,
                  ) -> BarsV2:
         bars = list(self.get_bars_iter(symbol,
-                           timeframe,
-                           start,
-                           end,
-                           adjustment,
-                           limit,
-                           raw=True))
+                                       timeframe,
+                                       start,
+                                       end,
+                                       adjustment,
+                                       limit,
+                                       raw=True))
         return BarsV2(bars)
 
     def get_clock(self) -> Clock:

@@ -10,28 +10,57 @@ It allows rapid trading algo development easily, with support for
 both REST and streaming data interfaces. For details of each API behavior,
 please see the online [API document](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/).
 
-Note that this module supports only python version 3.6 and above, due to
+Note that this package supports only python version 3.6 and above, due to
 the async/await and websockets module dependency.
 
 ## Install
-We support python 3.x. If you want to work with python < 3.7 please note that these package dropped support for python <3.7 for the following versions:
+We support python>=3.6. If you want to work with python 3.6, please note that these package dropped support for python <3.7 for the following versions:
 ```
 pandas >= 1.2.0
 numpy >= 1.20.0
 scipy >= 1.6.0
 ```
 The solution - manually install these package before installing alpaca-trade-api. e.g:
-```
+```bash
 pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
 ```
 
+Installing using pip
 ```bash
 $ pip3 install alpaca-trade-api
 ```
 
+## API Keys
+To use this package you first need to obtain an API key. Go here to [signup](https://app.alpaca.markets/signup)
+
+# Services
+These services are provided by Alpaca:
+* Data:
+  * [Historical](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/)
+  * [Live Data Stream](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/)
+* [Account/Porfolio Management](https://alpaca.markets/docs/api-documentation/api-v2)
+
+The free services is limited, please check the docs to see the difference between paid/free services.
+
+## Alpaca Environment Variables
+
+The Alpaca SDK will check the environment for a number of variables that can be used rather than hard-coding these into your scripts.<br>
+Alternatively you could pass the credentials directly to the SDK instances.
+
+
+| Environment                      | default                                                                                | Description                                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| APCA_API_KEY_ID=<key_id>         |                                                                                        | Your API Key                                                                                                           |
+| APCA_API_SECRET_KEY=<secret_key> |                                                                                        | Your API Secret Key                                                                                                    |
+| APCA_API_BASE_URL=url            | https://api.alpaca.markets (for live)<br/>https://paper-api.alpaca.markets (for paper) | Specify the URL for API calls, *Default is live, you must specify this to switch to paper endpoint!*                   |
+| APCA_API_DATA_URL=url            | https://data.alpaca.markets                                                            | Endpoint for data API                                                                                                  |
+| APCA_RETRY_MAX=3                 | 3                                                                                      | The number of subsequent API calls to retry on timeouts                                                                |
+| APCA_RETRY_WAIT=3                | 3                                                                                      | seconds to wait between each retry attempt                                                                             |
+| APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
+| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
+
 ## Example
 
-In order to call Alpaca's trade API, you need to sign up for an account and obtain API key pairs. Replace <key_id> and <secret_key> with what you get from the web console.
 
 ### REST example
 ```python
@@ -63,20 +92,7 @@ web console after you sign in.  You can pass `key_id` and `secret_key` to the in
 `REST` or `StreamConn` as arguments, or set up environment variables as
 outlined below.
 
-## Alpaca Environment Variables
 
-The Alpaca SDK will check the environment for a number of variables that can be used rather than hard-coding these into your scripts.
-
-| Environment                      | default                                                                                | Description                                                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| APCA_API_KEY_ID=<key_id>         |                                                                                        | Your API Key                                                                                                           |
-| APCA_API_SECRET_KEY=<secret_key> |                                                                                        | Your API Secret Key                                                                                                    |
-| APCA_API_BASE_URL=url            | https://api.alpaca.markets (for live)<br/>https://paper-api.alpaca.markets (for paper) | Specify the URL for API calls, *Default is live, you must specify this to switch to paper endpoint!*                   |
-| APCA_API_DATA_URL=url            | https://data.alpaca.markets                                                            | Endpoint for data API                                                                                                  |
-| APCA_RETRY_MAX=3                 | 3                                                                                      | The number of subsequent API calls to retry on timeouts                                                                |
-| APCA_RETRY_WAIT=3                | 3                                                                                      | seconds to wait between each retry attempt                                                                             |
-| APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
-| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
 
 ## REST
 

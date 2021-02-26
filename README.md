@@ -80,8 +80,6 @@ The Alpaca SDK will check the environment for a number of variables that can be 
 | APCA_RETRY_MAX=3                 | 3                                                                                      | The number of subsequent API calls to retry on timeouts                                                                |
 | APCA_RETRY_WAIT=3                | 3                                                                                      | seconds to wait between each retry attempt                                                                             |
 | APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
-| POLYGON_WS_URL                   | wss://socket.polygon.io/stocks                                                         | Endpoint for streaming polygon data.  You likely don't need to change this unless you want to proxy it for example     |
-| POLYGON_KEY_ID                   |                                                                                        | Your Polygon key, if it's not the same as your Alpaca API key. Most users will not need to set this to access Polygon. |
 | DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
 
 ## REST
@@ -182,7 +180,7 @@ please note that if you are using limit, it is calculated from the end date. and
 
 ---
 
-## StreamConn
+## StreamConn (deprecated)
 
 The `StreamConn` class provides WebSocket-based event-driven
 interfaces.  Using the `on` decorator of the instance, you can
@@ -193,12 +191,6 @@ is raised. This module itself does not provide any threading
 capability, so if you need to consume the messages pushed from the
 server, you need to run it in a background thread.
 
-We provide 2 price data websockets. The polygon data, and the alpaca data.
-We default to Alpaca data, and one must explicitly specify the polygon data stream in order to use that.
-It is done by passing the `data_stream` keyword to the `__init__()` function of `StreamConn` (options: `'alpacadatav1', 'polygon'`)
-
-This class provides a unique interface to the two interfaces, both
-Alpaca's account/trade updates events and Polygon's price updates.
 One connection is established when the `subscribe()` is called with
 the corresponding channel names.  For example, if you subscribe to
 `trade_updates`, a WebSocket connects to Alpaca stream API, and
@@ -234,7 +226,7 @@ async def on_account_updates(conn, channel, account):
 
 @conn.on(r'^status$')
 async def on_status(conn, channel, data):
-    print('polygon status update', data)
+    print('status update', data)
 
 @conn.on(r'^AM$')
 async def on_minute_bars(conn, channel, bar):
@@ -290,68 +282,10 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 ## Websocket best practices
 Under the examples folder you could find several examples to do the following:
-* Different subscriptions(channels) usage with alpaca/polygon streams
+* Different subscriptions(channels) usage with the alpaca streams
 * pause / resume connection
 * change subscriptions/channels of existing connection
 * ws disconnections handler (make sure we reconnect when the internal mechanism fails)
-
-
-# Polygon API Service
-
-Alpaca's API key ID can be used to access Polygon API, the documentation for
-which is found [here](https://polygon.io/docs/).
-This python SDK wraps their API service and seamlessly integrates it with the Alpaca
-API. `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
-
-The example below gives AAPL daily OHLCV data in a DataFrame format.
-
-```py
-import alpaca_trade_api as tradeapi
-
-api = tradeapi.REST()
-# all of these examples work
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from='2019-01-01', to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.datetime(2019, 1, 1), to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.date(2019, 1, 1), to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01-01'), to='2019-02-01').df
-# timestamp should be in milliseconds datetime.datetime(2019, 1, 1).timestamp()*1000 == 1546293600000
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=1546293600000, to='2019-02-01').df
-```
-and here's a minute example usage:
-```py
-import pytz
-NY = 'America/New_York'
-
-start = pytz.timezone(NY).localize(datetime(2020,1,2,9,30)).timestamp()*1000  # timestamp in micro seconds
-# another alternative will be: start = pd.Timestamp('2020-01-02 09:30', tz=NY).value/1e6
-end = pytz.timezone(NY).localize(datetime(2020,1,2,16,0)).timestamp()*1000
-df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
-
-```
-
-## polygon/REST
-It is initialized through the alpaca `REST` object.
-
-| REST Method                           | Description                                                                            | 
-| --------------------------------      | -------------------------------------------------------------------------------------- |
-| exchanges()                           |  Returns a list of `Exchange` entity.|
-| symbol_type_map()                     |  Returns a `SymbolTypeMap` object.|
-| historic_trades_v2(symbol, date, timestamp=None, timestamp_limit=None, reverse=None, limit=None) |  Returns a `TradesV2` which is a list of `Trade` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
-| TradesV2.df                           | Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2`. |
-| historic_quotes_v2(symbol, date, timestamp=None, timestamp_limit=None, reverse=None, limit=None)|  Returns a `QuotesV2` which is a list of `Quote` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
-| QuotesV2.df                           | Returns a pandas DataFrame object with the ticks returned by the `historic_quotes_v2`.|
-| historic_agg_v2(self, symbol, multiplier, timespan, _from, to, unadjusted=False, limit=None)|  Returns an `AggsV2` which is a list of `Agg` entities. `AggsV2.df` gives you the DataFrame object.<br> - `multiplier` is an integer affecting the amount of data contained in each Agg object. <br> -`timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values: `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`. <br> - `_from` is an Eastern Time timestamp string/object that filters the result for the lower bound, inclusive. we accept the date in these formats: datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp, isoformat string (YYYY-MM-DD).<br> -  `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field.<br> -  `unadjusted` can be set to true if results should not be adjusted for splits.<br> -  `limit` is an integer to limit the number of results.  3000 is the default and max value. <br>The returned entities have fields relabeled with the longer name instead of shorter ones. For example, the `o` field is renamed to `open`.|
-| Aggs.df                               |  Returns a pandas DataFrame object with the ticks returned by `historic_agg_v2`.|
-| daily_open_close(symbol, date)        |  Returns a `DailyOpenClose` entity.|
-| last_trade(symbol)                    |  Returns a `Trade` entity representing the last trade for the symbol.|
-| last_quote(symbol)                    |  Returns a `Quote` entity representing the last quote for the symbol.|
-| condition_map(ticktype='trades')      |  Returns a `ConditionMap` entity.|
-| company(symbol)                       |  Returns a `Company` entity if `symbol` is string, or a dict[symbol -> `Company`] if `symbol` is a list of string.|
-| dividends(symbol)                     |  Returns a `Dividends` entity if `symbol` is string, or a dict[symbol -> `Dividends`] if `symbol` is a list of string.|
-| splits(symbol)                        |  Returns a `Splits` entity for the symbol.|
-| earnings(symbol)                      |  Returns an `Earnings` entity if `symbol` is string, or a dict[symbol -> `Earnings`] if `symbol` is a list of string.|
-| financials_v2(symbol, limit, report_type, sort)   | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
-| news(symbol)                          |  Returns a `NewsList` entity for the symbol.|
 
 
 ## Running Multiple Strategies

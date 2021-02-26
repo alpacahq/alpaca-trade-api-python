@@ -59,6 +59,49 @@ Alternatively you could pass the credentials directly to the SDK instances.
 | APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
 | DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
 
+## Working with Data
+### Historic Data
+You could get one of these historic data types:
+* Bars
+* Quotes
+* Trades
+First thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
+You now have 2 options:
+* Working with data as it is received with a generator. (meaning it's faster but you need to process each item alone)
+* Wait for the entire data to be received, and then work with it as a list or dataframe.
+We provide you with both options to choose from.
+
+#### Bars
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
+
+api.get_bars("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw').df
+
+                               open    high      low     close    volume
+timestamp                                                               
+2021-02-08 09:00:00+00:00  136.6800  137.15  136.450  136.9600     38707
+2021-02-08 10:00:00+00:00  136.9600  137.08  136.800  136.8300     22334
+2021-02-08 11:00:00+00:00  136.8300  136.97  136.710  136.9100     19546
+2021-02-08 12:00:00+00:00  136.9000  136.97  136.050  136.2200    483167
+2021-02-08 13:00:00+00:00  136.2200  136.25  136.010  136.1700    307755
+2021-02-08 14:00:00+00:00  136.1525  136.35  134.920  135.6900  12159693
+2021-02-08 15:00:00+00:00  135.6800  136.68  135.595  136.6100   8076122
+2021-02-08 16:00:00+00:00  136.6800  136.91  135.040  136.2350   8484923
+2021-02-08 17:00:00+00:00  136.2400  136.54  135.030  135.9745   4610247
+2021-02-08 18:00:00+00:00  135.9799  136.30  135.800  135.9330   3375300
+```
+option 2: iterate over bars
+```py
+def process_bar(bar):
+    # process bar
+
+bar_iter = api.get_bars_iter("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw')
+for bar in bar_iter:
+    process_bar(bar)
+```
+
 ## Example
 
 

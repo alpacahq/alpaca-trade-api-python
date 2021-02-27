@@ -96,11 +96,47 @@ option 2: iterate over bars
 ```py
 def process_bar(bar):
     # process bar
+    print(bar)
 
 bar_iter = api.get_bars_iter("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw')
 for bar in bar_iter:
     process_bar(bar)
 ```
+
+
+#### Quotes
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
+
+api.get_quotes("AAPL", "2021-02-08", "2021-02-08", limit=10).df
+
+                                    ask_exchange  ask_price  ask_size bid_exchange  bid_price  bid_size conditions
+timestamp                                                                                                         
+2021-02-08 09:02:07.697204555+00:00            Q     136.80         1            P     136.52         1        [R]
+2021-02-08 09:02:07.706401536+00:00            Q     136.80         1            P     136.56         2        [R]
+2021-02-08 09:02:07.837365238+00:00            P     136.81         1            P     136.56         2        [R]
+2021-02-08 09:02:07.838885705+00:00            Q     136.79         1            P     136.56         2        [R]
+2021-02-08 09:02:30.946732544+00:00            P     136.64         1            P     136.50         1        [R]
+2021-02-08 09:02:32.558048512+00:00            P     136.64         1            P     136.37         1        [R]
+2021-02-08 09:02:32.794415360+00:00            Q     136.69         1            P     136.37         1        [R]
+2021-02-08 09:02:32.795173632+00:00            P     136.62         1            P     136.37         1        [R]
+2021-02-08 09:02:33.969686528+00:00            Q     136.69         1            P     136.37         1        [R]
+2021-02-08 09:02:34.069692672+00:00            P     136.55         1            P     136.37         1        [R]
+
+```
+option 2: iterate over bars
+```py
+def process_quote(quote):
+    # process quote
+    print(quote)
+
+quote_iter = api.get_quotes_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
+for quote in quote_iter:
+    process_quote(quote)
+```
+
 
 ## Example
 

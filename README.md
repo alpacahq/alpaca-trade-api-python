@@ -103,7 +103,6 @@ for bar in bar_iter:
     process_bar(bar)
 ```
 
-
 #### Quotes
 option 1: wait for the data
 ```py
@@ -126,7 +125,7 @@ timestamp
 2021-02-08 09:02:34.069692672+00:00            P     136.55         1            P     136.37         1        [R]
 
 ```
-option 2: iterate over bars
+option 2: iterate over quotes
 ```py
 def process_quote(quote):
     # process quote
@@ -137,6 +136,39 @@ for quote in quote_iter:
     process_quote(quote)
 ```
 
+
+#### Trades
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
+
+api.get_trades("AAPL", "2021-02-08", "2021-02-08", limit=10).df
+
+                                    exchange   price  size conditions  id tape
+timestamp                                                                     
+2021-02-08 09:00:11.764828160+00:00        P  136.68     1  [@, T, I]  46    C
+2021-02-08 09:00:13.885322240+00:00        P  136.75    35  [@, T, I]  49    C
+2021-02-08 09:00:13.885322240+00:00        P  136.75    10  [@, T, I]  48    C
+2021-02-08 09:00:13.885322240+00:00        P  136.68    28  [@, T, I]  47    C
+2021-02-08 09:00:17.024569856+00:00        P  136.61    16  [@, T, I]  50    C
+2021-02-08 09:00:17.810107904+00:00        P  136.66     1  [@, T, I]  51    C
+2021-02-08 09:00:19.932405248+00:00        P  136.68    25  [@, T, I]  55    C
+2021-02-08 09:00:19.932405248+00:00        P  136.75    18  [@, T, I]  56    C
+2021-02-08 09:00:19.932405248+00:00        P  136.68    11  [@, T, I]  54    C
+2021-02-08 09:00:19.932405248+00:00        P  136.67    10  [@, T, I]  53    C
+
+```
+option 2: iterate over trades
+```py
+def process_trade(trade):
+    # process trade
+    print(trade)
+
+trades_iter = api.get_trades_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
+for trade in trades_iter:
+    process_trade(trade)
+```
 
 ## Example
 

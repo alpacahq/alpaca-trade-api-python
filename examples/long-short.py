@@ -1,7 +1,9 @@
-import alpaca_trade_api as tradeapi
-import threading
-import time
 import datetime
+import threading
+
+import alpaca_trade_api as tradeapi
+import time
+from alpaca_trade_api.rest import TimeFrame
 
 API_KEY = "YOUR_API_KEY_HERE"
 API_SECRET = "YOUR_API_SECRET_HERE"
@@ -12,7 +14,10 @@ class LongShort:
   def __init__(self):
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
 
-    stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM', 'SNAP', 'SHOP', 'SPLK', 'BA', 'AMZN', 'SUI', 'SUN', 'TSLA', 'CGC', 'SPWR', 'NIO', 'CAT', 'MSFT', 'PANW', 'OKTA', 'TWTR', 'TM', 'RTN', 'ATVI', 'GS', 'BAC', 'MS', 'TWLO', 'QCOM', ]
+    stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM', 'SNAP', 'SHOP',
+                     'SPLK', 'BA', 'AMZN', 'SUI', 'SUN', 'TSLA', 'CGC', 'SPWR',
+                     'NIO', 'CAT', 'MSFT', 'PANW', 'OKTA', 'TWTR', 'TM', 'RTN',
+                     'ATVI', 'GS', 'BAC', 'MS', 'TWLO', 'QCOM', ]
     # Format the allStocks variable for use in the class.
     self.allStocks = []
     for stock in stockUniverse:
@@ -269,7 +274,11 @@ class LongShort:
   def getTotalPrice(self, stocks, resp):
     totalPrice = 0
     for stock in stocks:
-      bars = self.alpaca.get_barset(stock, "minute", 1)
+      bars = self.alpaca.get_bars(stock, TimeFrame.Minute,
+                                  pd.Timestamp('now').date(),
+                                  pd.Timestamp('now').date(), limit=1,
+                                  adjustment='raw')
+
       totalPrice += bars[stock][0].c
     resp.append(totalPrice)
 
@@ -309,7 +318,10 @@ class LongShort:
   def getPercentChanges(self):
     length = 10
     for i, stock in enumerate(self.allStocks):
-      bars = self.alpaca.get_barset(stock[0], 'minute', length)
+      bars = self.alpaca.get_bars(stock[0], TimeFrame.Minute,
+                                  pd.Timestamp('now').date(),
+                                  pd.Timestamp('now').date(), limit=length,
+                                  adjustment='raw')
       self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]]) - 1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.

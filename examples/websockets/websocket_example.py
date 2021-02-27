@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
         sec_agg_count = 0  # don't print too much quotes
         @conn.on(r'A.*')
-        async def on_agg(conn, channel, bars):
+        async def on_agg_sec(conn, channel, bars):
             global sec_agg_count
             if sec_agg_count % 1000 == 0:
                 print('sec bars', bars)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
         agg_count = 0  # don't print too much quotes
         @conn.on(r'AM.*')
-        async def on_agg(conn, channel, bars):
+        async def on_agg_min(conn, channel, bars):
             global agg_count
             if agg_count % 1000 == 0:
                 print('bars', bars)

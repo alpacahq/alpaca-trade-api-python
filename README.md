@@ -8,83 +8,213 @@
 `alpaca-trade-api-python` is a python library for the [Alpaca Commission Free Trading API](https://alpaca.markets).
 It allows rapid trading algo development easily, with support for
 both REST and streaming data interfaces. For details of each API behavior,
-please see the online [API document](https://docs.alpaca.markets).
-```diff
-- To use the Streaming abilities go to section called StreamConn
-```
+please see the online [API document](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/).
 
-
-Note this module supports only python version 3.6 and above, due to
+Note that this package supports only python version 3.6 and above, due to
 the async/await and websockets module dependency.
 
 ## Install
-We support python 3.x. If you want to work with python < 3.7 please note that these package dropped support for python <3.7 for the following versions:
+We support python>=3.6. If you want to work with python 3.6, please note that these package dropped support for python <3.7 for the following versions:
 ```
 pandas >= 1.2.0
 numpy >= 1.20.0
 scipy >= 1.6.0
 ```
 The solution - manually install these package before installing alpaca-trade-api. e.g:
-```
+```bash
 pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
 ```
 
+Installing using pip
 ```bash
 $ pip3 install alpaca-trade-api
 ```
 
-## Example
+## API Keys
+To use this package you first need to obtain an API key. Go here to [signup](https://app.alpaca.markets/signup)
 
-In order to call Alpaca's trade API, you need to sign up for an account and obtain API key pairs. Replace <key_id> and <secret_key> with what you get from the web console.
+# Services
+These services are provided by Alpaca:
+* Data:
+  * [Historical](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/)
+  * [Live Data Stream](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/)
+* [Account/Porfolio Management](https://alpaca.markets/docs/api-documentation/api-v2)
 
-### REST example
-```python
-import alpaca_trade_api as tradeapi
+The free services are limited, please check the docs to see the differences between paid/free services.
 
-api = tradeapi.REST('<key_id>', '<secret_key>', base_url='https://paper-api.alpaca.markets') # or use ENV Vars shown below
-account = api.get_account()
-api.list_positions()
+## Alpaca Environment Variables
+
+The Alpaca SDK will check the environment for a number of variables that can be used rather than hard-coding these into your scripts.<br>
+Alternatively you could pass the credentials directly to the SDK instances.
+
+
+| Environment                      | default                                                                                | Description                                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| APCA_API_KEY_ID=<key_id>         |                                                                                        | Your API Key                                                                                                           |
+| APCA_API_SECRET_KEY=<secret_key> |                                                                                        | Your API Secret Key                                                                                                    |
+| APCA_API_BASE_URL=url            | https://api.alpaca.markets (for live) | Specify the URL for API calls, *Default is live, you must specify <br/>https://paper-api.alpaca.markets to switch to paper endpoint!*                   |
+| APCA_API_DATA_URL=url            | https://data.alpaca.markets                                                            | Endpoint for data API                                                                                                  |
+| APCA_RETRY_MAX=3                 | 3                                                                                      | The number of subsequent API calls to retry on timeouts                                                                |
+| APCA_RETRY_WAIT=3                | 3                                                                                      | seconds to wait between each retry attempt                                                                             |
+| APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
+| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
+
+## Working with Data
+### Historic Data
+You could get one of these historic data types:
+* Bars
+* Quotes
+* Trades
+First thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
+You now have 2 options:
+* Working with data as it is received with a generator. (meaning it's faster but you need to process each item alone)
+* Wait for the entire data to be received, and then work with it as a list or dataframe.
+We provide you with both options to choose from.
+
+#### Bars
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
+
+api.get_bars("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw').df
+
+                               open    high      low     close    volume
+timestamp                                                               
+2021-02-08 09:00:00+00:00  136.6800  137.15  136.450  136.9600     38707
+2021-02-08 10:00:00+00:00  136.9600  137.08  136.800  136.8300     22334
+2021-02-08 11:00:00+00:00  136.8300  136.97  136.710  136.9100     19546
+2021-02-08 12:00:00+00:00  136.9000  136.97  136.050  136.2200    483167
+2021-02-08 13:00:00+00:00  136.2200  136.25  136.010  136.1700    307755
+2021-02-08 14:00:00+00:00  136.1525  136.35  134.920  135.6900  12159693
+2021-02-08 15:00:00+00:00  135.6800  136.68  135.595  136.6100   8076122
+2021-02-08 16:00:00+00:00  136.6800  136.91  135.040  136.2350   8484923
+2021-02-08 17:00:00+00:00  136.2400  136.54  135.030  135.9745   4610247
+2021-02-08 18:00:00+00:00  135.9799  136.30  135.800  135.9330   3375300
+```
+option 2: iterate over bars
+```py
+def process_bar(bar):
+    # process bar
+    print(bar)
+
+bar_iter = api.get_bars_iter("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw')
+for bar in bar_iter:
+    process_bar(bar)
 ```
 
-please note the exact format of the dates
+#### Quotes
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
 
-## Example Scripts
+api.get_quotes("AAPL", "2021-02-08", "2021-02-08", limit=10).df
 
-Please see the `examples/` folder for some example scripts that make use of this API
+                                    ask_exchange  ask_price  ask_size bid_exchange  bid_price  bid_size conditions
+timestamp                                                                                                         
+2021-02-08 09:02:07.697204555+00:00            Q     136.80         1            P     136.52         1        [R]
+2021-02-08 09:02:07.706401536+00:00            Q     136.80         1            P     136.56         2        [R]
+2021-02-08 09:02:07.837365238+00:00            P     136.81         1            P     136.56         2        [R]
+2021-02-08 09:02:07.838885705+00:00            Q     136.79         1            P     136.56         2        [R]
+2021-02-08 09:02:30.946732544+00:00            P     136.64         1            P     136.50         1        [R]
+2021-02-08 09:02:32.558048512+00:00            P     136.64         1            P     136.37         1        [R]
+2021-02-08 09:02:32.794415360+00:00            Q     136.69         1            P     136.37         1        [R]
+2021-02-08 09:02:32.795173632+00:00            P     136.62         1            P     136.37         1        [R]
+2021-02-08 09:02:33.969686528+00:00            Q     136.69         1            P     136.37         1        [R]
+2021-02-08 09:02:34.069692672+00:00            P     136.55         1            P     136.37         1        [R]
 
-## API Document
+```
+option 2: iterate over quotes
+```py
+def process_quote(quote):
+    # process quote
+    print(quote)
+
+quote_iter = api.get_quotes_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
+for quote in quote_iter:
+    process_quote(quote)
+```
+
+#### Trades
+option 1: wait for the data
+```py
+from alpaca_trade_api.rest import REST
+api = REST()
+
+api.get_trades("AAPL", "2021-02-08", "2021-02-08", limit=10).df
+
+                                    exchange   price  size conditions  id tape
+timestamp                                                                     
+2021-02-08 09:00:11.764828160+00:00        P  136.68     1  [@, T, I]  46    C
+2021-02-08 09:00:13.885322240+00:00        P  136.75    35  [@, T, I]  49    C
+2021-02-08 09:00:13.885322240+00:00        P  136.75    10  [@, T, I]  48    C
+2021-02-08 09:00:13.885322240+00:00        P  136.68    28  [@, T, I]  47    C
+2021-02-08 09:00:17.024569856+00:00        P  136.61    16  [@, T, I]  50    C
+2021-02-08 09:00:17.810107904+00:00        P  136.66     1  [@, T, I]  51    C
+2021-02-08 09:00:19.932405248+00:00        P  136.68    25  [@, T, I]  55    C
+2021-02-08 09:00:19.932405248+00:00        P  136.75    18  [@, T, I]  56    C
+2021-02-08 09:00:19.932405248+00:00        P  136.68    11  [@, T, I]  54    C
+2021-02-08 09:00:19.932405248+00:00        P  136.67    10  [@, T, I]  53    C
+
+```
+option 2: iterate over trades
+```py
+def process_trade(trade):
+    # process trade
+    print(trade)
+
+trades_iter = api.get_trades_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
+for trade in trades_iter:
+    process_trade(trade)
+```
+
+### Live Stream Data
+There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
+The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>
+You could subscribe to bars, trades or quotes and accoutn updates as well.<br>
+Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/feature/data-v2/examples/websockets) to achieve different goals. Let's see the basic example<br>
+We present a new Streamer class under `alpaca_trade_api.stream` for API V2.
+```py
+
+async def trade_callback(t):
+    print('trade', t)
+
+
+async def quote_callback(q):
+    print('quote', q)
+
+
+# Initiate Class Instance
+stream = Stream(<ALPACA_API_KEY>,
+                <ALPACA_SECRET_KEY>,
+                base_url=URL('https://paper-api.alpaca.markets'),
+                data_feed='iex')  # <- replace to SIP if you have PRO subscription
+
+# subscribing to event
+stream.subscribe_trades(trade_callback, 'AAPL')
+stream.subscribe_quotes(quote_callback, 'IBM')
+
+stream.run()
+
+```
+
+## Acount & Portfolio Management 
 
 The HTTP API document is located at https://docs.alpaca.markets/
 
-## API Version
+### API Version
 
 API Version now defaults to 'v2', however, if you still have a 'v1' account, you may need to specify api_version='v1' to properly use the API until you migrate.
 
-## Authentication
+### Authentication
 
 The Alpaca API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can pass `key_id` and `secret_key` to the initializers of
 `REST` or `StreamConn` as arguments, or set up environment variables as
 outlined below.
 
-## Alpaca Environment Variables
-
-The Alpaca SDK will check the environment for a number of variables that can be used rather than hard-coding these into your scripts.
-
-| Environment                      | default                                                                                | Description                                                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| APCA_API_KEY_ID=<key_id>         |                                                                                        | Your API Key                                                                                                           |
-| APCA_API_SECRET_KEY=<secret_key> |                                                                                        | Your API Secret Key                                                                                                    |
-| APCA_API_BASE_URL=url            | https://api.alpaca.markets (for live)<br/>https://paper-api.alpaca.markets (for paper) | Specify the URL for API calls, *Default is live, you must specify this to switch to paper endpoint!*                   |
-| APCA_API_DATA_URL=url            | https://data.alpaca.markets                                                            | Endpoint for data API                                                                                                  |
-| APCA_RETRY_MAX=3                 | 3                                                                                      | The number of subsequent API calls to retry on timeouts                                                                |
-| APCA_RETRY_WAIT=3                | 3                                                                                      | seconds to wait between each retry attempt                                                                             |
-| APCA_RETRY_CODES=429,504         | 429,504                                                                                | comma-separated HTTP status code for which retry is attempted                                                          |
-| POLYGON_WS_URL                   | wss://socket.polygon.io/stocks                                                         | Endpoint for streaming polygon data.  You likely don't need to change this unless you want to proxy it for example     |
-| POLYGON_KEY_ID                   |                                                                                        | Your Polygon key, if it's not the same as your Alpaca API key. Most users will not need to set this to access Polygon. |
-| DATA_PROXY_WS                    |                                                                                        | When using the alpaca-proxy-agent you need to set this environment variable as described ![here](https://github.com/shlomikushchi/alpaca-proxy-agent) |
-
-## REST
+### REST
 
 The `REST` class is the entry point for the API request.  The instance of this
 class provides all REST API calls such as account, orders, positions,
@@ -118,7 +248,7 @@ You can access the following information through this object.
 - the original response objecgt: `.response` property
 - the HTTP status code: `.status_code` property
 
-### API REST Methods
+#### API REST Methods
 
 | Rest Method                                      | End Point          |   Result                                                                                | 
 | --------------------------------                 | -------------------| ------------------------------------------------------------------ |
@@ -141,7 +271,9 @@ You can access the following information through this object.
 | get_calendar(start=None, end=None)               | `GET /calendar` | `Calendar` entity|
 | get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None) | `GET /account/portfolio/history` | PortfolioHistory entity. PortfolioHistory.df can be used to get the results as a dataframe|
 
-### Rest Examples
+#### Rest Examples
+
+Please see the `examples/` folder for some example scripts that make use of this API
 
 ##### Using `submit_order()`
 Below is an example of submitting a bracket order.
@@ -163,7 +295,7 @@ api.submit_order(
 )
 ```
 
-##### Using `get_barset()`
+##### Using `get_barset()` (Deprecated. use `get_bars()` instead)
 ```python 
 import pandas as pd
 NY = 'America/New_York'
@@ -181,89 +313,6 @@ print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
 please note that if you are using limit, it is calculated from the end date. and if end date is not specified, "now" is used. <br>Take that under consideration when using start date with a limit. 
 
 ---
-
-## StreamConn
-
-The `StreamConn` class provides WebSocket-based event-driven
-interfaces.  Using the `on` decorator of the instance, you can
-define custom event handlers that are called when the pattern
-is matched on the channel name.  Once event handlers are set up,
-call the `run` method which runs forever until a critical exception
-is raised. This module itself does not provide any threading
-capability, so if you need to consume the messages pushed from the
-server, you need to run it in a background thread.
-
-We provide 2 price data websockets. The polygon data, and the alpaca data.
-We default to Alpaca data, and one must explicitly specify the polygon data stream in order to use that.
-It is done by passing the `data_stream` keyword to the `__init__()` function of `StreamConn` (options: `'alpacadatav1', 'polygon'`)
-
-This class provides a unique interface to the two interfaces, both
-Alpaca's account/trade updates events and Polygon's price updates.
-One connection is established when the `subscribe()` is called with
-the corresponding channel names.  For example, if you subscribe to
-`trade_updates`, a WebSocket connects to Alpaca stream API, and
-if `AM.*` given to the `subscribe()` method, a WebSocket connection is
-established to Polygon's interface. If your account is enabled for
-Alpaca Data API streaming, adding `alpacadatav1/` prefix to `T.<symbol>`,
-`Q.<symbol>` and `AM.<symbol>` will also connect to the data stream
-interface.
-
-The `run` method is a short-cut to start subscribing to channels and
-running forever.  The call will be blocked forever until a critical
-exception is raised, and each event handler is called asynchronously
-upon the message arrivals.
-
-The `run` method tries to reconnect to the server in the event of
-connection failure.  In this case, you may want to reset your state
-which is best in the `connect` event.  The method still raises
-an exception in the case any other unknown error happens inside the
-event loop.
-
-The `msg` object passed to each handler is wrapped by the entity
-helper class if the message is from the server.
-
-Each event handler has to be a marked as `async`.  Otherwise,
-a `ValueError` is raised when registering it as an event handler.
-
-```python
-conn = StreamConn()
-
-@conn.on(r'^trade_updates$')
-async def on_account_updates(conn, channel, account):
-    print('account', account)
-
-@conn.on(r'^status$')
-async def on_status(conn, channel, data):
-    print('polygon status update', data)
-
-@conn.on(r'^AM$')
-async def on_minute_bars(conn, channel, bar):
-    print('bars', bar)
-
-@conn.on(r'^A$')
-async def on_second_bars(conn, channel, bar):
-    print('bars', bar)
-
-# blocks forever
-conn.run(['trade_updates', 'AM.*'])
-
-# if Data API streaming is enabled
-# conn.run(['trade_updates', 'alpacadatav1/AM.SPY'])
-
-```
-
-You will likely call the `run` method in a thread since it will keep running
-unless an exception is raised.
-
-| StreamConn Method                     | Description                                                                            | 
-| --------------------------------      | -------------------------------------------------------------------------------------- |
-| subscribe(channels)                   |  Request "listen" to the server.  `channels` must be a list of string channel names.|
-| unsubscribe(channels)                 |  Request to stop "listening" to the server.  `channels` must be a list of string channel names.|
-| run(channels)                         |  Goes into an infinite loop and awaits for messages from the server.  You should set up event listeners using the `on` or `register` method before calling `run`. |
-| on(channel_pat)                       |  As in the above example, this is a decorator method to add an event handler function. `channel_pat` is used as a regular expression pattern to filter stream names.|
-| register(channel_pat, func)           |  Registers a function as an event handler that is triggered by the stream events that match with `channel_path` regular expression. Calling this method with the same `channel_pat` will overwrite the old handler.|
-| deregister(channel_pat)               | Deregisters the event handler function that was previously registered via `on` or `register` method. |
-
 
 #### Debugging
 Websocket exceptions may occur during execution.
@@ -290,68 +339,10 @@ logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
 ## Websocket best practices
 Under the examples folder you could find several examples to do the following:
-* Different subscriptions(channels) usage with alpaca/polygon streams
+* Different subscriptions(channels) usage with the alpaca streams
 * pause / resume connection
 * change subscriptions/channels of existing connection
 * ws disconnections handler (make sure we reconnect when the internal mechanism fails)
-
-
-# Polygon API Service
-
-Alpaca's API key ID can be used to access Polygon API, the documentation for
-which is found [here](https://polygon.io/docs/).
-This python SDK wraps their API service and seamlessly integrates it with the Alpaca
-API. `alpaca_trade_api.REST.polygon` will be the `REST` object for Polygon.
-
-The example below gives AAPL daily OHLCV data in a DataFrame format.
-
-```py
-import alpaca_trade_api as tradeapi
-
-api = tradeapi.REST()
-# all of these examples work
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from='2019-01-01', to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.datetime(2019, 1, 1), to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=datetime.date(2019, 1, 1), to='2019-02-01').df
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=pd.Timestamp('2019-01-01'), to='2019-02-01').df
-# timestamp should be in milliseconds datetime.datetime(2019, 1, 1).timestamp()*1000 == 1546293600000
-aapl = api.polygon.historic_agg_v2('AAPL', 1, 'day', _from=1546293600000, to='2019-02-01').df
-```
-and here's a minute example usage:
-```py
-import pytz
-NY = 'America/New_York'
-
-start = pytz.timezone(NY).localize(datetime(2020,1,2,9,30)).timestamp()*1000  # timestamp in micro seconds
-# another alternative will be: start = pd.Timestamp('2020-01-02 09:30', tz=NY).value/1e6
-end = pytz.timezone(NY).localize(datetime(2020,1,2,16,0)).timestamp()*1000
-df = api.polygon.historic_agg_v2('AAPL', 1, 'minute', _from=start, to=end).df
-
-```
-
-## polygon/REST
-It is initialized through the alpaca `REST` object.
-
-| REST Method                           | Description                                                                            | 
-| --------------------------------      | -------------------------------------------------------------------------------------- |
-| exchanges()                           |  Returns a list of `Exchange` entity.|
-| symbol_type_map()                     |  Returns a `SymbolTypeMap` object.|
-| historic_trades_v2(symbol, date, timestamp=None, timestamp_limit=None, reverse=None, limit=None) |  Returns a `TradesV2` which is a list of `Trade` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
-| TradesV2.df                           | Returns a pandas DataFrame object with the ticks returned by `historic_trades_v2`. |
-| historic_quotes_v2(symbol, date, timestamp=None, timestamp_limit=None, reverse=None, limit=None)|  Returns a `QuotesV2` which is a list of `Quote` entities. `date` is a date string such as '2018-2-2'.  The returned quotes are from this day only. `timestamp` is an integer in Unix Epoch nanoseconds as the lower bound filter, exclusive. `timestamp_limit` is an integer in Unix Epoch nanoseconds as the maximum timestamp allowed in the results. `limit` is an integer for the number of ticks to return.  Default and max is 50000.      |
-| QuotesV2.df                           | Returns a pandas DataFrame object with the ticks returned by the `historic_quotes_v2`.|
-| historic_agg_v2(self, symbol, multiplier, timespan, _from, to, unadjusted=False, limit=None)|  Returns an `AggsV2` which is a list of `Agg` entities. `AggsV2.df` gives you the DataFrame object.<br> - `multiplier` is an integer affecting the amount of data contained in each Agg object. <br> -`timespan` is a string affecting the length of time represented by each Agg object. It is one of the following values: `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`. <br> - `_from` is an Eastern Time timestamp string/object that filters the result for the lower bound, inclusive. we accept the date in these formats: datetime.datetime, datetime.date, pd.Timestamp, datetime.timestamp, isoformat string (YYYY-MM-DD).<br> -  `to` is an Eastern Time timestamp string that filters the result for the upper bound, inclusive. we support the same formats as the _from field.<br> -  `unadjusted` can be set to true if results should not be adjusted for splits.<br> -  `limit` is an integer to limit the number of results.  3000 is the default and max value. <br>The returned entities have fields relabeled with the longer name instead of shorter ones. For example, the `o` field is renamed to `open`.|
-| Aggs.df                               |  Returns a pandas DataFrame object with the ticks returned by `historic_agg_v2`.|
-| daily_open_close(symbol, date)        |  Returns a `DailyOpenClose` entity.|
-| last_trade(symbol)                    |  Returns a `Trade` entity representing the last trade for the symbol.|
-| last_quote(symbol)                    |  Returns a `Quote` entity representing the last quote for the symbol.|
-| condition_map(ticktype='trades')      |  Returns a `ConditionMap` entity.|
-| company(symbol)                       |  Returns a `Company` entity if `symbol` is string, or a dict[symbol -> `Company`] if `symbol` is a list of string.|
-| dividends(symbol)                     |  Returns a `Dividends` entity if `symbol` is string, or a dict[symbol -> `Dividends`] if `symbol` is a list of string.|
-| splits(symbol)                        |  Returns a `Splits` entity for the symbol.|
-| earnings(symbol)                      |  Returns an `Earnings` entity if `symbol` is string, or a dict[symbol -> `Earnings`] if `symbol` is a list of string.|
-| financials_v2(symbol, limit, report_type, sort)   | Returns an `Financials` entity if `symbol` is string, or a dict[symbol -> `Financials`] if `symbol` is a list of string. |
-| news(symbol)                          |  Returns a `NewsList` entity for the symbol.|
 
 
 ## Running Multiple Strategies

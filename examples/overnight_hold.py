@@ -1,4 +1,5 @@
 import alpaca_trade_api as tradeapi
+from alpaca_trade_api.rest import TimeFrame
 import pandas as pd
 import statistics
 import sys
@@ -36,12 +37,15 @@ def get_ratings(symbols, algo_time):
             asset.symbol for asset in assets[index:index+batch_size]
         ]
         # Retrieve data for this batch of symbols.
-        barset = api.get_barset(
-            symbols=symbol_batch,
-            timeframe='day',
-            limit=window_size,
-            end=formatted_time
-        )
+        barset = {}
+        for symbol in symbol_batch:
+            bars = api.get_bars(symbol,
+                                TimeFrame.Day,
+                                formatted_time - timedelta(days=window_size),
+                                formatted_time,
+                                limit=window_size,
+                                adjustment='raw')
+            barset[symbol] = bars
 
         for symbol in symbol_batch:
             bars = barset[symbol]
@@ -135,12 +139,11 @@ def backtest(api, days_to_test, portfolio_amount):
         cal_index += 1
 
     # Print market (S&P500) return for the time period
-    sp500_bars = api.get_barset(
-        symbols='SPY',
-        timeframe='day',
-        start=api_format(calendars[0].date),
-        end=api_format(calendars[-1].date)
-    )['SPY']
+    sp500_bars = self.oapi.get_bars('SPY',
+                                    TimeFrame.Day,
+                                    api_format(calendars[0].date),
+                                    api_format(calendars[-1].date),
+                                    adjustment='raw')
     sp500_change = (sp500_bars[-1].c - sp500_bars[0].c) / sp500_bars[0].c
     print('S&P 500 change during backtesting window: {:.4f}%'.format(
         sp500_change*100)
@@ -157,12 +160,16 @@ def get_value_of_assets(api, shares_bought, on_date):
 
     total_value = 0
     formatted_date = api_format(on_date)
-    barset = api.get_barset(
-        symbols=shares_bought.keys(),
-        timeframe='day',
-        limit=1,
-        end=formatted_date
-    )
+
+    barset = {}
+    for symbol in shares_bought.keys():
+        bars = api.get_bars(symbol,
+                            TimeFrame.Day,
+                            on_date,
+                            on_date,
+                            limit=1,
+                            adjustment='raw')
+        barset[symbol] = bars
     for symbol in shares_bought:
         total_value += shares_bought[symbol] * barset[symbol][0].o
     return total_value

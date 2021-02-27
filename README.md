@@ -197,44 +197,22 @@ stream.subscribe_quotes(quote_callback, 'IBM')
 
 ```
 
-
-
-## Example
-
-
-### REST example
-```python
-import alpaca_trade_api as tradeapi
-
-api = tradeapi.REST('<key_id>', '<secret_key>', base_url='https://paper-api.alpaca.markets') # or use ENV Vars shown below
-account = api.get_account()
-api.list_positions()
-```
-
-please note the exact format of the dates
-
-## Example Scripts
-
-Please see the `examples/` folder for some example scripts that make use of this API
-
-## API Document
+## Acount & Portfolio Management 
 
 The HTTP API document is located at https://docs.alpaca.markets/
 
-## API Version
+### API Version
 
 API Version now defaults to 'v2', however, if you still have a 'v1' account, you may need to specify api_version='v1' to properly use the API until you migrate.
 
-## Authentication
+### Authentication
 
 The Alpaca API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can pass `key_id` and `secret_key` to the initializers of
 `REST` or `StreamConn` as arguments, or set up environment variables as
 outlined below.
 
-
-
-## REST
+### REST
 
 The `REST` class is the entry point for the API request.  The instance of this
 class provides all REST API calls such as account, orders, positions,
@@ -268,7 +246,7 @@ You can access the following information through this object.
 - the original response objecgt: `.response` property
 - the HTTP status code: `.status_code` property
 
-### API REST Methods
+#### API REST Methods
 
 | Rest Method                                      | End Point          |   Result                                                                                | 
 | --------------------------------                 | -------------------| ------------------------------------------------------------------ |
@@ -291,7 +269,9 @@ You can access the following information through this object.
 | get_calendar(start=None, end=None)               | `GET /calendar` | `Calendar` entity|
 | get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None) | `GET /account/portfolio/history` | PortfolioHistory entity. PortfolioHistory.df can be used to get the results as a dataframe|
 
-### Rest Examples
+#### Rest Examples
+
+Please see the `examples/` folder for some example scripts that make use of this API
 
 ##### Using `submit_order()`
 Below is an example of submitting a bracket order.
@@ -331,83 +311,6 @@ print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
 please note that if you are using limit, it is calculated from the end date. and if end date is not specified, "now" is used. <br>Take that under consideration when using start date with a limit. 
 
 ---
-
-## StreamConn (deprecated)
-
-The `StreamConn` class provides WebSocket-based event-driven
-interfaces.  Using the `on` decorator of the instance, you can
-define custom event handlers that are called when the pattern
-is matched on the channel name.  Once event handlers are set up,
-call the `run` method which runs forever until a critical exception
-is raised. This module itself does not provide any threading
-capability, so if you need to consume the messages pushed from the
-server, you need to run it in a background thread.
-
-One connection is established when the `subscribe()` is called with
-the corresponding channel names.  For example, if you subscribe to
-`trade_updates`, a WebSocket connects to Alpaca stream API, and
-if `AM.*` given to the `subscribe()` method, a WebSocket connection is
-established to Polygon's interface. If your account is enabled for
-Alpaca Data API streaming, adding `alpacadatav1/` prefix to `T.<symbol>`,
-`Q.<symbol>` and `AM.<symbol>` will also connect to the data stream
-interface.
-
-The `run` method is a short-cut to start subscribing to channels and
-running forever.  The call will be blocked forever until a critical
-exception is raised, and each event handler is called asynchronously
-upon the message arrivals.
-
-The `run` method tries to reconnect to the server in the event of
-connection failure.  In this case, you may want to reset your state
-which is best in the `connect` event.  The method still raises
-an exception in the case any other unknown error happens inside the
-event loop.
-
-The `msg` object passed to each handler is wrapped by the entity
-helper class if the message is from the server.
-
-Each event handler has to be a marked as `async`.  Otherwise,
-a `ValueError` is raised when registering it as an event handler.
-
-```python
-conn = StreamConn()
-
-@conn.on(r'^trade_updates$')
-async def on_account_updates(conn, channel, account):
-    print('account', account)
-
-@conn.on(r'^status$')
-async def on_status(conn, channel, data):
-    print('status update', data)
-
-@conn.on(r'^AM$')
-async def on_minute_bars(conn, channel, bar):
-    print('bars', bar)
-
-@conn.on(r'^A$')
-async def on_second_bars(conn, channel, bar):
-    print('bars', bar)
-
-# blocks forever
-conn.run(['trade_updates', 'AM.*'])
-
-# if Data API streaming is enabled
-# conn.run(['trade_updates', 'alpacadatav1/AM.SPY'])
-
-```
-
-You will likely call the `run` method in a thread since it will keep running
-unless an exception is raised.
-
-| StreamConn Method                     | Description                                                                            | 
-| --------------------------------      | -------------------------------------------------------------------------------------- |
-| subscribe(channels)                   |  Request "listen" to the server.  `channels` must be a list of string channel names.|
-| unsubscribe(channels)                 |  Request to stop "listening" to the server.  `channels` must be a list of string channel names.|
-| run(channels)                         |  Goes into an infinite loop and awaits for messages from the server.  You should set up event listeners using the `on` or `register` method before calling `run`. |
-| on(channel_pat)                       |  As in the above example, this is a decorator method to add an event handler function. `channel_pat` is used as a regular expression pattern to filter stream names.|
-| register(channel_pat, func)           |  Registers a function as an event handler that is triggered by the stream events that match with `channel_path` regular expression. Calling this method with the same `channel_pat` will overwrite the old handler.|
-| deregister(channel_pat)               | Deregisters the event handler function that was previously registered via `on` or `register` method. |
-
 
 #### Debugging
 Websocket exceptions may occur during execution.

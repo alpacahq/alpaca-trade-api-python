@@ -136,7 +136,6 @@ for quote in quote_iter:
     process_quote(quote)
 ```
 
-
 #### Trades
 option 1: wait for the data
 ```py
@@ -169,6 +168,36 @@ trades_iter = api.get_trades_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
 for trade in trades_iter:
     process_trade(trade)
 ```
+
+### Live Stream Data
+There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
+The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>
+You could subscribe to bars, trades or quotes and accoutn updates as well.<br>
+Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/feature/data-v2/examples/websockets) to achieve different goals. Let's see the basic example<br>
+We present a new Streamer class under `alpaca_trade_api.stream` for API V2.
+```py
+
+async def trade_callback(t):
+    print('trade', t)
+
+
+async def quote_callback(q):
+    print('quote', q)
+
+
+# Initiate Class Instance
+stream = Stream(<ALPACA_API_KEY>,
+                <ALPACA_SECRET_KEY>,
+                base_url=URL('https://paper-api.alpaca.markets'),
+                data_feed='iex')  # <- replace to SIP if you have PRO subscription
+
+# subscribing to event
+stream.subscribe_trades(trade_callback, 'AAPL')
+stream.subscribe_quotes(quote_callback, 'IBM')
+
+```
+
+
 
 ## Example
 

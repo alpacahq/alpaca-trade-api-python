@@ -1,9 +1,9 @@
 import alpaca_trade_api as tradeapi
+from alpaca_trade_api.stream import Stream
 import datetime
 
 ALPACA_API_KEY = "REPLACE_ME"
 ALPACA_SECRET_KEY = "REPLACE_ME"
-USE_POLYGON = False
 
 
 # Utility to truncate a float value to a certain number of decimal places.
@@ -75,31 +75,29 @@ class MartingaleTrader(object):
 
 
     def start_trading(self):
-        conn = tradeapi.StreamConn(
+        conn = Stream(
             self.key_id,
             self.secret_key,
             base_url=self.base_url,
-            data_url=self.data_url,
-            data_stream='polygon' if USE_POLYGON else 'alpacadatav1'
-        )
+            data_feed='iex')  # <- replace to SIP if you have PRO subscription
 
         # Listen for second aggregates and perform trading logic
-        @conn.on(r'A$', [self.symbol])
-        async def handle_agg(conn, channel, data):
+        async def handle_bar(bar):
             self.tick_index = (self.tick_index + 1) % self.tick_size
             if self.tick_index == 0:
                 # It's time to update
 
                 # Update price info
                 tick_open = self.last_price
-                tick_close = data.close
+                tick_close = bar.close
                 self.last_price = tick_close
 
                 self.process_current_tick(tick_open, tick_close)
 
+        stream.subscribe_bars(handle_bar, self.symbol)
+
         # Listen for quote data and perform trading logic
-        @conn.on(r'T\..+', [self.symbol])
-        async def handle_alpaca_aggs(conn, channel, data):
+        async def handle_trades(trade):
             now = datetime.datetime.utcnow()
             if now - self.last_trade_time < datetime.timedelta(seconds=1):
                 # don't react every tick unless at least 1 second past
@@ -111,14 +109,15 @@ class MartingaleTrader(object):
 
                 # Update price info
                 tick_open = self.last_price
-                tick_close = data.price
+                tick_close = trade.price
                 self.last_price = tick_close
 
                 self.process_current_tick(tick_open, tick_close)
 
+        stream.subscribe_trades(handle_trades, self.symbol)
+
         # Listen for updates to our orders
-        @conn.on(r'trade_updates')
-        async def handle_trade(conn, channel, data):
+        async def handle_trade_updates(data):
             symbol = data.order['symbol']
             if symbol != self.symbol:
                 # The order was for a position unrelated to this script
@@ -143,10 +142,9 @@ class MartingaleTrader(object):
             elif event_type != 'new':
                 print(f'Unexpected order event type {event_type} received')
 
-        if USE_POLYGON:
-            conn.run([f'A.{self.symbol}', 'trade_updates'])
-        else:
-            conn.run([f'alpacadatav1/T.{self.symbol}', 'trade_updates'])
+        stream.subscribe_trade_updates(handle_trade_updates)
+
+        stream.run()
 
     def process_current_tick(self, tick_open, tick_close):
         # Update streak info

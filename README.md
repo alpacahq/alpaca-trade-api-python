@@ -293,7 +293,7 @@ api.submit_order(
 )
 ```
 
-##### Using `get_barset()`
+##### Using `get_barset()` (Deprecated. use `get_bars()` instead)
 ```python 
 import pandas as pd
 NY = 'America/New_York'

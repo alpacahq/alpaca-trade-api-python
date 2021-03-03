@@ -16,7 +16,7 @@ from .entity import (
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
-from .entity_v2 import BarV2, TradesV2, QuotesV2
+from .entity_v2 import BarV2, BarsV2, TradesV2, QuotesV2
 from . import polygon
 
 logger = logging.getLogger(__name__)
@@ -612,7 +612,7 @@ class REST(object):
             if raw:
                 yield bar
             else:
-                yield self.response_wrapper(bar, Barv2)
+                yield self.response_wrapper(bar, BarV2)
 
     def get_bars(self,
                  symbol: str,

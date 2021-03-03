@@ -12,11 +12,11 @@ from .common import (
     get_api_version, URL, FLOAT,
 )
 from .entity import (
-    Bar, Entity, Account, AccountConfigurations, AccountActivity,
+    Entity, Account, AccountConfigurations, AccountActivity,
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
-from .entity_v2 import BarsV2, TradesV2, QuotesV2
+from .entity_v2 import BarV2, TradesV2, QuotesV2
 from . import polygon
 
 logger = logging.getLogger(__name__)

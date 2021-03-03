@@ -1,6 +1,6 @@
 from enum import Enum
 import pandas as pd
-from .entity import Bar, Trade, Quote
+from .entity import _NanoTimestamped, Entity, Trade, Quote
 
 
 trade_mapping_v2 = {
@@ -37,11 +37,14 @@ bar_mapping_v2 = {
     "t": "timestamp"
 }
 
+class BarV2(_NanoTimestamped, Entity):
+    pass
+
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
     Quote = Quote, quote_mapping_v2
-    Bar = Bar, bar_mapping_v2
+    Bar = BarV2, bar_mapping_v2
 
 
 class EntityList(list):

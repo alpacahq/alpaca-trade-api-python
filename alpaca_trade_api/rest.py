@@ -28,7 +28,7 @@ Calendars = List[Calendar]
 Watchlists = List[Watchlist]
 TradeIterator = Iterator[Union[Trade, dict]]
 QuoteIterator = Iterator[Union[Quote, dict]]
-BarIterator = Iterator[Union[Bar, dict]]
+BarIterator = Iterator[Union[BarV2, dict]]
 
 DATA_V2_MAX_LIMIT = 10000  # max items per api call
 
@@ -612,7 +612,7 @@ class REST(object):
             if raw:
                 yield bar
             else:
-                yield self.response_wrapper(bar, Bar)
+                yield self.response_wrapper(bar, Barv2)
 
     def get_bars(self,
                  symbol: str,

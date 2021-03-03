@@ -15,7 +15,7 @@ import websockets
 from .common import get_base_url, get_data_stream_url, get_credentials, URL
 from .entity import Entity
 from .entity_v2 import quote_mapping_v2, trade_mapping_v2, bar_mapping_v2, \
-    Trade, Quote, Bar
+    Trade, Quote, BarV2
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ class DataStream:
                     for k, v in msg.items() if k in quote_mapping_v2
                 })
             elif msg_type == 'b':
-                result = Bar({
+                result = BarV2({
                     bar_mapping_v2[k]: v
                     for k, v in msg.items() if k in bar_mapping_v2
                 })

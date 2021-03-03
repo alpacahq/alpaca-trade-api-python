@@ -37,6 +37,7 @@ bar_mapping_v2 = {
     "t": "timestamp"
 }
 
+
 class BarV2(_NanoTimestamped, Entity):
     pass
 

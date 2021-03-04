@@ -601,7 +601,7 @@ class REST(object):
                       timeframe: TimeFrame,
                       start: str,
                       end: str,
-                      adjustment: str = 'all',
+                      adjustment: str = 'raw',
                       limit: int = None,
                       raw=False) -> BarIterator:
         bars = self._data_get_v2('bars', symbol,
@@ -619,7 +619,7 @@ class REST(object):
                  timeframe: TimeFrame,
                  start: str,
                  end: str,
-                 adjustment: str = 'all',
+                 adjustment: str = 'raw',
                  limit: int = None,
                  ) -> BarsV2:
         bars = list(self.get_bars_iter(symbol,

@@ -2,6 +2,9 @@ import logging
 
 from alpaca_trade_api.stream import Stream
 
+# Uncomment URL import to test with paper credentials
+# from alpaca_trade_api.common import URL
+
 log = logging.getLogger(__name__)
 
 
@@ -20,7 +23,8 @@ async def print_trade_update(tu):
 def main():
     logging.basicConfig(level=logging.INFO)
     feed = 'iex'  # <- replace to SIP if you have PRO subscription
-    stream = Stream(data_feed=feed, raw_data=True)
+    
+    stream = Stream(data_feed=feed, raw_data=True)  # <- add base_url=URL('https://paper-api.alpaca.markets') for paper
     stream.subscribe_trade_updates(print_trade_update)
     stream.subscribe_trades(print_trade, 'AAPL')
     stream.subscribe_quotes(print_quote, 'IBM')

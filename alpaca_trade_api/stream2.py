@@ -123,6 +123,8 @@ class _StreamConn(object):
     async def subscribe(self, channels):
         if isinstance(channels, str):
             channels = [channels]
+        elif isinstance(channels, set):
+            channels = list(channels)
         if len(channels) > 0:
             await self._ensure_ws()
             self._streams |= set(channels)
@@ -136,6 +138,8 @@ class _StreamConn(object):
     async def unsubscribe(self, channels):
         if isinstance(channels, str):
             channels = [channels]
+        elif isinstance(channels, set):
+            channels = list(channels)
         if len(channels) > 0:
             await self._ws.send(json.dumps({
                 'action': 'unlisten',

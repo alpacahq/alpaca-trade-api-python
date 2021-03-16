@@ -199,6 +199,9 @@ class DataStream:
         # do not start the websocket connection until we subscribe to something
         while not (self._trade_handlers or self._quote_handlers
                    or self._bar_handlers):
+            if not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get()
+                return
             await asyncio.sleep(0.1)
         log.info('started data stream')
         retries = 0
@@ -310,6 +313,9 @@ class TradingStream:
     async def _run_forever(self):
         # do not start the websocket connection until we subscribe to something
         while not self._trade_updates_handler:
+            if not self._stop_stream_queue.empty():
+                self._stop_stream_queue.get()
+                return
             await asyncio.sleep(0.1)
         log.info('started trading stream')
         retries = 0

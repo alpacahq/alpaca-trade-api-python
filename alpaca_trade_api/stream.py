@@ -9,7 +9,6 @@ import json
 import msgpack
 import os
 import re
-import concurrent
 import websockets
 import queue
 
@@ -352,6 +351,7 @@ class TradingStream:
     async def stop_ws(self):
         self._stop_stream_queue.put_nowait({"should_stop": True})
 
+
 class Stream:
     def __init__(self,
                  key_id: str = None,
@@ -372,7 +372,6 @@ class Stream:
                                    self._data_steam_url,
                                    raw_data,
                                    data_feed)
-
 
     def subscribe_trade_updates(self, handler):
         self._trading_ws.subscribe_trade_updates(handler)
@@ -443,4 +442,5 @@ class Stream:
         if self._data_ws:
             logging.info("Stopping the data websocket connection")
             await self._data_ws.stop_ws()
+
 

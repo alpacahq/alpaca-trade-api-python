@@ -442,5 +442,3 @@ class Stream:
         if self._data_ws:
             logging.info("Stopping the data websocket connection")
             await self._data_ws.stop_ws()
-
-

@@ -221,7 +221,7 @@ class DataStream:
                 if retries > 1:
                     await asyncio.sleep(
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                logging.warn('websocket error, restarting connection: ' +
+                log.warn('websocket error, restarting connection: ' +
                              str(wse))
             finally:
                 if not self._running:
@@ -335,7 +335,7 @@ class TradingStream:
                 if retries > 1:
                     await asyncio.sleep(
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                logging.warn('websocket error, restarting connection: ' +
+                log.warn('websocket error, restarting connection: ' +
                              str(wse))
             finally:
                 if not self._running:
@@ -436,9 +436,9 @@ class Stream:
         Signal the ws connections to stop listenning to api stream.
         """
         if self._trading_ws:
-            logging.info("Stopping the trading websocket connection")
+            log.info("Stopping the trading websocket connection")
             await self._trading_ws.stop_ws()
 
         if self._data_ws:
-            logging.info("Stopping the data websocket connection")
+            log.info("Stopping the data websocket connection")
             await self._data_ws.stop_ws()

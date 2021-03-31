@@ -269,10 +269,10 @@ class REST(object):
 
     def submit_order(self,
                      symbol: str,
-                     qty: int,
                      side: str,
                      type: str,
                      time_in_force: str,
+                     qty: float = None,
                      limit_price: str = None,
                      stop_price: str = None,
                      client_order_id: str = None,
@@ -284,10 +284,10 @@ class REST(object):
                      trail_percent: str = None):
         """
         :param symbol: symbol or asset ID
-        :param qty: int
         :param side: buy or sell
         :param type: market, limit, stop, stop_limit or trailing_stop
         :param time_in_force: day, gtc, opg, cls, ioc, fok
+        :param qty: float
         :param limit_price: str of float
         :param stop_price: str of float
         :param client_order_id:
@@ -304,11 +304,12 @@ class REST(object):
         """Request a new order"""
         params = {
             'symbol':        symbol,
-            'qty':           qty,
             'side':          side,
             'type':          type,
             'time_in_force': time_in_force
         }
+        if qty is not None:
+            params['qty'] = qty
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
@@ -364,7 +365,7 @@ class REST(object):
     ) -> Order:
         """
         :param order_id:
-        :param qty: str of int
+        :param qty: str of float
         :param limit_price: str of float
         :param stop_price: str of float
         :param trail: str of float, represents trailing_price or

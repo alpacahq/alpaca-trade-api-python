@@ -273,6 +273,7 @@ class REST(object):
                      type: str,
                      time_in_force: str,
                      qty: float = None,
+                     notional: float = None,
                      limit_price: str = None,
                      stop_price: str = None,
                      client_order_id: str = None,
@@ -287,7 +288,8 @@ class REST(object):
         :param side: buy or sell
         :param type: market, limit, stop, stop_limit or trailing_stop
         :param time_in_force: day, gtc, opg, cls, ioc, fok
-        :param qty: float
+        :param qty: float. Mutually exclusive with "notional".
+        :param notional: float. Mutually exclusive with "qty".
         :param limit_price: str of float
         :param stop_price: str of float
         :param client_order_id:
@@ -310,6 +312,8 @@ class REST(object):
         }
         if qty is not None:
             params['qty'] = qty
+        if notional is not None:
+            params['notional'] = notional
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
@@ -357,6 +361,7 @@ class REST(object):
             self,
             order_id: str,
             qty: str = None,
+            notional: str = None,
             limit_price: str = None,
             stop_price: str = None,
             trail: str = None,
@@ -366,6 +371,7 @@ class REST(object):
         """
         :param order_id:
         :param qty: str of float
+        :param notional: str of float
         :param limit_price: str of float
         :param stop_price: str of float
         :param trail: str of float, represents trailing_price or
@@ -378,6 +384,8 @@ class REST(object):
         params = {}
         if qty is not None:
             params['qty'] = qty
+        if notional is not None:
+            params['notional'] = notional
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:

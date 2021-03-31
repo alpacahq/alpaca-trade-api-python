@@ -98,6 +98,7 @@ def test_orders(reqmock):
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
     "qty": "15",
+    "notional": null,
     "side": "buy",
     "type": "market",
     "timeinforce": "day",
@@ -134,6 +135,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": "15",
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -166,6 +168,7 @@ def test_orders(reqmock):
         client_order_id='904837e3-3b76-47ec-b432-046db621571b',
     )
     assert order.qty == "15"
+    assert order.notional is None
     assert order.created_at.hour == 19
     assert type(order) == tradeapi.entity.Order
     assert type(api_raw.submit_order(
@@ -232,6 +235,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": "15",
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -268,6 +272,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": 15,
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -318,10 +323,10 @@ def test_positions(reqmock):
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
     "entry_price": "100.0",
-    "qty": "5",
+    "qty": "5.5",
     "side": "long",
-    "market_value": "600.0",
-    "cost_basis": "500.0",
+    "market_value": "660.0",
+    "cost_basis": "550.0",
     "last_price": "120.00"
   }
 ]'''
@@ -339,15 +344,15 @@ def test_positions(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "entry_price": "100.0",
-  "qty": "5",
+  "qty": "5.5",
   "side": "long",
-  "market_value": "600.0",
-  "cost_basis": "500.0",
+  "market_value": "660.0",
+  "cost_basis": "550.0",
   "last_price": "120.00"
 }'''
     )
     position = api.get_position(asset_id)
-    assert position.cost_basis == '500.0'
+    assert position.cost_basis == '550.0'
     assert type(position) == tradeapi.entity.Position
     assert type(api_raw.get_position(asset_id)) == dict
 

@@ -323,10 +323,10 @@ def test_positions(reqmock):
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
     "entry_price": "100.0",
-    "qty": "5.5",
+    "qty": "5",
     "side": "long",
-    "market_value": "660.0",
-    "cost_basis": "550.0",
+    "market_value": "600.0",
+    "cost_basis": "500.0",
     "last_price": "120.00"
   }
 ]'''
@@ -344,15 +344,15 @@ def test_positions(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "entry_price": "100.0",
-  "qty": "5.5",
+  "qty": "5",
   "side": "long",
-  "market_value": "660.0",
-  "cost_basis": "550.0",
+  "market_value": "600.0",
+  "cost_basis": "500.0",
   "last_price": "120.00"
 }'''
     )
     position = api.get_position(asset_id)
-    assert position.cost_basis == '550.0'
+    assert position.cost_basis == '500.0'
     assert type(position) == tradeapi.entity.Position
     assert type(api_raw.get_position(asset_id)) == dict
 
@@ -762,16 +762,16 @@ def test_watchlists(reqmock):
 
 
 def test_errors(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_v1 = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
-    api._retry = 1
-    api._retry_wait = 0
+    api_v1._retry = 1
+    api_v1._retry_wait = 0
 
-    api._do_error = True
+    api_v1._do_error = True
 
     def callback_429(request, context):
-        if api._do_error:
-            api._do_error = False
+        if api_v1._do_error:
+            api_v1._do_error = False
             context.status_code = 429
             return 'Too Many Requests'
         else:
@@ -797,7 +797,7 @@ def test_errors(reqmock):
         text=callback_429,
     )
 
-    account = api.get_account()
+    account = api_v1.get_account()
     assert account.cash == '4000.32'
 
     # General API Error
@@ -810,7 +810,7 @@ def test_errors(reqmock):
     )
 
     try:
-        api.submit_order(
+        api_v1.submit_order(
             symbol='AAPL',
             side='buy',
             qty='3',
@@ -820,6 +820,59 @@ def test_errors(reqmock):
     except APIError as err:
         assert err.code == 10041
         assert err.status_code == 403
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
+    else:
+        assert False
+
+    api_v2 = tradeapi.REST('key-id', 'secret-key', api_version='v2')
+
+    # `qty` and `notional` both null
+    reqmock.post(
+        'https://api.alpaca.markets/v2/orders',
+        status_code=422,
+        text='''
+    {"code":40010001,"message":"qty or notional is required"}
+'''
+    )
+
+    try:
+        api_v2.submit_order(
+            symbol='AAPL',
+            side='buy',
+            type='market',
+            time_in_force='day',
+
+        )
+    except APIError as err:
+        assert err.code == 40010001
+        assert err.status_code == 422
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
+    else:
+        assert False
+
+    # `qty` and `notional` both non-null
+    reqmock.post(
+        'https://api.alpaca.markets/v2/orders',
+        status_code=422,
+        text='''
+    {"code": 40010001, "message": "only one of qty or notional is accepted"}
+'''
+    )
+
+    try:
+        api_v2.submit_order(
+            symbol='AAPL',
+            side='buy',
+            type='market',
+            time_in_force='day',
+            qty=1,
+            notional=1,
+        )
+    except APIError as err:
+        assert err.code == 40010001
+        assert err.status_code == 422
         assert err.request is not None
         assert err.response.status_code == err.status_code
     else:

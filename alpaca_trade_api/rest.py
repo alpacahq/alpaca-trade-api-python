@@ -269,11 +269,10 @@ class REST(object):
 
     def submit_order(self,
                      symbol: str,
-                     side: str,
-                     type: str,
-                     time_in_force: str,
                      qty: float = None,
-                     notional: float = None,
+                     side: str = "buy",
+                     type: str = "market",
+                     time_in_force: str = "day",
                      limit_price: str = None,
                      stop_price: str = None,
                      client_order_id: str = None,
@@ -282,14 +281,14 @@ class REST(object):
                      take_profit: dict = None,
                      stop_loss: dict = None,
                      trail_price: str = None,
-                     trail_percent: str = None):
+                     trail_percent: str = None,
+                     notional: float = None):
         """
         :param symbol: symbol or asset ID
+        :param qty: float. Mutually exclusive with "notional".
         :param side: buy or sell
         :param type: market, limit, stop, stop_limit or trailing_stop
         :param time_in_force: day, gtc, opg, cls, ioc, fok
-        :param qty: float. Mutually exclusive with "notional".
-        :param notional: float. Mutually exclusive with "qty".
         :param limit_price: str of float
         :param stop_price: str of float
         :param client_order_id:
@@ -302,6 +301,7 @@ class REST(object):
                {"stop_price": "297.95", "limit_price": "298.95"}
         :param trail_price: str of float
         :param trail_percent: str of float
+        :param notional: float. Mutually exclusive with "qty".
         """
         """Request a new order"""
         params = {
@@ -361,22 +361,22 @@ class REST(object):
             self,
             order_id: str,
             qty: str = None,
-            notional: str = None,
             limit_price: str = None,
             stop_price: str = None,
             trail: str = None,
             time_in_force: str = None,
-            client_order_id: str = None
+            client_order_id: str = None,
+            notional: str = None,
     ) -> Order:
         """
         :param order_id:
         :param qty: str of float
-        :param notional: str of float
         :param limit_price: str of float
         :param stop_price: str of float
         :param trail: str of float, represents trailing_price or
                trailing_percent. determined by the original order.
         :param time_in_force: day, gtc, opg, cls, ioc, fok
+        :param notional: str of float
 
         note: you cannot replace type of order. so, it was trailing_stop(e.g)
               it will remain trailing_stop.

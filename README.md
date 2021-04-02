@@ -255,7 +255,7 @@ You can access the following information through this object.
 | get_account()                                    | `GET /account` and | `Account` entity.|
 | get_order_by_client_order_id(client_order_id)    | `GET /orders` with client_order_id | `Order` entity.|
 | list_orders(status=None, limit=None, after=None, until=None, direction=None, nested=None) | `GET /orders` | list of `Order` entities. `after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()` |
-| submit_order(symbol, side, type, time_in_force, qty=None, notional=None, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None)| `POST /orders` |  `Order` entity. |
+| submit_order(symbol, qty=None, side="buy", type="market", time_in_force="day", limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None, notional=None)| `POST /orders` |  `Order` entity. |
 | get_order(order_id)                              | `GET /orders/{order_id}` | `Order` entity.|
 | cancel_order(order_id)                           | `DELETE /orders/{order_id}` | |
 | cancel_all_orders()                              | `DELETE /orders`| |

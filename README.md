@@ -295,6 +295,28 @@ api.submit_order(
 )
 ```
 
+For simple orders with `type='market'` and `time_in_force='day'`, you can pass a fractional amount (`qty`) or a `notional` amount (but not both). For instace, if the current market price for SPY is $300, the following calls are equivalent:
+
+```py
+api.submit_order(
+    symbol='SPY',
+    qty=1.5,  # fractional shares
+    side='buy',
+    type='market',
+    time_in_force='day',
+)
+```
+
+```py
+api.submit_order(
+    symbol='SPY',
+    notional=450,  # notional value of 1.5 shares of SPY at $300
+    side='buy',
+    type='market',
+    time_in_force='day',
+)
+```
+
 ##### Using `get_barset()` (Deprecated. use `get_bars()` instead)
 ```python 
 import pandas as pd

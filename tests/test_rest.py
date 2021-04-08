@@ -842,7 +842,6 @@ def test_errors(reqmock):
             side='buy',
             type='market',
             time_in_force='day',
-
         )
     except APIError as err:
         assert err.code == 40010001

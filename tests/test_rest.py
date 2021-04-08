@@ -98,6 +98,7 @@ def test_orders(reqmock):
     "account_id": "904837e3-3b76-47ec-b432-046db621571b",
     "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
     "qty": "15",
+    "notional": null,
     "side": "buy",
     "type": "market",
     "timeinforce": "day",
@@ -134,6 +135,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": "15",
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -166,6 +168,7 @@ def test_orders(reqmock):
         client_order_id='904837e3-3b76-47ec-b432-046db621571b',
     )
     assert order.qty == "15"
+    assert order.notional is None
     assert order.created_at.hour == 19
     assert type(order) == tradeapi.entity.Order
     assert type(api_raw.submit_order(
@@ -232,6 +235,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": "15",
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -268,6 +272,7 @@ def test_orders(reqmock):
   "account_id": "904837e3-3b76-47ec-b432-046db621571b",
   "asset_id": "904837e3-3b76-47ec-b432-046db621571b",
   "qty": 15,
+  "notional": null,
   "side": "buy",
   "type": "market",
   "timeinforce": "day",
@@ -757,16 +762,16 @@ def test_watchlists(reqmock):
 
 
 def test_errors(reqmock):
-    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    api_v1 = tradeapi.REST('key-id', 'secret-key', api_version='v1')
 
-    api._retry = 1
-    api._retry_wait = 0
+    api_v1._retry = 1
+    api_v1._retry_wait = 0
 
-    api._do_error = True
+    api_v1._do_error = True
 
     def callback_429(request, context):
-        if api._do_error:
-            api._do_error = False
+        if api_v1._do_error:
+            api_v1._do_error = False
             context.status_code = 429
             return 'Too Many Requests'
         else:
@@ -792,7 +797,7 @@ def test_errors(reqmock):
         text=callback_429,
     )
 
-    account = api.get_account()
+    account = api_v1.get_account()
     assert account.cash == '4000.32'
 
     # General API Error
@@ -805,7 +810,7 @@ def test_errors(reqmock):
     )
 
     try:
-        api.submit_order(
+        api_v1.submit_order(
             symbol='AAPL',
             side='buy',
             qty='3',
@@ -819,6 +824,123 @@ def test_errors(reqmock):
         assert err.response.status_code == err.status_code
     else:
         assert False
+
+    api_v2 = tradeapi.REST('key-id', 'secret-key', api_version='v2')
+
+    # `qty` and `notional` both null in submit_order
+    reqmock.post(
+        'https://api.alpaca.markets/v2/orders',
+        status_code=422,
+        text='''
+    {"code":40010001,"message":"qty or notional is required"}
+'''
+    )
+
+    try:
+        api_v2.submit_order(
+            symbol='AAPL',
+            side='buy',
+            type='market',
+            time_in_force='day',
+        )
+    except APIError as err:
+        assert err.code == 40010001
+        assert err.status_code == 422
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
+    else:
+        assert False
+
+    # `qty` and `notional` both non-null in submit_order
+    reqmock.post(
+        'https://api.alpaca.markets/v2/orders',
+        status_code=422,
+        text='''
+    {"code": 40010001, "message": "only one of qty or notional is accepted"}
+'''
+    )
+
+    try:
+        api_v2.submit_order(
+            symbol='AAPL',
+            side='buy',
+            type='market',
+            time_in_force='day',
+            qty=1,
+            notional=1,
+        )
+    except APIError as err:
+        assert err.code == 40010001
+        assert err.status_code == 422
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
+    else:
+        assert False
+
+    # fractional `qty` passed to replace_order
+    reqmock.post(
+        'https://api.alpaca.markets/v2/orders',
+        text='''{
+    "id": "fb61d316-2179-4df2-8b28-eb026c0dd78e",
+    "client_order_id": "6de7d1b2-f772-4a0d-8c15-bacea15eb29e",
+    "created_at": "2021-04-07T18:25:30.812371Z",
+    "updated_at": "2021-04-07T18:25:30.812371Z",
+    "submitted_at": "2021-04-07T18:25:30.803178Z",
+    "filled_at": null,
+    "expired_at": null,
+    "canceled_at": null,
+    "failed_at": null,
+    "replaced_at": null,
+    "replaced_by": null,
+    "replaces": null,
+    "asset_id": "b28f4066-5c6d-479b-a2af-85dc1a8f16fb",
+    "symbol": "SPY",
+    "asset_class": "us_equity",
+    "notional": null,
+    "qty": "1",
+    "filled_qty": "0",
+    "filled_avg_price": null,
+    "order_class": "",
+    "order_type": "limit",
+    "type": "limit",
+    "side": "buy",
+    "time_in_force": "day",
+    "limit_price": "400",
+    "stop_price": null,
+    "status": "accepted",
+    "extended_hours": false,
+    "legs": null,
+    "trail_percent": null,
+    "trail_price": null,
+    "hwm": null
+}''')
+    order = api_v2.submit_order(
+        symbol='SPY',
+        qty=1,
+        side='buy',
+        type='limit',
+        time_in_force='day',
+        limit_price='400.00',
+    )
+
+    reqmock.patch(
+        'https://api.alpaca.markets/v2/orders/{}'.format(order.id),
+        status_code=422,
+        text='''{
+    "code": 40010001,
+    "message": "qty must be integer"
+}''')
+    try:
+        api_v2.replace_order(
+            order_id=order.id,
+            qty="1.5",
+            client_order_id=order.client_order_id,
+        )
+    except APIError as err:
+        assert err.code == 40010001
+        assert err.status_code == 422
+        assert err.request is not None
+        assert err.response.status_code == err.status_code
 
 
 def test_no_resource_warning_with_context_manager():

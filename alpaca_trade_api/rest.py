@@ -269,10 +269,10 @@ class REST(object):
 
     def submit_order(self,
                      symbol: str,
-                     qty: int,
-                     side: str,
-                     type: str,
-                     time_in_force: str,
+                     qty: float = None,
+                     side: str = "buy",
+                     type: str = "market",
+                     time_in_force: str = "day",
                      limit_price: str = None,
                      stop_price: str = None,
                      client_order_id: str = None,
@@ -281,10 +281,11 @@ class REST(object):
                      take_profit: dict = None,
                      stop_loss: dict = None,
                      trail_price: str = None,
-                     trail_percent: str = None):
+                     trail_percent: str = None,
+                     notional: float = None):
         """
         :param symbol: symbol or asset ID
-        :param qty: int
+        :param qty: float. Mutually exclusive with "notional".
         :param side: buy or sell
         :param type: market, limit, stop, stop_limit or trailing_stop
         :param time_in_force: day, gtc, opg, cls, ioc, fok
@@ -300,15 +301,19 @@ class REST(object):
                {"stop_price": "297.95", "limit_price": "298.95"}
         :param trail_price: str of float
         :param trail_percent: str of float
+        :param notional: float. Mutually exclusive with "qty".
         """
         """Request a new order"""
         params = {
             'symbol':        symbol,
-            'qty':           qty,
             'side':          side,
             'type':          type,
             'time_in_force': time_in_force
         }
+        if qty is not None:
+            params['qty'] = qty
+        if notional is not None:
+            params['notional'] = notional
         if limit_price is not None:
             params['limit_price'] = FLOAT(limit_price)
         if stop_price is not None:
@@ -360,7 +365,7 @@ class REST(object):
             stop_price: str = None,
             trail: str = None,
             time_in_force: str = None,
-            client_order_id: str = None
+            client_order_id: str = None,
     ) -> Order:
         """
         :param order_id:

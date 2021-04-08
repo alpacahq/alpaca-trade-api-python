@@ -255,7 +255,7 @@ You can access the following information through this object.
 | get_account()                                    | `GET /account` and | `Account` entity.|
 | get_order_by_client_order_id(client_order_id)    | `GET /orders` with client_order_id | `Order` entity.|
 | list_orders(status=None, limit=None, after=None, until=None, direction=None, nested=None) | `GET /orders` | list of `Order` entities. `after` and `until` need to be string format, which you can obtain by `pd.Timestamp().isoformat()` |
-| submit_order(symbol, qty, side, type, time_in_force, limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None)| `POST /orders` |  `Order` entity. |
+| submit_order(symbol, qty=None, side="buy", type="market", time_in_force="day", limit_price=None, stop_price=None, client_order_id=None, order_class=None, take_profit=None, stop_loss=None, trail_price=None, trail_percent=None, notional=None)| `POST /orders` |  `Order` entity. |
 | get_order(order_id)                              | `GET /orders/{order_id}` | `Order` entity.|
 | cancel_order(order_id)                           | `DELETE /orders/{order_id}` | |
 | cancel_all_orders()                              | `DELETE /orders`| |
@@ -292,6 +292,28 @@ api.submit_order(
         stop_price='295.5',
         limit_price='295.5',
     )
+)
+```
+
+For simple orders with `type='market'` and `time_in_force='day'`, you can pass a fractional amount (`qty`) or a `notional` amount (but not both). For instace, if the current market price for SPY is $300, the following calls are equivalent:
+
+```py
+api.submit_order(
+    symbol='SPY',
+    qty=1.5,  # fractional shares
+    side='buy',
+    type='market',
+    time_in_force='day',
+)
+```
+
+```py
+api.submit_order(
+    symbol='SPY',
+    notional=450,  # notional value of 1.5 shares of SPY at $300
+    side='buy',
+    type='market',
+    time_in_force='day',
 )
 ```
 

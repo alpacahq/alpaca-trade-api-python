@@ -1,7 +1,7 @@
 from enum import Enum
 import pandas as pd
-from .entity import Bar, Trade, Quote
-
+from .entity import Bar, Entity, Trade, Quote, _NanoTimestamped
+from typing import Dict
 
 trade_mapping_v2 = {
     "i": "id",
@@ -66,6 +66,17 @@ class EntityList(list):
         return self._df
 
 
+class Remapped:
+    def __init__(self, mapping: Dict[str,str], *args, **kwargs):
+        self._reversed_mapping = {value: key for (key, value) in mapping.items()}
+        super().__init__(*args, **kwargs)
+    
+    def __getattr__(self, key):
+        if key in self._reversed_mapping:
+            return super().__getattr__(self._reversed_mapping[key])
+        return super().__getattr__(key)
+
+
 class BarsV2(EntityList):
     def __init__(self, raw):
         super().__init__(EntityListType.Bar, raw)
@@ -79,3 +90,17 @@ class TradesV2(EntityList):
 class QuotesV2(EntityList):
     def __init__(self, raw):
         super().__init__(EntityListType.Quote, raw)
+
+
+class TradeV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(trade_mapping_v2, raw)
+
+
+class QuoteV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self,raw):
+        super().__init__(quote_mapping_v2, raw)

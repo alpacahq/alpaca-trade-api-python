@@ -565,9 +565,9 @@ def test_data(reqmock):
     )
     latest_trade = api.get_latest_trade('AAPL')
     assert latest_trade.exchange == "J"
-    assert latest_trade.price == 134.7    
+    assert latest_trade.price == 134.7
     assert latest_trade.size == 20
-    assert latest_trade.conditions == ["@","T","I"]
+    assert latest_trade.conditions == ["@", "T", "I"]
     assert latest_trade.id == 32
     assert latest_trade.tape == "C"
     assert latest_trade.timestamp.day == 20
@@ -575,7 +575,6 @@ def test_data(reqmock):
     assert latest_trade.timestamp.nanosecond == 789
     assert type(latest_trade) == tradeapi.entity_v2.TradeV2
     assert type(api_raw.get_latest_trade('AAPL')) == dict
-
 
     # Latest quote
     reqmock.get(
@@ -611,7 +610,7 @@ def test_data(reqmock):
     assert latest_quote.timestamp.day == 20
     assert latest_quote.timestamp.nanosecond == 789
     assert type(latest_quote) == tradeapi.entity_v2.QuoteV2
-    assert type(api_raw.get_latest_quote('AAPL')) == dict    
+    assert type(api_raw.get_latest_quote('AAPL')) == dict
 
 
 def test_watchlists(reqmock):

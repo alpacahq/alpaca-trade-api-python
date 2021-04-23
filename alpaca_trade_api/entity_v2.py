@@ -95,7 +95,6 @@ class QuotesV2(EntityList):
 class TradeV2(Remapped, _NanoTimestamped, Entity):
     _tskeys = ('t',)
 
-
     def __init__(self, raw):
         super().__init__(trade_mapping_v2, raw)
 

@@ -541,6 +541,78 @@ def test_data(reqmock):
     assert type(quote) == tradeapi.entity.Quote
     assert type(api_raw.get_last_quote('AAPL')) == dict
 
+    # Latest trade
+    reqmock.get(
+        'https://data.alpaca.markets/v2/stocks/AAPL/trades/latest',
+        text='''
+        {
+			"symbol": "AAPL",
+			"trade": {
+				"t": "2021-04-20T12:40:34.123456789Z",
+				"x": "J",
+				"p": 134.7,
+				"s": 20,
+				"c": [
+					"@",
+					"T",
+					"I"
+				],
+				"i": 32,
+				"z": "C"
+			}
+		}
+        '''
+    )
+    latest_trade = api.get_latest_trade('AAPL')
+    assert latest_trade.exchange == "J"
+    assert latest_trade.price == 134.7    
+    assert latest_trade.size == 20
+    assert latest_trade.conditions == ["@","T","I"]
+    assert latest_trade.id == 32
+    assert latest_trade.tape == "C"
+    assert latest_trade.timestamp.day == 20
+    assert latest_trade.timestamp.second == 34
+    assert latest_trade.timestamp.nanosecond == 789
+    assert type(latest_trade) == tradeapi.entity_v2.TradeV2
+    assert type(api_raw.get_latest_trade('AAPL')) == dict
+
+
+    # Latest quote
+    reqmock.get(
+        'https://data.alpaca.markets/v2/stocks/AAPL/quotes/latest',
+        text='''
+        {
+            "symbol": "AAPL",
+            "quote": {
+                "t": "2021-04-20T13:01:57.123456789",
+                "ax": "Q",
+                "ap": 134.68,
+                "as": 1,
+                "bx": "K",
+                "bp": 134.66,
+                "bs": 29,
+                "c": [
+                    "R"
+                ],
+                "z": "C"
+            }
+        }'''
+    )
+
+    latest_quote = api.get_latest_quote('AAPL')
+    assert latest_quote.ask_exchange == "Q"
+    assert latest_quote.ask_price == 134.68
+    assert latest_quote.ask_size == 1
+    assert latest_quote.bid_exchange == "K"
+    assert latest_quote.bid_price == 134.66
+    assert latest_quote.bid_size == 29
+    assert latest_quote.conditions == ["R"]
+    assert latest_quote.tape == "C"
+    assert latest_quote.timestamp.day == 20
+    assert latest_quote.timestamp.nanosecond == 789
+    assert type(latest_quote) == tradeapi.entity_v2.QuoteV2
+    assert type(api_raw.get_latest_quote('AAPL')) == dict    
+
 
 def test_watchlists(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')

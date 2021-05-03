@@ -612,6 +612,165 @@ def test_data(reqmock):
     assert type(latest_quote) == tradeapi.entity_v2.QuoteV2
     assert type(api_raw.get_latest_quote('AAPL')) == dict
 
+    # Snapshot
+    reqmock.get(
+        'https://data.alpaca.markets/v2/stocks/AAPL/snapshot',
+        text='''
+        {
+            "symbol": "AAPL",
+            "latestTrade": {
+                "t": "2021-05-01T13:06:51.35Z",
+                "x": "D",
+                "p": 131.46,
+                "s": 870,
+                "c": [],
+                "i": 0,
+                "z": "C"
+            },
+            "latestQuote": {
+                "t": "2021-05-03T09:32:15.085610971Z",
+                "ax": "Q",
+                "ap": 131.61,
+                "as": 1,
+                "bx": "Q",
+                "bp": 131.56,
+                "bs": 2,
+                "c": [
+                "R"
+                ]
+            },
+            "minuteBar": {
+                "t": "2021-05-03T09:31:00Z",
+                "o": 131.6,
+                "h": 131.6,
+                "l": 131.56,
+                "c": 131.56,
+                "v": 1502
+            },
+            "dailyBar": {
+                "t": "2021-04-30T04:00:00Z",
+                "o": 131.82,
+                "h": 133.56,
+                "l": 131.065,
+                "c": 131.46,
+                "v": 109506363
+            },
+            "prevDailyBar": null
+        }'''
+    )
+    snapshot = api.get_snapshot('AAPL')
+    assert snapshot.latest_trade.price == 131.46
+    assert snapshot.latest_quote.bid_size == 2
+    assert snapshot.minute_bar.open == 131.6
+    assert snapshot.daily_bar.high == 133.56
+    assert snapshot.prev_daily_bar is None
+
+    # Snapshots
+    reqmock.get(
+        'https://data.alpaca.markets/v2/stocks/snapshots'+
+            '?symbols=AAPL,MSFT,INVALID',
+        text='''
+        {
+            "MSFT": {
+                "latestTrade": {
+                    "t": "2021-05-01T13:34:39.13480192Z",
+                    "x": "P",
+                    "p": 252.15,
+                    "s": 100,
+                    "c": [],
+                    "i": 0,
+                    "z": "?"
+                },
+                "latestQuote": {
+                    "t": "2021-05-03T10:00:02.468507392Z",
+                    "ax": "P",
+                    "ap": 253,
+                    "as": 1,
+                    "bx": "P",
+                    "bp": 252.07,
+                    "bs": 1,
+                    "c": [
+                        "R"
+                    ]
+                },
+                "minuteBar": {
+                    "t": "2021-05-03T09:29:00Z",
+                    "o": 252.3,
+                    "h": 252.3,
+                    "l": 252.2,
+                    "c": 252.2,
+                    "v": 626
+                },
+                "dailyBar": {
+                    "t": "2021-05-01T04:00:00Z",
+                    "o": 252.18,
+                    "h": 252.18,
+                    "l": 252.08,
+                    "c": 252.15,
+                    "v": 665610
+                },
+                "prevDailyBar": {
+                    "t": "2021-04-30T04:00:00Z",
+                    "o": 249.74,
+                    "h": 253.08,
+                    "l": 249.6,
+                    "c": 252.18,
+                    "v": 30831722
+                }
+            },
+            "INVALID": null,
+            "AAPL": {
+                "latestTrade": {
+                    "t": "2021-05-01T13:06:51.35Z",
+                    "x": "D",
+                    "p": 131.46,
+                    "s": 870,
+                    "c": [],
+                    "i": 0,
+                    "z": "?"
+                },
+                "latestQuote": {
+                    "t": "2021-05-03T09:59:55.703833Z",
+                    "ax": "P",
+                    "ap": 131.7,
+                    "as": 1,
+                    "bx": "K",
+                    "bp": 131.68,
+                    "bs": 1,
+                    "c": [
+                        "R"
+                    ]
+                },
+                "minuteBar": {
+                    "t": "2021-05-03T09:56:00Z",
+                    "o": 131.64,
+                    "h": 131.65,
+                    "l": 131.64,
+                    "c": 131.65,
+                    "v": 1015
+                },
+                "dailyBar": {
+                    "t": "2021-04-30T04:00:00Z",
+                    "o": 131.82,
+                    "h": 133.56,
+                    "l": 131.065,
+                    "c": 131.46,
+                    "v": 109506363
+                },
+                "prevDailyBar": {
+                    "t": "2021-04-29T04:00:00Z",
+                    "o": 136.47,
+                    "h": 136.98,
+                    "l": 132.45,
+                    "c": 133.48,
+                    "v": 149222587
+                }
+            }
+        }'''
+    )
+    snapshots = api.get_snapshots(['AAPL', 'MSFT', 'INVALID'])
+    assert len(snapshots) == 3
+
 
 def test_watchlists(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')

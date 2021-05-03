@@ -16,7 +16,7 @@ from .entity import (
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
-from .entity_v2 import BarsV2, TradesV2, TradeV2, QuotesV2, QuoteV2
+from .entity_v2 import BarsV2, SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2
 from . import polygon
 
 logger = logging.getLogger(__name__)
@@ -651,6 +651,19 @@ class REST(object):
                              '/stocks/{}/quotes/latest'.format(symbol),
                              api_version='v2')
         return self.response_wrapper(resp['quote'], QuoteV2)
+
+    def get_snapshot(self, symbol: str) -> SnapshotV2:
+        """Get the snapshot for the given symbol"""
+        resp = self.data_get('/stocks/{}/snapshot'.format(symbol),
+                             api_version='v2')
+        return self.response_wrapper(resp, SnapshotV2)
+
+    def get_snapshots(self, symbols: List[str]) -> SnapshotV2:
+        """Get the snapshot for the given symbol"""
+        resp = self.data_get(
+            '/stocks/snapshots?symbols={}'.format(','.join(symbols)),
+            api_version='v2')
+        return self.response_wrapper(resp, SnapshotsV2)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')

@@ -70,7 +70,7 @@ class Remapped:
     def __init__(self, mapping: Dict[str,str], *args, **kwargs):
         self._reversed_mapping = {value: key for (key, value) in mapping.items()}
         super().__init__(*args, **kwargs)
-    
+
     def __getattr__(self, key):
         if key in self._reversed_mapping:
             return super().__getattr__(self._reversed_mapping[key])
@@ -102,5 +102,33 @@ class TradeV2(Remapped, _NanoTimestamped, Entity):
 class QuoteV2(Remapped, _NanoTimestamped, Entity):
     _tskeys = ('t',)
 
-    def __init__(self,raw):
+    def __init__(self, raw):
         super().__init__(quote_mapping_v2, raw)
+
+
+class BarV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(bar_mapping_v2, raw)
+
+class SnapshotV2:
+
+    def __init__(self, raw):
+        self.latest_trade = _convert_or_none(TradeV2, raw.get('latestTrade'))
+        self.latest_quote = _convert_or_none(QuoteV2, raw.get('latestQuote'))
+        self.minute_bar = _convert_or_none(BarV2, raw.get('minuteBar'))
+        self.daily_bar = _convert_or_none(BarV2, raw.get('dailyBar'))
+        self.prev_daily_bar = _convert_or_none(BarV2, raw.get('prevDailyBar'))
+
+class SnapshotsV2(dict):
+
+    def __init__(self, raw):
+        for k, v in raw.items():
+            self[k] = _convert_or_none(SnapshotV2, v)
+
+
+def _convert_or_none(entityType, value):
+    if value:
+        return entityType(value)
+    return None

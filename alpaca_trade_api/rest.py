@@ -659,8 +659,8 @@ class REST(object):
                              api_version='v2')
         return self.response_wrapper(resp, SnapshotV2)
 
-    def get_snapshots(self, symbols: List[str]) -> SnapshotV2:
-        """Get the snapshot for the given symbol"""
+    def get_snapshots(self, symbols: List[str]) -> SnapshotsV2:
+        """Get the snapshots for the given symbols"""
         resp = self.data_get(
             '/stocks/snapshots?symbols={}'.format(','.join(symbols)),
             api_version='v2')

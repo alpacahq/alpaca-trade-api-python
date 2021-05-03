@@ -115,7 +115,6 @@ class BarV2(Remapped, _NanoTimestamped, Entity):
 
 
 class SnapshotV2:
-
     def __init__(self, raw):
         self.latest_trade = _convert_or_none(TradeV2, raw.get('latestTrade'))
         self.latest_quote = _convert_or_none(QuoteV2, raw.get('latestQuote'))
@@ -125,7 +124,6 @@ class SnapshotV2:
 
 
 class SnapshotsV2(dict):
-
     def __init__(self, raw):
         for k, v in raw.items():
             self[k] = _convert_or_none(SnapshotV2, v)

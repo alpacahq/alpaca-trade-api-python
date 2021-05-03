@@ -67,8 +67,9 @@ class EntityList(list):
 
 
 class Remapped:
-    def __init__(self, mapping: Dict[str,str], *args, **kwargs):
-        self._reversed_mapping = {value: key for (key, value) in mapping.items()}
+    def __init__(self, mapping: Dict[str, str], *args, **kwargs):
+        self._reversed_mapping = {
+            value: key for (key, value) in mapping.items()}
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, key):
@@ -112,6 +113,7 @@ class BarV2(Remapped, _NanoTimestamped, Entity):
     def __init__(self, raw):
         super().__init__(bar_mapping_v2, raw)
 
+
 class SnapshotV2:
 
     def __init__(self, raw):
@@ -120,6 +122,7 @@ class SnapshotV2:
         self.minute_bar = _convert_or_none(BarV2, raw.get('minuteBar'))
         self.daily_bar = _convert_or_none(BarV2, raw.get('dailyBar'))
         self.prev_daily_bar = _convert_or_none(BarV2, raw.get('prevDailyBar'))
+
 
 class SnapshotsV2(dict):
 

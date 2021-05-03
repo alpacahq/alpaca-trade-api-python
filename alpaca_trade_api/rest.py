@@ -16,7 +16,8 @@ from .entity import (
     Asset, Order, Position, BarSet, Clock, Calendar,
     Aggs, Trade, Quote, Watchlist, PortfolioHistory
 )
-from .entity_v2 import BarsV2, SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2
+from .entity_v2 import (
+    BarsV2, SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2)
 from . import polygon
 
 logger = logging.getLogger(__name__)

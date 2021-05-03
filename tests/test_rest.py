@@ -546,21 +546,21 @@ def test_data(reqmock):
         'https://data.alpaca.markets/v2/stocks/AAPL/trades/latest',
         text='''
         {
-			"symbol": "AAPL",
-			"trade": {
-				"t": "2021-04-20T12:40:34.123456789Z",
-				"x": "J",
-				"p": 134.7,
-				"s": 20,
-				"c": [
-					"@",
-					"T",
-					"I"
-				],
-				"i": 32,
-				"z": "C"
-			}
-		}
+            "symbol": "AAPL",
+            "trade": {
+                "t": "2021-04-20T12:40:34.123456789Z",
+                "x": "J",
+                "p": 134.7,
+                "s": 20,
+                "c": [
+                    "@",
+                    "T",
+                    "I"
+                ],
+                "i": 32,
+                "z": "C"
+            }
+        }
         '''
     )
     latest_trade = api.get_latest_trade('AAPL')
@@ -667,8 +667,8 @@ def test_data(reqmock):
 
     # Snapshots
     reqmock.get(
-        'https://data.alpaca.markets/v2/stocks/snapshots'+
-            '?symbols=AAPL,MSFT,INVALID',
+        'https://data.alpaca.markets/v2/stocks/snapshots' +
+        '?symbols=AAPL,MSFT,INVALID',
         text='''
         {
             "MSFT": {

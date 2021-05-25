@@ -123,13 +123,15 @@ class DataStream:
                      f'quotes: {msg.get("quotes", [])} ' +
                      f'bars: {msg.get("bars", [])}, ' +
                      f'daily bars: {msg.get("dailyBars", [])}'
-            )
+                     )
         elif msg_type == 'error':
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
 
     async def _subscribe_all(self):
-        if self._trade_handlers or self._quote_handlers or self._bar_handlers \
-            or self._daily_bar_handlers:
+        if (self._trade_handlers or
+                self._quote_handlers or
+                self._bar_handlers or
+                self._daily_bar_handlers):
             await self._ws.send(
                 msgpack.packb({
                     'action': 'subscribe',

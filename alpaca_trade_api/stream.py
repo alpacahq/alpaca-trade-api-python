@@ -156,6 +156,7 @@ class DataStream:
                     'trades': trades,
                     'quotes': quotes,
                     'bars': bars,
+                    'dailyBars': daily_bars,
                 }))
 
     def subscribe_trades(self, handler, *symbols):

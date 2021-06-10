@@ -234,7 +234,9 @@ class REST(object):
                     until: str = None,
                     direction: str = None,
                     params=None,
-                    nested: bool = None) -> Orders:
+                    nested: bool = None,
+                    symbols: List[str] = None
+                    ) -> Orders:
         """
         Get a list of orders
         https://docs.alpaca.markets/web-api/orders/#get-a-list-of-orders
@@ -260,6 +262,8 @@ class REST(object):
             params['status'] = status
         if nested is not None:
             params['nested'] = nested
+        if symbols is not None:
+            params['symbols'] = ",".join(symbols)
         url = '/orders'
         resp = self.get(url, params)
         if self._use_raw_data:

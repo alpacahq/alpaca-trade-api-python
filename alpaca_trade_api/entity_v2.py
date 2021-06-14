@@ -42,7 +42,7 @@ status_mapping_v2 = {
     "sc": "status_code",
     "sm": "status_message",
     "rc": "reason_code",
-    "rc": "reason_message",
+    "rm": "reason_message",
     "t": "timestamp",
     "z": "tape"
 }

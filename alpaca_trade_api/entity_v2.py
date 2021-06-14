@@ -37,6 +37,16 @@ bar_mapping_v2 = {
     "t": "timestamp"
 }
 
+status_mapping_v2 = {
+    "S": "symbol",
+    "sc": "status_code",
+    "sm": "status_message",
+    "rc": "reason_code",
+    "rc": "reason_message",
+    "t": "timestamp",
+    "z": "tape"
+}
+
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -112,6 +122,13 @@ class BarV2(Remapped, _NanoTimestamped, Entity):
 
     def __init__(self, raw):
         super().__init__(bar_mapping_v2, raw)
+
+
+class StatusV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(status_mapping_v2, raw)
 
 
 class SnapshotV2:

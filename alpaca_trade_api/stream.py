@@ -234,7 +234,7 @@ class DataStream:
                     await self._start_ws()
                     self._running = True
                     retries = 0
-                    await self._consume()
+                await self._consume()
             except websockets.WebSocketException as wse:
                 retries += 1
                 if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):

@@ -21,7 +21,7 @@ api_time_format = '%Y-%m-%dT%H:%M:%S.%f-04:00'
 # momentum. Returns a dataframe mapping stock symbols to ratings and prices.
 # Note: If algo_time is None, the API's default behavior of the current time
 # as `end` will be used. We use this for live trading.
-def get_ratings(symbols, algo_time):
+def get_ratings(api, algo_time):
     assets = api.list_assets()
     assets = [asset for asset in assets if asset.tradable ]
     ratings = pd.DataFrame(columns=['symbol', 'rating', 'price'])
@@ -39,6 +39,7 @@ def get_ratings(symbols, algo_time):
             asset.symbol for asset in assets[index:index+batch_size]
         ]
         # Retrieve data for this batch of symbols.
+        #
         # barset = {}
         # for symbol in symbol_batch:
         #     bars = api.get_bars(symbol,
@@ -110,10 +111,6 @@ def api_format(dt):
 def backtest(api, days_to_test, portfolio_amount):
     # This is the collection of stocks that will be used for backtesting.
     assets = api.list_assets()
-    # Note: for longer testing windows, this should be replaced with a list
-    # of symbols that were active during the time period you are testing.
-    symbols = [asset.symbol for asset in assets]
-
     now = datetime.now(timezone('EST'))
     beginning = now - timedelta(days=days_to_test)
 
@@ -137,7 +134,8 @@ def backtest(api, days_to_test, portfolio_amount):
             break
 
         # Get the ratings for a particular day
-        ratings = get_ratings(symbols, timezone('EST').localize(calendar.date))
+        ratings = \
+            get_ratings(api, timezone('EST').localize(calendar.date))
         shares = get_shares_to_buy(ratings, portfolio_amount)
         for _, row in ratings.iterrows():
             # "Buy" our shares on that day and subtract the cost.

@@ -24,6 +24,10 @@ The solution - manually install these package before installing alpaca-trade-api
 ```bash
 pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
 ```
+Also note that we do not limit the version of the websockets library, but we advice using
+```
+websockets>=9.0
+```
 
 Installing using pip
 ```bash

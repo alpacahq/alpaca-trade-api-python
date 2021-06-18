@@ -39,9 +39,11 @@ def get_ratings(api, algo_time):
             asset.symbol for asset in assets[index:index+batch_size]
         ]
         # Retrieve data for this batch of symbols.
-        #
+
+        # note: soon get_barset() will be deprecated and you need to use the
+        #       commented out code instead
+
         # barset = {}
-        # for symbol in symbol_batch:
         #     bars = api.get_bars(symbol,
         #                         TimeFrame.Day,
         #                         start_time,
@@ -49,6 +51,7 @@ def get_ratings(api, algo_time):
         #                         limit=window_size,
         #                         adjustment='raw')
         #     barset[symbol] = bars
+
         barset = api.get_barset(
             symbols=symbol_batch,
             timeframe='day',
@@ -166,12 +169,10 @@ def get_value_of_assets(api, shares_bought, on_date):
 
     total_value = 0
     formatted_date = api_format(on_date)
-    barset = api.get_barset(
-        symbols=shares_bought.keys(),
-        timeframe='day',
-        limit=1,
-        end=formatted_date
-    )
+
+    # note: soon get_barset() will be deprecated and you need to use the
+    #       commented out code instead
+
     # barset = {}
     # for symbol in shares_bought.keys():
     #     bars = api.get_bars(symbol,
@@ -181,6 +182,14 @@ def get_value_of_assets(api, shares_bought, on_date):
     #                         limit=1,
     #                         adjustment='raw')
     #     barset[symbol] = bars
+
+    barset = api.get_barset(
+        symbols=shares_bought.keys(),
+        timeframe='day',
+        limit=1,
+        end=formatted_date
+    )
+
     for symbol in shares_bought:
         total_value += shares_bought[symbol] * barset[symbol][0].o
     return total_value

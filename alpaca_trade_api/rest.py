@@ -108,8 +108,7 @@ class REST(object):
                  path,
                  data=None,
                  base_url: URL = None,
-                 api_version: str = None
-                 ):
+                 api_version: str = None):
         base_url = base_url or self._base_url
         version = api_version if api_version else self._api_version
         url: URL = URL(base_url + '/' + version + path)
@@ -127,7 +126,7 @@ class REST(object):
             # It's better to fail early if the URL isn't right.
             'allow_redirects': False,
         }
-        if method.upper() == 'GET':
+        if method.upper() in ['GET', 'DELETE']:
             opts['params'] = data
         else:
             opts['json'] = data
@@ -423,9 +422,24 @@ class REST(object):
         resp = self.get('/positions/{}'.format(symbol))
         return self.response_wrapper(resp, Position)
 
-    def close_position(self, symbol: str) -> Position:
+    def close_position(self, symbol: str, *,
+                       qty: float = None,
+                       # percentage: float = None  # currently unsupported api
+                       ) -> Position:
         """Liquidates the position for the given symbol at market price"""
-        resp = self.delete('/positions/{}'.format(symbol))
+        # if qty and percentage:
+        #     raise Exception("Can't close position with qty and pecentage")
+        # elif qty:
+        #     data = {'qty': qty}
+        # elif percentage:
+        #     data = {'percentage': percentage}
+        # else:
+        #     data = {}
+        if qty:
+            data = {'qty': qty}
+        else:
+            data = {}
+        resp = self.delete('/positions/{}'.format(symbol), data=data)
         return self.response_wrapper(resp, Position)
 
     def close_all_positions(self) -> Positions:

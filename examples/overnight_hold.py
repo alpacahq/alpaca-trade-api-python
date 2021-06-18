@@ -21,7 +21,7 @@ api_time_format = '%Y-%m-%dT%H:%M:%S.%f-04:00'
 # momentum. Returns a dataframe mapping stock symbols to ratings and prices.
 # Note: If algo_time is None, the API's default behavior of the current time
 # as `end` will be used. We use this for live trading.
-def get_ratings(symbols, algo_time):
+def get_ratings(api, algo_time):
     assets = api.list_assets()
     assets = [asset for asset in assets if asset.tradable ]
     ratings = pd.DataFrame(columns=['symbol', 'rating', 'price'])
@@ -31,22 +31,34 @@ def get_ratings(symbols, algo_time):
     formatted_time = None
     if algo_time is not None:
         # Convert the time to something compatable with the Alpaca API.
+        start_time = (algo_time.date() -
+                      timedelta(days=window_size)).strftime(api_time_format)
         formatted_time = algo_time.date().strftime(api_time_format)
     while index < len(assets):
         symbol_batch = [
             asset.symbol for asset in assets[index:index+batch_size]
         ]
         # Retrieve data for this batch of symbols.
-        barset = {}
-        for symbol in symbol_batch:
-            bars = api.get_bars(symbol,
-                                TimeFrame.Day,
-                                formatted_time - timedelta(days=window_size),
-                                formatted_time,
-                                limit=window_size,
-                                adjustment='raw')
-            barset[symbol] = bars
 
+        # note: soon get_barset() will be deprecated and you need to use the
+        #       commented out code instead
+
+        # barset = {}
+        #     bars = api.get_bars(symbol,
+        #                         TimeFrame.Day,
+        #                         start_time,
+        #                         formatted_time,
+        #                         limit=window_size,
+        #                         adjustment='raw')
+        #     barset[symbol] = bars
+
+        barset = api.get_barset(
+            symbols=symbol_batch,
+            timeframe='day',
+            limit=window_size,
+            end=formatted_time
+        )
+        algo_time = pd.Timestamp('now', tz=timezone('EST'))
         for symbol in symbol_batch:
             bars = barset[symbol]
             if len(bars) == window_size:
@@ -102,10 +114,6 @@ def api_format(dt):
 def backtest(api, days_to_test, portfolio_amount):
     # This is the collection of stocks that will be used for backtesting.
     assets = api.list_assets()
-    # Note: for longer testing windows, this should be replaced with a list
-    # of symbols that were active during the time period you are testing.
-    symbols = [asset.symbol for asset in assets]
-
     now = datetime.now(timezone('EST'))
     beginning = now - timedelta(days=days_to_test)
 
@@ -129,7 +137,8 @@ def backtest(api, days_to_test, portfolio_amount):
             break
 
         # Get the ratings for a particular day
-        ratings = get_ratings(symbols, timezone('EST').localize(calendar.date))
+        ratings = \
+            get_ratings(api, timezone('EST').localize(calendar.date))
         shares = get_shares_to_buy(ratings, portfolio_amount)
         for _, row in ratings.iterrows():
             # "Buy" our shares on that day and subtract the cost.
@@ -139,11 +148,11 @@ def backtest(api, days_to_test, portfolio_amount):
         cal_index += 1
 
     # Print market (S&P500) return for the time period
-    sp500_bars = self.oapi.get_bars('SPY',
-                                    TimeFrame.Day,
-                                    api_format(calendars[0].date),
-                                    api_format(calendars[-1].date),
-                                    adjustment='raw')
+    sp500_bars = api.get_bars('SPY',
+                              TimeFrame.Day,
+                              api_format(calendars[0].date),
+                              api_format(calendars[-1].date),
+                              adjustment='raw')
     sp500_change = (sp500_bars[-1].c - sp500_bars[0].c) / sp500_bars[0].c
     print('S&P 500 change during backtesting window: {:.4f}%'.format(
         sp500_change*100)
@@ -161,15 +170,26 @@ def get_value_of_assets(api, shares_bought, on_date):
     total_value = 0
     formatted_date = api_format(on_date)
 
-    barset = {}
-    for symbol in shares_bought.keys():
-        bars = api.get_bars(symbol,
-                            TimeFrame.Day,
-                            on_date,
-                            on_date,
-                            limit=1,
-                            adjustment='raw')
-        barset[symbol] = bars
+    # note: soon get_barset() will be deprecated and you need to use the
+    #       commented out code instead
+
+    # barset = {}
+    # for symbol in shares_bought.keys():
+    #     bars = api.get_bars(symbol,
+    #                         TimeFrame.Day,
+    #                         on_date.date(),
+    #                         on_date.date(),
+    #                         limit=1,
+    #                         adjustment='raw')
+    #     barset[symbol] = bars
+
+    barset = api.get_barset(
+        symbols=shares_bought.keys(),
+        timeframe='day',
+        limit=1,
+        end=formatted_date
+    )
+
     for symbol in shares_bought:
         total_value += shares_bought[symbol] * barset[symbol][0].o
     return total_value

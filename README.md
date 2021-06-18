@@ -172,7 +172,7 @@ for trade in trades_iter:
 ### Live Stream Data
 There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
 The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>
-You could subscribe to bars, trades or quotes and accoutn updates as well.<br>
+You could subscribe to bars, trades or quotes and trade updates as well.<br>
 Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets) to achieve different goals. Let's see the basic example<br>
 We present a new Streamer class under `alpaca_trade_api.stream` for API V2.
 ```py

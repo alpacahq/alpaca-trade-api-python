@@ -29,6 +29,10 @@ def main():
     async def _(bar):
         print('bar', bar)
 
+    @stream.on_status("*")
+    async def _(status):
+        print('status', status)
+
     stream.run()
 
 

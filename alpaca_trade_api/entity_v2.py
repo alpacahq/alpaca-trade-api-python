@@ -34,7 +34,9 @@ bar_mapping_v2 = {
     "l": "low",
     "c": "close",
     "v": "volume",
-    "t": "timestamp"
+    "t": "timestamp",
+    "n": "trade_count",
+    "vw": "vwap"
 }
 
 status_mapping_v2 = {
@@ -68,7 +70,7 @@ class EntityList(list):
                 self._raw,
             )
 
-            df.columns = [self.mapping[c] for c in df.columns]
+            df.columns = [self.mapping.get(c, c) for c in df.columns]
             if not df.empty:
                 df.set_index('timestamp', inplace=True)
                 df.index = pd.DatetimeIndex(df.index)

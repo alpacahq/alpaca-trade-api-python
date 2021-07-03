@@ -372,14 +372,14 @@ Under the examples folder you could find several examples to do the following:
 
 
 ## Running Multiple Strategies
-There's a way to execute more than one algorithm at once.<br>
-The websocket connection is limited to 1 connection per account. <br>
-For that exact purpose this ![project](https://github.com/shlomikushchi/alpaca-proxy-agent)  was created<br>
+The base version of this library only allows running a single algorithm due to Alpaca's limit of one websocket connection per account. For those looking to run multiple strategies, there is the [alpaca-proxy-agent project.](https://github.com/shlomikushchi/alpaca-proxy-agent)
+
 The steps to execute this are:
+
 * Run the Alpaca Proxy Agent as described in the project's README
-* Define this env variable: `DATA_PROXY_WS` to be the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
-* If you are using the Alpaca data stream, make sure you you initiate the StreamConn object with the container's url, like so: data_url='http://127.0.0.1:8765'
-* execute your algorithm. it will connect to the servers through the proxy agent allowing you to execute multiple strategies
+* Define a new environment variable: `DATA_PROXY_WS` set to the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
+* If you are using the Alpaca data stream, make sure you you initiate the StreamConn object with the container's url, like so: `data_url='http://127.0.0.1:8765'`
+* Execute your algorithm. It will connect to the Alpaca servers through the proxy agent, allowing you to execute multiple strategies
 
 
 ## Raw Data vs Entity Data

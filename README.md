@@ -78,7 +78,7 @@ We provide you with both options to choose from.
 #### Bars
 option 1: wait for the data
 ```py
-from alpaca_trade_api.rest import REST
+from alpaca_trade_api.rest import REST, TimeFrame
 api = REST()
 
 api.get_bars("AAPL", TimeFrame.Hour, "2021-02-08", "2021-02-08", limit=10, adjustment='raw').df

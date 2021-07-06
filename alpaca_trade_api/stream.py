@@ -276,7 +276,8 @@ class DataStream:
     async def _run_forever(self):
         # do not start the websocket connection until we subscribe to something
         while not (self._trade_handlers or self._quote_handlers
-                   or self._bar_handlers or self._daily_bar_handlers):
+                   or self._bar_handlers or self._daily_bar_handlers
+                   or self._status_handlers or self._luld_handlers):
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get()
                 return

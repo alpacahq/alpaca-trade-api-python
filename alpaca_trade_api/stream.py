@@ -302,8 +302,11 @@ class DataStream:
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
+            except Exception as e:
+                log.exception('error during websocket communication')
             finally:
                 if not self._running:
+                    log.info('terminating data stream')
                     break
                 await asyncio.sleep(0.01)
 
@@ -416,8 +419,11 @@ class TradingStream:
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
+            except Exception as e:
+                log.exception('error during websocket communication')
             finally:
                 if not self._running:
+                    log.info('terminating trading stream')
                     break
                 await asyncio.sleep(0.01)
 

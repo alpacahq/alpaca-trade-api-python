@@ -258,9 +258,13 @@ class DataStream:
         log.info('started data stream')
         retries = 0
         self._running = False
+        self._conn_error = False
         while True:
             try:
-                if not self._running:
+                if self._conn_error or not self._running:
+                    if retries > 0:
+                        log.warn(
+                            'attempting to reconnect... attempt ' + str(retries))
                     await self._start_ws()
                     self._running = True
                     retries = 0
@@ -274,8 +278,10 @@ class DataStream:
                 if retries > 1:
                     await asyncio.sleep(
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                log.warn('websocket error, restarting connection: ' +
+                log.warn('websocket error: ' +
                          str(wse))
+                if wse.__class__ == websockets.ConnectionClosedError:
+                    self._conn_error = True
             finally:
                 if not self._running:
                     break
@@ -372,13 +378,17 @@ class TradingStream:
         log.info('started trading stream')
         retries = 0
         self._running = False
+        self._conn_error = False
         while True:
             try:
-                if not self._running:
+                if self._conn_error or not self._running:
+                    if retries > 0:
+                        log.warn(
+                            'attempting to reconnect... attempt ' + str(retries))
                     await self._start_ws()
                     self._running = True
                     retries = 0
-                    await self._consume()
+                await self._consume()
             except websockets.WebSocketException as wse:
                 retries += 1
                 if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):
@@ -388,8 +398,10 @@ class TradingStream:
                 if retries > 1:
                     await asyncio.sleep(
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                log.warn('websocket error, restarting connection: ' +
+                log.warn('websocket error: ' +
                          str(wse))
+                if wse.__class__ == websockets.ConnectionClosedError:
+                    self._conn_error = True
             finally:
                 if not self._running:
                     break

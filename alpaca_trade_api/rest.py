@@ -686,6 +686,21 @@ class REST(object):
             api_version='v2')
         return self.response_wrapper(resp, SnapshotsV2)
 
+    def get_adtv(self, symbol: str, start: str, end: str):
+        df = self.get_bars(symbol, TimeFrame.Day, start, end).df
+        return df.volume.mean()
+
+    def get_sma(self,
+                symbol: str,
+                start: str,
+                end: str,
+                window: int):
+        if window < 1:
+            return None
+
+        df = self.get_bars(symbol, TimeFrame.Day, start, end).df
+        return df.close.rolling(window, min_periods=1).mean()
+
     def get_clock(self) -> Clock:
         resp = self.get('/clock')
         return self.response_wrapper(resp, Clock)

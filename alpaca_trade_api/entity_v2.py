@@ -49,6 +49,14 @@ status_mapping_v2 = {
     "z": "tape"
 }
 
+luld_mapping_v2 = {
+    "S": "symbol",
+    "u": "limit_up_price",
+    "d": "limit_down_price",
+    "i": "indicator",
+    "t": "timestamp",
+    "z": "tape"
+}
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -131,6 +139,12 @@ class StatusV2(Remapped, _NanoTimestamped, Entity):
 
     def __init__(self, raw):
         super().__init__(status_mapping_v2, raw)
+
+class LULDV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(luld_mapping_v2, raw)
 
 
 class SnapshotV2:

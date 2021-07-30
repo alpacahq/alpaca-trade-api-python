@@ -15,7 +15,7 @@ import queue
 from .common import get_base_url, get_data_stream_url, get_credentials, URL
 from .entity import Entity
 from .entity_v2 import quote_mapping_v2, trade_mapping_v2, bar_mapping_v2, \
-    status_mapping_v2, Trade, Quote, Bar, StatusV2
+    status_mapping_v2, luld_mapping_v2, Trade, Quote, Bar, StatusV2, LULDV2
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class DataStream:
         self._bar_handlers = {}
         self._daily_bar_handlers = {}
         self._status_handlers = {}
+        self._luld_handlers = {}
         self._ws = None
         self._running = False
         self._raw_data = raw_data
@@ -97,6 +98,11 @@ class DataStream:
                     status_mapping_v2[k]: v
                     for k, v in msg.items() if k in status_mapping_v2
                 })
+            elif msg_type == 'l':
+                result = LULDV2({
+                    luld_mapping_v2[k]: v
+                    for k, v in msg.items() if k in luld_mapping_v2
+                })
             else:
                 result = Entity(msg)
         return result
@@ -129,12 +135,18 @@ class DataStream:
                 symbol, self._status_handlers.get('*', None))
             if handler:
                 await handler(self._cast(msg_type, msg))
+        elif msg_type == 'l':
+            handler = self._luld_handlers.get(
+                symbol, self._luld_handlers.get('*', None))
+            if handler:
+                await handler(self._cast(msg_type, msg))
         elif msg_type == 'subscription':
             log.info(f'subscribed to trades: {msg.get("trades", [])}, ' +
                      f'quotes: {msg.get("quotes", [])} ' +
                      f'bars: {msg.get("bars", [])}, ' +
                      f'daily bars: {msg.get("dailyBars", [])}, ' +
-                     f'statuses: {msg.get("statuses", [])}'
+                     f'statuses: {msg.get("statuses", [])}, ' +
+                     f'LULDs: {msg.get("lulds", [])}'
                      )
         elif msg_type == 'error':
             log.error(f'error: {msg.get("msg")} ({msg.get("code")})')
@@ -144,7 +156,8 @@ class DataStream:
                 self._quote_handlers or
                 self._bar_handlers or
                 self._daily_bar_handlers or
-                self._status_handlers):
+                self._status_handlers or
+                self._luld_handlers):
             await self._ws.send(
                 msgpack.packb({
                     'action': 'subscribe',
@@ -152,7 +165,8 @@ class DataStream:
                     'quotes': tuple(self._quote_handlers.keys()),
                     'bars': tuple(self._bar_handlers.keys()),
                     'dailyBars': tuple(self._daily_bar_handlers.keys()),
-                    'statuses': tuple(self._status_handlers.keys())
+                    'statuses': tuple(self._status_handlers.keys()),
+                    'lulds': tuple(self._luld_handlers.keys())
                 }))
 
     def _subscribe(self, handler, symbols, handlers):
@@ -167,8 +181,9 @@ class DataStream:
                            quotes=(),
                            bars=(),
                            daily_bars=(),
-                           statuses=()):
-        if trades or quotes or bars:
+                           statuses=(),
+                           lulds=()):
+        if trades or quotes or bars or daily_bars or statuses or lulds:
             await self._ws.send(
                 msgpack.packb({
                     'action': 'unsubscribe',
@@ -177,6 +192,7 @@ class DataStream:
                     'bars': bars,
                     'dailyBars': daily_bars,
                     'statuses': statuses,
+                    'lulds': lulds,
                 }))
 
     def subscribe_trades(self, handler, *symbols):
@@ -193,6 +209,9 @@ class DataStream:
 
     def subscribe_statuses(self, handler, *symbols):
         self._subscribe(handler, symbols, self._status_handlers)
+    
+    def subscribe_lulds(self, handler, *symbols):
+        self._subscribe(handler, symbols, self._luld_handlers)
 
     def unsubscribe_trades(self, *symbols):
         if self._running:
@@ -229,6 +248,13 @@ class DataStream:
         for symbol in symbols:
             del self._status_handlers[symbol]
 
+    def unsubscribe_lulds(self, *symbols):
+        if self._running:
+            asyncio.get_event_loop().run_until_complete(
+                self._unsubscribe(lulds=symbols))
+        for symbol in symbols:
+            del self._luld_handlers[symbol]
+
     async def _start_ws(self):
         await self._connect()
         await self._auth()
@@ -250,7 +276,8 @@ class DataStream:
     async def _run_forever(self):
         # do not start the websocket connection until we subscribe to something
         while not (self._trade_handlers or self._quote_handlers
-                   or self._bar_handlers or self._daily_bar_handlers):
+                   or self._bar_handlers or self._daily_bar_handlers
+                   or self._status_handlers or self._luld_handlers):
             if not self._stop_stream_queue.empty():
                 self._stop_stream_queue.get()
                 return
@@ -276,8 +303,11 @@ class DataStream:
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
+            except Exception as e:
+                log.exception('error during websocket communication')
             finally:
                 if not self._running:
+                    log.info('terminating data stream')
                     break
                 await asyncio.sleep(0.01)
 
@@ -390,8 +420,11 @@ class TradingStream:
                         int(os.environ.get('APCA_RETRY_WAIT', 3)))
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
+            except Exception as e:
+                log.exception('error during websocket communication')
             finally:
                 if not self._running:
+                    log.info('terminating trading stream')
                     break
                 await asyncio.sleep(0.01)
 
@@ -444,6 +477,9 @@ class Stream:
     def subscribe_statuses(self, handler, *symbols):
         self._data_ws.subscribe_statuses(handler, *symbols)
 
+    def subscribe_lulds(self, handler, *symbols):
+        self._data_ws.subscribe_lulds(handler, *symbols)
+
     def on_trade_update(self, func):
         self.subscribe_trade_updates(func)
         return func
@@ -483,6 +519,13 @@ class Stream:
 
         return decorator
 
+    def on_luld(self, *symbols):
+        def decorator(func):
+            self.subscribe_lulds(func, *symbols)
+            return func
+
+        return decorator
+
     def unsubscribe_trades(self, *symbols):
         self._data_ws.unsubscribe_trades(*symbols)
 
@@ -497,6 +540,9 @@ class Stream:
 
     def unsubscribe_statuses(self, *symbols):
         self._data_ws.unsubscribe_statuses(*symbols)
+
+    def unsubscribe_lulds(self, *symbols):
+        self._data_ws.unsubscribe_lulds(*symbols)
 
     async def _run_forever(self):
         await asyncio.gather(self._trading_ws._run_forever(),

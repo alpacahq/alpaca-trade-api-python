@@ -560,7 +560,7 @@ class REST(object):
             data['page_token'] = page_token
             resp = self.data_get('/stocks/{}/{}'.format(symbol, endpoint),
                                  data=data, api_version='v2')
-            items = resp.get(endpoint, [])
+            items = resp.get(endpoint, []) or []
             for item in items:
                 yield item
             total_items += len(items)

@@ -69,6 +69,11 @@ You could get one of these historic data types:
 * Bars
 * Quotes
 * Trades
+
+You now have 2 pythonic ways to retrieve historical data.<br>
+One using the traditional rest module and the other is to use the experimental asyncio module added lately.<br>
+Let's have a look at both:<br>
+
 First thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
 You now have 2 options:
 * Working with data as it is received with a generator. (meaning it's faster but you need to process each item alone)
@@ -172,6 +177,11 @@ trades_iter = api.get_trades_iter("AAPL", "2021-02-08", "2021-02-08", limit=10)
 for trade in trades_iter:
     process_trade(trade)
 ```
+
+#### Asyncio Rest module
+Under the example folder you now have this example [code](examples/historic_async.py).<br>
+We are using the [aiohttp](https://docs.aiohttp.org/en/stable/) to achieve a much faster way to query multiple historic data segments.<br>
+follow along the example code to learn more.
 
 ### Live Stream Data
 There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>

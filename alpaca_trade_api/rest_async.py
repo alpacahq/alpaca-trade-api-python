@@ -164,7 +164,6 @@ class AsyncRest:
 
                         if not page_token:
                             break
-                        # print(response)
             except Exception as e:
                 print(f'Error while using the api: {e}')
 
@@ -183,82 +182,3 @@ async def gather_with_concurrency(n, *tasks):
             return await task
 
     return await asyncio.gather(*(sem_task(task) for task in tasks))
-
-
-async def main(symbols):
-    start = pd.Timestamp('2021-02-08', tz=NY).date().isoformat()
-    end = pd.Timestamp('2021-05-22', tz=NY).date().isoformat()
-    timeframe: TimeFrame = TimeFrame.Hour
-    # api.get_bars("AAPL", TimeFrame.Hour, start, end, limit=1).df
-    import sys
-    major = sys.version_info.major
-    minor = sys.version_info.minor
-    if major < 3 or minor < 6:
-        raise Exception('asyncio is not support in your python version')
-    print(f" Getting data for {len(symbols)} symbols, timeframe: {timeframe},"
-          f" between dates: start={start}, end={end}")
-    tasks = []
-
-    for symbol in symbols:
-        tasks.append(
-            rest.get_latest_quote_async(symbol))
-    if minor >= 8:
-        results = await asyncio.gather(*tasks)
-    else:
-        results = await gather_with_concurrency(500, *tasks)
-
-    bad_requests = 0
-    for response in results:
-        if not len(response):
-            bad_requests += 1
-
-    print(f"Total of {len(results)} Bars, and {bad_requests} empty responses.")
-
-    tasks = []
-
-    for symbol in symbols:
-        tasks.append(
-            rest.get_bars_async(symbol, start, end, timeframe, limit=500))
-    if minor >= 8:
-        results = await asyncio.gather(*tasks)
-    else:
-        results = await gather_with_concurrency(500, *tasks)
-
-    bad_requests = 0
-    for response in results:
-        if not len(response):
-            bad_requests += 1
-
-    print(f"Total of {len(results)} Bars, and {bad_requests} empty responses.")
-
-    tasks = []
-    for symbol in symbols:
-        tasks.append(
-            rest.get_quotes_async(symbol, start, end, timeframe, limit=500))
-    if minor >= 8:
-        results = await asyncio.gather(*tasks)
-    else:
-        results = await gather_with_concurrency(500, *tasks)
-
-    bad_requests = 0
-    for response in results:
-        if not len(response):
-            bad_requests += 1
-
-    print(
-        f"Total of {len(results)} Quotes, and {bad_requests} empty responses.")
-
-    tasks = []
-    for symbol in symbols:
-        tasks.append(
-            rest.get_trades_async(symbol, start, end, timeframe, limit=500))
-    if minor >= 8:
-        results = await asyncio.gather(*tasks)
-    else:
-        results = await gather_with_concurrency(500, *tasks)
-    bad_requests = 0
-    for response in results:
-        if not len(response):
-            bad_requests += 1
-    print(
-        f"Total of {len(results)} Trades, and {bad_requests} empty responses.")

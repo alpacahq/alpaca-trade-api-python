@@ -209,7 +209,7 @@ class DataStream:
 
     def subscribe_statuses(self, handler, *symbols):
         self._subscribe(handler, symbols, self._status_handlers)
-    
+
     def subscribe_lulds(self, handler, *symbols):
         self._subscribe(handler, symbols, self._luld_handlers)
 

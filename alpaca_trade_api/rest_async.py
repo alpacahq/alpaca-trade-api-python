@@ -3,7 +3,6 @@ import aiohttp
 import asyncio
 from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
-from alpaca_trade_api.rest import TimeFrame
 import pandas as pd
 from alpaca_trade_api.common import URL, get_api_version, get_data_url
 

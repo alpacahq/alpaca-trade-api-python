@@ -1,16 +1,11 @@
 import os
-from datetime import datetime
-import requests
 import aiohttp
 import asyncio
-import alpaca_trade_api as tradeapi
 from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
 from alpaca_trade_api.rest import TimeFrame
-from alpaca_trade_api.common import URL
 import pandas as pd
-from alpaca_trade_api.common import get_base_url, get_data_stream_url, \
-    get_credentials, URL, get_api_version, get_data_url
+from alpaca_trade_api.common import URL, get_api_version, get_data_url
 
 NY = 'America/New_York'
 
@@ -134,7 +129,6 @@ class AsyncRest:
 
         async with aiohttp.ClientSession() as session:
             async with session.get(url, **opts) as response:
-
                 response = await response.json()
                 if response.get("quote"):
                     result = QuoteV2(response["quote"])

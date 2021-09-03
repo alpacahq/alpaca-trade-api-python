@@ -2,9 +2,7 @@ import sys
 import asyncio
 import alpaca_trade_api as tradeapi
 from alpaca_trade_api.rest import TimeFrame, URL
-from alpaca_trade_api import rest_async
-from alpaca_trade_api.rest_async import gather_with_concurrency
-from alpaca_trade_api import AsyncRest
+from alpaca_trade_api.rest_async import gather_with_concurrency, AsyncRest
 import pandas as pd
 
 NY = 'America/New_York'
@@ -30,7 +28,7 @@ async def get_historic_bars(symbols, start, end, timeframe: TimeFrame):
 
     bad_requests = 0
     for response in results:
-        if not len(response):
+        if not len(response[1]):
             bad_requests += 1
 
     print(f"Total of {len(results)} Bars, and {bad_requests} empty responses.")
@@ -56,7 +54,7 @@ async def get_historic_trades(symbols, start, end, timeframe: TimeFrame):
 
     bad_requests = 0
     for response in results:
-        if not len(response):
+        if not len(response[1]):
             bad_requests += 1
 
     print(
@@ -83,7 +81,7 @@ async def get_historic_quotes(symbols, start, end, timeframe: TimeFrame):
 
     bad_requests = 0
     for response in results:
-        if not len(response):
+        if not len(response[1]):
             bad_requests += 1
 
     print(
@@ -100,6 +98,16 @@ async def main(symbols):
 
 
 if __name__ == '__main__':
+    """
+    Credentials for this example is kept in a yaml config file.
+    an example to such a file:
+    
+    key_id: "<YOUR-API-KEY>"
+    secret: "<YOUR-API-SECRET>"
+    feed: iex
+    base_url: https://paper-api.alpaca.markets
+
+    """
     import time
     import yaml
 
@@ -112,7 +120,6 @@ if __name__ == '__main__':
 
     rest = AsyncRest(key_id=api_key_id,
                      secret_key=api_secret)
-    NY = 'America/New_York'
 
     api = tradeapi.REST(key_id=api_key_id,
                         secret_key=api_secret,

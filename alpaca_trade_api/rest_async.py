@@ -1,12 +1,12 @@
 import os
 import aiohttp
 import asyncio
+import time
+import yaml
 from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
 import pandas as pd
 from alpaca_trade_api.common import URL, get_api_version, get_data_url
-
-NY = 'America/New_York'
 
 
 class AsyncRest:
@@ -15,7 +15,6 @@ class AsyncRest:
                  secret_key: str = None,
                  data_url: URL = None,
                  api_version: str = None,
-                 oauth=None,
                  raw_data: bool = False
                  ):
         """
@@ -24,10 +23,6 @@ class AsyncRest:
         """
         self._key_id, self._secret_key = key_id, secret_key
         self._data_url: URL = URL(data_url or get_data_url())
-        self._api_version = get_api_version(api_version)
-        self._use_raw_data = raw_data
-        self._retry = int(os.environ.get('APCA_RETRY_MAX', 3))
-        self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
 
     def _get_historic_url(self, _type, symbol):
         return f"{self._data_url}/v2/stocks/{symbol}/{_type}"
@@ -51,7 +46,7 @@ class AsyncRest:
         """
         df = pd.DataFrame({})
         url = self._get_historic_url(entity_type, symbol)
-        async for packet in self._request(symbol, url, payload):
+        async for packet in self._request(url, payload):
             if packet.get(entity_type):
                 response = entity_list_type(packet[entity_type]).df
                 df = pd.concat([df, response], axis=0)
@@ -60,11 +55,17 @@ class AsyncRest:
 
         return df
 
-    async def get_bars_async(self, symbol, start, end, timeframe, limit=1000):
+    async def get_bars_async(self,
+                             symbol,
+                             start,
+                             end,
+                             timeframe,
+                             limit=1000,
+                             adjustment='raw'):
         _type = "bars"
 
         payload = {
-            "adjustment": 'raw',
+            "adjustment": adjustment,
             "start":      start,
             "end":        end,
             "timeframe":  timeframe.value,
@@ -73,7 +74,7 @@ class AsyncRest:
         df = await self._iterate_requests(symbol, payload, limit, _type,
                                           BarsV2)
 
-        return df
+        return symbol, df
 
     async def get_trades_async(self, symbol, start, end, timeframe,
                                limit=1000):
@@ -87,7 +88,7 @@ class AsyncRest:
         df = await self._iterate_requests(symbol, payload, limit, _type,
                                           TradesV2)
 
-        return df
+        return symbol, df
 
     async def get_quotes_async(self, symbol, start, end, timeframe,
                                limit=1000):
@@ -101,7 +102,7 @@ class AsyncRest:
         df = await self._iterate_requests(symbol, payload, limit, _type,
                                           QuotesV2)
 
-        return df
+        return symbol, df
 
     async def get_latest_trade_async(self, symbol: str) -> TradeV2:
         """
@@ -116,7 +117,7 @@ class AsyncRest:
                 response = await response.json()
                 if response.get("quote"):
                     result = TradeV2(response["trade"])
-                    return result
+                    return symbol, result
 
     async def get_latest_quote_async(self, symbol: str) -> QuoteV2:
         """
@@ -131,7 +132,7 @@ class AsyncRest:
                 response = await response.json()
                 if response.get("quote"):
                     result = QuoteV2(response["quote"])
-                    return result
+                    return symbol, result
 
     def _get_opts(self, payload=None):
         headers = {}
@@ -149,7 +150,7 @@ class AsyncRest:
 
         return opts
 
-    async def _request(self, symbol, url, payload):
+    async def _request(self, url, payload):
         opts = self._get_opts(payload)
         async with aiohttp.ClientSession() as session:
             try:

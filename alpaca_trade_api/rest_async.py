@@ -1,8 +1,6 @@
-import os
 import aiohttp
 import asyncio
-import time
-import yaml
+
 from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
 import pandas as pd

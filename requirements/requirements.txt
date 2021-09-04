@@ -1,5 +1,5 @@
-pandas  # pyup: ignore - allow all versions
-numpy  # pyup: ignore - allow all versions
+pandas>=0.18.1   # pyup: ignore - allow all versions above this
+numpy>=1.11.1  # pyup: ignore - allow all versions above this
 requests>2,<3
 urllib3>1.24,<2
 websocket-client>=0.56.0,<2

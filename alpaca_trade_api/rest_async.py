@@ -151,19 +151,16 @@ class AsyncRest:
     async def _request(self, url, payload):
         opts = self._get_opts(payload)
         async with aiohttp.ClientSession() as session:
-            try:
-                while 1:
-                    async with session.get(url, **opts) as response:
+            while 1:
+                async with session.get(url, **opts) as response:
 
-                        response = await response.json()
-                        page_token = response.get('next_page_token')
-                        payload["page_token"] = page_token
-                        yield response
+                    response = await response.json()
+                    page_token = response.get('next_page_token')
+                    payload["page_token"] = page_token
+                    yield response
 
-                        if not page_token:
-                            break
-            except Exception as e:
-                print(f'Error while using the api: {e}')
+                    if not page_token:
+                        break
 
 
 async def gather_with_concurrency(n, *tasks):
@@ -179,4 +176,5 @@ async def gather_with_concurrency(n, *tasks):
         async with semaphore:
             return await task
 
-    return await asyncio.gather(*(sem_task(task) for task in tasks))
+    return await asyncio.gather(*(sem_task(task) for task in tasks),
+                                return_exceptions=True)

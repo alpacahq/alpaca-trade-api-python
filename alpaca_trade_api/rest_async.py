@@ -74,8 +74,7 @@ class AsyncRest:
 
         return symbol, df
 
-    async def get_trades_async(self, symbol, start, end, timeframe,
-                               limit=1000):
+    async def get_trades_async(self, symbol, start, end, limit=1000):
         _type = "trades"
 
         payload = {
@@ -88,8 +87,7 @@ class AsyncRest:
 
         return symbol, df
 
-    async def get_quotes_async(self, symbol, start, end, timeframe,
-                               limit=1000):
+    async def get_quotes_async(self, symbol, start, end, limit=1000):
         _type = "quotes"
 
         payload = {

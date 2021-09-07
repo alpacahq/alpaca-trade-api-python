@@ -1,11 +1,12 @@
-import os
-import sys
-import asyncio
+from enum import Enum
+import time
 import alpaca_trade_api as tradeapi
+import asyncio
+import os
+import pandas as pd
+import sys
 from alpaca_trade_api.rest import TimeFrame, URL
 from alpaca_trade_api.rest_async import gather_with_concurrency, AsyncRest
-import pandas as pd
-from enum import Enum
 
 NY = 'America/New_York'
 
@@ -28,7 +29,7 @@ def get_data_method(data_type: DataType):
 
 
 async def get_historic_data_base(symbols, data_type: DataType, start, end,
-                                 timeframe: TimeFrame):
+                                 timeframe: TimeFrame = None):
     """
     base function to use with all
     :param symbols:
@@ -41,16 +42,18 @@ async def get_historic_data_base(symbols, data_type: DataType, start, end,
     minor = sys.version_info.minor
     if major < 3 or minor < 6:
         raise Exception('asyncio is not support in your python version')
-    print(
-        f"Getting {data_type} data for {len(symbols)} symbols, timeframe: "
-        f"{timeframe} between dates: start={start}, end={end}")
+    msg = f"Getting {data_type} data for {len(symbols)} symbols"
+    msg += f", timeframe: {timeframe}" if timeframe else ""
+    msg += f" between dates: start={start}, end={end}"
+    print(msg)
 
     tasks = []
 
     for symbol in symbols:
-        tasks.append(
-            get_data_method(data_type)(symbol, start, end, timeframe,
-                                       limit=500))
+        args = [symbol, start, end, timeframe] if timeframe else \
+            [symbol, start, end]
+        tasks.append(get_data_method(data_type)(*args))
+
     if minor >= 8:
         results = await asyncio.gather(*tasks, return_exceptions=True)
     else:
@@ -72,13 +75,11 @@ async def get_historic_bars(symbols, start, end, timeframe: TimeFrame):
 
 
 async def get_historic_trades(symbols, start, end, timeframe: TimeFrame):
-    await get_historic_data_base(symbols, DataType.Trades, start, end,
-                                 timeframe)
+    await get_historic_data_base(symbols, DataType.Trades, start, end)
 
 
 async def get_historic_quotes(symbols, start, end, timeframe: TimeFrame):
-    await get_historic_data_base(symbols, DataType.Quotes, start, end,
-                                 timeframe)
+    await get_historic_data_base(symbols, DataType.Quotes, start, end)
 
 
 async def main(symbols):
@@ -91,25 +92,10 @@ async def main(symbols):
 
 
 if __name__ == '__main__':
-    """
-    Credentials for this example is kept in a yaml config file.
-    an example to such a file:
-    
-    key_id: "<YOUR-API-KEY>"
-    secret: "<YOUR-API-SECRET>"
-    feed: iex
-    base_url: https://paper-api.alpaca.markets
-
-    """
-    import time
-    import yaml
-
-    with open("./config.yaml", mode='r') as f:
-        o = yaml.safe_load(f)
-        api_key_id = o.get("key_id") or os.environ.get('APCA_API_KEY_ID')
-        api_secret = o.get("secret") or os.environ.get('APCA_API_SECRET_KEY')
-        base_url = o.get("base_url") or "https://paper-api.alpaca.markets"
-        feed = o.get("feed") or "iex"
+    api_key_id = os.environ.get('APCA_API_KEY_ID')
+    api_secret = os.environ.get('APCA_API_SECRET_KEY')
+    base_url = "https://paper-api.alpaca.markets"
+    feed = "iex"  # change to "sip" if you have a paid account
 
     rest = AsyncRest(key_id=api_key_id,
                      secret_key=api_secret)

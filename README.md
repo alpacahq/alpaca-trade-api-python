@@ -183,11 +183,13 @@ for trade in trades_iter:
     process_trade(trade)
 ```
 
-#### Asyncio Rest module
-Under the example folder you now have this example [code](examples/historic_async.py).<br>
-We are using the [aiohttp](https://docs.aiohttp.org/en/stable/) to achieve a much faster way to query multiple historic data segments.<br>
-follow along the example code to learn more.
-
+### Asyncio Rest module
+The `rest_async.py` module now provides an asyncion approach to retrieiving the historic data.<br>
+This module is, and thus may have expensions in the near future to support more endpoints.<br>
+It provides a much faster way to retrieve the historic data for multiple symbols.<br>
+Under the hood we use the [aiohttp](https://docs.aiohttp.org/en/stable/) library.<br>
+We provide a code sample to get you started with this new approach and it is located [here](examples/historic_async.py).<br>
+Follow along the example code to learn more, and to utilize it to your own needs.<br>
 ### Live Stream Data
 There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
 The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>

@@ -69,6 +69,11 @@ You could get one of these historic data types:
 * Bars
 * Quotes
 * Trades
+
+You now have 2 pythonic ways to retrieve historical data.<br>
+One using the traditional rest module and the other is to use the experimental asyncio module added lately.<br>
+Let's have a look at both:<br>
+
 First thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
 You now have 2 options:
 * Working with data as it is received with a generator. (meaning it's faster but you need to process each item alone)
@@ -178,6 +183,13 @@ for trade in trades_iter:
     process_trade(trade)
 ```
 
+### Asyncio Rest module
+The `rest_async.py` module now provides an asyncion approach to retrieiving the historic data.<br>
+This module is, and thus may have expensions in the near future to support more endpoints.<br>
+It provides a much faster way to retrieve the historic data for multiple symbols.<br>
+Under the hood we use the [aiohttp](https://docs.aiohttp.org/en/stable/) library.<br>
+We provide a code sample to get you started with this new approach and it is located [here](examples/historic_async.py).<br>
+Follow along the example code to learn more, and to utilize it to your own needs.<br>
 ### Live Stream Data
 There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
 The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>

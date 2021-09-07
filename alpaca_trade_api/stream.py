@@ -209,7 +209,7 @@ class DataStream:
 
     def subscribe_statuses(self, handler, *symbols):
         self._subscribe(handler, symbols, self._status_handlers)
-    
+
     def subscribe_lulds(self, handler, *symbols):
         self._subscribe(handler, symbols, self._luld_handlers)
 
@@ -304,7 +304,8 @@ class DataStream:
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
             except Exception as e:
-                log.exception('error during websocket communication')
+                log.exception('error during websocket '
+                              'communication: {}'.format(str(e)))
             finally:
                 if not self._running:
                     log.info('terminating data stream')
@@ -421,7 +422,8 @@ class TradingStream:
                 log.warn('websocket error, restarting connection: ' +
                          str(wse))
             except Exception as e:
-                log.exception('error during websocket communication')
+                log.exception('error during websocket '
+                              'communication: {}'.format(str(e)))
             finally:
                 if not self._running:
                     log.info('terminating trading stream')

@@ -3,4 +3,4 @@ from .rest_async import AsyncRest  # noqa
 from .stream import Stream  # noqa
 from .stream2 import StreamConn  # noqa
 
-__version__ = '1.2.3'
+__version__ = '1.3.0'

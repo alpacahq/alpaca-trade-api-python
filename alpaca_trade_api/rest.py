@@ -1,10 +1,9 @@
 import logging
 import os
-from typing import Iterator, List, Union
+from typing import Iterator, List, Optional, Union
 import requests
 from requests.exceptions import HTTPError
 import time
-from enum import Enum
 from .common import (
     get_base_url,
     get_data_url,
@@ -70,7 +69,7 @@ class APIError(Exception):
             return self._http_error.response
 
 
-class TimeFrame(Enum):
+class TimeFrame(str):
     Day = "1Day"
     Hour = "1Hour"
     Minute = "1Min"
@@ -545,7 +544,12 @@ class REST(object):
         resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
         return self.response_wrapper(resp['last'], Quote)
 
-    def _data_get_v2(self, endpoint: str, symbol: str, **kwargs):
+    def _data_get(self,
+                  endpoint: str,
+                  symbol: str,
+                  api_version: str = 'v2',
+                  endpoint_base: str = 'stocks',
+                  **kwargs):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
@@ -558,9 +562,10 @@ class REST(object):
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            resp = self.data_get('/stocks/{}/{}'.format(symbol, endpoint),
-                                 data=data, api_version='v2')
-            items = resp.get(endpoint, [])
+            resp = self.data_get(
+                '/{}/{}/{}'.format(endpoint_base, symbol, endpoint),
+                data=data, api_version=api_version)
+            items = resp.get(endpoint, []) or []
             for item in items:
                 yield item
             total_items += len(items)
@@ -574,8 +579,8 @@ class REST(object):
                         end: str,
                         limit: int = None,
                         raw=False) -> TradeIterator:
-        trades = self._data_get_v2('trades', symbol,
-                                   start=start, end=end, limit=limit)
+        trades = self._data_get('trades', symbol,
+                                start=start, end=end, limit=limit)
         for trade in trades:
             if raw:
                 yield trade
@@ -601,8 +606,8 @@ class REST(object):
                         end: str,
                         limit: int = None,
                         raw=False) -> QuoteIterator:
-        quotes = self._data_get_v2('quotes', symbol,
-                                   start=start, end=end, limit=limit)
+        quotes = self._data_get('quotes', symbol,
+                                start=start, end=end, limit=limit)
         for quote in quotes:
             if raw:
                 yield quote
@@ -630,10 +635,10 @@ class REST(object):
                       adjustment: str = 'raw',
                       limit: int = None,
                       raw=False) -> BarIterator:
-        bars = self._data_get_v2('bars', symbol,
-                                 timeframe=timeframe.value,
-                                 adjustment=adjustment,
-                                 start=start, end=end, limit=limit)
+        bars = self._data_get('bars', symbol,
+                              timeframe=timeframe,
+                              adjustment=adjustment,
+                              start=start, end=end, limit=limit)
         for bar in bars:
             if raw:
                 yield bar
@@ -662,15 +667,15 @@ class REST(object):
         Get the latest trade for the given symbol
         """
         resp = self.data_get(
-                             '/stocks/{}/trades/latest'.format(symbol),
-                             api_version='v2')
+            '/stocks/{}/trades/latest'.format(symbol),
+            api_version='v2')
         return self.response_wrapper(resp['trade'], TradeV2)
 
     def get_latest_quote(self, symbol: str) -> QuoteV2:
         """Get the latest quote for the given symbol"""
         resp = self.data_get(
-                             '/stocks/{}/quotes/latest'.format(symbol),
-                             api_version='v2')
+            '/stocks/{}/quotes/latest'.format(symbol),
+            api_version='v2')
         return self.response_wrapper(resp['quote'], QuoteV2)
 
     def get_snapshot(self, symbol: str) -> SnapshotV2:
@@ -685,6 +690,117 @@ class REST(object):
             '/stocks/snapshots?symbols={}'.format(','.join(symbols)),
             api_version='v2')
         return self.response_wrapper(resp, SnapshotsV2)
+
+    def get_crypto_trades_iter(self,
+                               symbol: str,
+                               start: Optional[str] = None,
+                               end: Optional[str] = None,
+                               limit: int = None,
+                               exchanges: Optional[List[str]] = None,
+                               raw=False) -> TradeIterator:
+        trades = self._data_get('trades', symbol,
+                                api_version='v1beta1', endpoint_base='crypto',
+                                start=start, end=end, limit=limit,
+                                exchanges=exchanges)
+        for trade in trades:
+            if raw:
+                yield trade
+            else:
+                yield self.response_wrapper(trade, Trade)
+
+    def get_crypto_trades(self,
+                          symbol: str,
+                          start: Optional[str] = None,
+                          end: Optional[str] = None,
+                          limit: int = None,
+                          exchanges: Optional[List[str]] = None,
+                          ) -> TradesV2:
+        return TradesV2(list(self.get_crypto_trades_iter(
+            symbol, start, end, limit, exchanges, raw=True)))
+
+    def get_crypto_quotes_iter(self,
+                               symbol: str,
+                               start: Optional[str] = None,
+                               end: Optional[str] = None,
+                               limit: int = None,
+                               exchanges: Optional[List[str]] = None,
+                               raw=False) -> QuoteIterator:
+        quotes = self._data_get('quotes', symbol,
+                                api_version='v1beta1', endpoint_base='crypto',
+                                start=start, end=end, limit=limit,
+                                exchanges=exchanges)
+        for quote in quotes:
+            if raw:
+                yield quote
+            else:
+                yield self.response_wrapper(quote, Quote)
+
+    def get_crypto_quotes(self,
+                          symbol: str,
+                          start: Optional[str] = None,
+                          end: Optional[str] = None,
+                          limit: int = None,
+                          exchanges: Optional[List[str]] = None,
+                          ) -> QuotesV2:
+        return QuotesV2(list(self.get_crypto_quotes_iter(
+            symbol, start, end, limit, exchanges, raw=True)))
+
+    def get_crypto_bars_iter(self,
+                             symbol: str,
+                             timeframe: TimeFrame,
+                             start: Optional[str] = None,
+                             end: Optional[str] = None,
+                             limit: int = None,
+                             exchanges: Optional[List[str]] = None,
+                             raw=False) -> BarIterator:
+        bars = self._data_get('bars', symbol,
+                              api_version='v1beta1', endpoint_base='crypto',
+                              timeframe=timeframe,
+                              start=start, end=end, limit=limit,
+                              exchanges=exchanges)
+        for bar in bars:
+            if raw:
+                yield bar
+            else:
+                yield self.response_wrapper(bar, Bar)
+
+    def get_crypto_bars(self,
+                        symbol: str,
+                        timeframe: TimeFrame,
+                        start: Optional[str] = None,
+                        end: Optional[str] = None,
+                        limit: int = None,
+                        exchanges: Optional[List[str]] = None,
+                        ) -> BarsV2:
+        return BarsV2(list(self.get_crypto_bars_iter(
+            symbol, timeframe, start, end, limit, exchanges, raw=True)))
+
+    def get_latest_crypto_trade(self, symbol: str, exchange: str) -> TradeV2:
+        resp = self.data_get(
+            '/crypto/{}/trades/latest'.format(symbol),
+            data={'exchange': exchange},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['trade'], TradeV2)
+
+    def get_latest_crypto_quote(self, symbol: str, exchange: str) -> QuoteV2:
+        resp = self.data_get(
+            '/crypto/{}/quotes/latest'.format(symbol),
+            data={'exchange': exchange},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['quote'], QuoteV2)
+
+    def get_latest_crypto_xbbo(self,
+                               symbol: str,
+                               exchanges: Optional[List[str]] = None,
+                               ) -> QuoteV2:
+        params = {}
+        if exchanges:
+            params['exchanges'] = ','.join(exchanges)
+        resp = self.data_get(
+            '/crypto/{}/xbbo/latest'.format(symbol),
+            data=params,
+            api_version='v1beta1')
+        return self.response_wrapper(resp['xbbo'], QuoteV2)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')

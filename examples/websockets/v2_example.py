@@ -17,6 +17,10 @@ async def print_trade_update(tu):
     print('trade update', tu)
 
 
+async def print_crypto_trade(t):
+    print('crypto trade', t)
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     feed = 'iex'  # <- replace to SIP if you have PRO subscription
@@ -24,6 +28,7 @@ def main():
     stream.subscribe_trade_updates(print_trade_update)
     stream.subscribe_trades(print_trade, 'AAPL')
     stream.subscribe_quotes(print_quote, 'IBM')
+    stream.subscribe_crypto_trades(print_crypto_trade, 'BTCUSD')
 
     @stream.on_bar('MSFT')
     async def _(bar):

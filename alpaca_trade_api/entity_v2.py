@@ -11,24 +11,27 @@ trade_mapping_v2 = {
     "p": "price",
     "s": "size",
     "t": "timestamp",
-    "z": "tape"
+    "z": "tape",  # stocks only
+    "tks": "takerside"  # crypto only
 }
 
 quote_mapping_v2 = {
     "S":  "symbol",
+    "x": "exchange",  # crypto only
     "ax": "ask_exchange",
     "ap": "ask_price",
     "as": "ask_size",
     "bx": "bid_exchange",
     "bp": "bid_price",
     "bs": "bid_size",
-    "c":  "conditions",
+    "c":  "conditions",  # stocks only
     "t":  "timestamp",
-    "z":  "tape"
+    "z":  "tape"  # stocks only
 }
 
 bar_mapping_v2 = {
     "S":  "symbol",
+    "x": "exchange",  # crypto only
     "o":  "open",
     "h":  "high",
     "l":  "low",

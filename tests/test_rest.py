@@ -789,6 +789,52 @@ def test_data(reqmock):
     assert snapshots.get('INVALID') is None
 
 
+def test_timeframe(reqmock):
+    # Custom timeframe: Minutes
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=45Min&adjustment=raw&'
+                'start=2021-06-08&end=2021-06-08', text='{}')
+    api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
+    timeframe = tradeapi.TimeFrame(45, tradeapi.TimeFrameUnit.Minute)
+    api.get_bars('AAPL', timeframe, '2021-06-08', '2021-06-08')
+    assert reqmock.called
+
+    # Custom timeframe: Hours
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=23Hour&adjustment=raw&'
+                'start=2021-06-08&end=2021-06-08', text='{}')
+    timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
+    api.get_bars('AAPL', timeframe, '2021-06-08', '2021-06-08')
+    assert reqmock.called
+
+    # Cannot be initialized at invalid combinations
+    with pytest.raises(Exception):
+        tradeapi.TimeFrame(30, tradeapi.TimeFrameUnit.Hour)
+
+    # Cannot be initialized at invalid combinations
+    with pytest.raises(Exception):
+        tradeapi.TimeFrame(-1, tradeapi.TimeFrameUnit.Minute)
+
+    # Can be modified after set
+    timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
+    timeframe.amount = 5
+    timeframe.unit = tradeapi.TimeFrameUnit.Minute
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=5Min&adjustment=raw&'
+                'start=2021-06-08&end=2021-06-08', text='{}')
+    api.get_bars('AAPL', timeframe, '2021-06-08', '2021-06-08')
+    assert reqmock.called
+
+    # Cannot be modified to an invalid range
+    timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
+    with pytest.raises(Exception):
+        timeframe.amount = 30
+
+    # Cannot be modified to an invalid range
+    timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
+    timeframe.unit = tradeapi.TimeFrameUnit.Minute
+    timeframe.amount = 59
+    with pytest.raises(Exception):
+        timeframe.unit = tradeapi.TimeFrameUnit.Hour
+
+
 def test_watchlists(reqmock):
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
     api_raw = tradeapi.REST('key-id', 'secret-key', api_version='v1',

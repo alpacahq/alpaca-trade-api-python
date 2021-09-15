@@ -546,7 +546,7 @@ class REST(object):
 
     def _data_get(self,
                   endpoint: str,
-                  symbol: str,
+                  symbol: Union[str, List[str]],
                   api_version: str = 'v2',
                   endpoint_base: str = 'stocks',
                   **kwargs):
@@ -562,21 +562,31 @@ class REST(object):
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            resp = self.data_get(
-                '/{}/{}/{}'.format(endpoint_base, symbol, endpoint),
-                data=data, api_version=api_version)
-            items = resp.get(endpoint, []) or []
-            for item in items:
-                yield item
-            total_items += len(items)
+            if isinstance(symbol, str):
+                path = f'/{endpoint_base}/{symbol}/{endpoint}'
+            else:
+                path = f'/{endpoint_base}/{endpoint}'
+                data['symbols'] = ','.join(symbol)
+            resp = self.data_get(path, data=data, api_version=api_version)
+            if isinstance(symbol, str):
+                for item in resp.get(endpoint, []) or []:
+                    yield item
+                    total_items += 1
+            else:
+                by_symbol = resp.get(endpoint, {}) or {}
+                for sym, items in sorted(by_symbol.items()):
+                    for item in items or []:
+                        item['S'] = sym
+                        yield item
+                        total_items += 1
             page_token = resp.get('next_page_token')
             if not page_token:
                 break
 
     def get_trades_iter(self,
-                        symbol: str,
-                        start: str,
-                        end: str,
+                        symbol: Union[str, List[str]],
+                        start: Optional[str] = None,
+                        end: Optional[str] = None,
                         limit: int = None,
                         raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
@@ -588,22 +598,19 @@ class REST(object):
                 yield self.response_wrapper(trade, Trade)
 
     def get_trades(self,
-                   symbol: str,
-                   start: str,
-                   end: str,
+                   symbol: Union[str, List[str]],
+                   start: Optional[str] = None,
+                   end: Optional[str] = None,
                    limit: int = None,
                    ) -> TradesV2:
         trades = list(self.get_trades_iter(symbol,
-                                           start,
-                                           end,
-                                           limit,
-                                           raw=True))
+                                           start, end, limit, raw=True))
         return TradesV2(trades)
 
     def get_quotes_iter(self,
-                        symbol: str,
-                        start: str,
-                        end: str,
+                        symbol: Union[str, List[str]],
+                        start: Optional[str] = None,
+                        end: Optional[str] = None,
                         limit: int = None,
                         raw=False) -> QuoteIterator:
         quotes = self._data_get('quotes', symbol,
@@ -615,9 +622,9 @@ class REST(object):
                 yield self.response_wrapper(quote, Quote)
 
     def get_quotes(self,
-                   symbol: str,
-                   start: str,
-                   end: str,
+                   symbol: Union[str, List[str]],
+                   start: Optional[str] = None,
+                   end: Optional[str] = None,
                    limit: int = None,
                    ) -> QuotesV2:
         quotes = list(self.get_quotes_iter(symbol,
@@ -628,10 +635,10 @@ class REST(object):
         return QuotesV2(quotes)
 
     def get_bars_iter(self,
-                      symbol: str,
+                      symbol: Union[str, List[str]],
                       timeframe: TimeFrame,
-                      start: str,
-                      end: str,
+                      start: Optional[str] = None,
+                      end: Optional[str] = None,
                       adjustment: str = 'raw',
                       limit: int = None,
                       raw=False) -> BarIterator:
@@ -646,10 +653,10 @@ class REST(object):
                 yield self.response_wrapper(bar, Bar)
 
     def get_bars(self,
-                 symbol: str,
+                 symbol: Union[str, List[str]],
                  timeframe: TimeFrame,
-                 start: str,
-                 end: str,
+                 start: Optional[str] = None,
+                 end: Optional[str] = None,
                  adjustment: str = 'raw',
                  limit: int = None,
                  ) -> BarsV2:
@@ -746,7 +753,7 @@ class REST(object):
             symbol, start, end, limit, exchanges, raw=True)))
 
     def get_crypto_bars_iter(self,
-                             symbol: str,
+                             symbol: Union[str, List[str]],
                              timeframe: TimeFrame,
                              start: Optional[str] = None,
                              end: Optional[str] = None,
@@ -765,7 +772,7 @@ class REST(object):
                 yield self.response_wrapper(bar, Bar)
 
     def get_crypto_bars(self,
-                        symbol: str,
+                        symbol: Union[str, List[str]],
                         timeframe: TimeFrame,
                         start: Optional[str] = None,
                         end: Optional[str] = None,

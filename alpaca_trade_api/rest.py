@@ -546,7 +546,7 @@ class REST(object):
 
     def _data_get(self,
                   endpoint: str,
-                  symbol: Union[str, List[str]],
+                  symbol_or_symbols: Union[str, List[str]],
                   api_version: str = 'v2',
                   endpoint_base: str = 'stocks',
                   **kwargs):
@@ -562,13 +562,13 @@ class REST(object):
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            if isinstance(symbol, str):
-                path = f'/{endpoint_base}/{symbol}/{endpoint}'
+            if isinstance(symbol_or_symbols, str):
+                path = f'/{endpoint_base}/{symbol_or_symbols}/{endpoint}'
             else:
                 path = f'/{endpoint_base}/{endpoint}'
-                data['symbols'] = ','.join(symbol)
+                data['symbols'] = ','.join(symbol_or_symbols)
             resp = self.data_get(path, data=data, api_version=api_version)
-            if isinstance(symbol, str):
+            if isinstance(symbol_or_symbols, str):
                 for item in resp.get(endpoint, []) or []:
                     yield item
                     total_items += 1

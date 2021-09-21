@@ -100,7 +100,6 @@ class REST(object):
         self._retry_codes = [int(o) for o in os.environ.get(
             'APCA_RETRY_CODES', '429,504').split(',')]
 
-
     def _request(self,
                  method,
                  path,
@@ -660,15 +659,15 @@ class REST(object):
         Get the latest trade for the given symbol
         """
         resp = self.data_get(
-                             '/stocks/{}/trades/latest'.format(symbol),
-                             api_version='v2')
+            '/stocks/{}/trades/latest'.format(symbol),
+            api_version='v2')
         return self.response_wrapper(resp['trade'], TradeV2)
 
     def get_latest_quote(self, symbol: str) -> QuoteV2:
         """Get the latest quote for the given symbol"""
         resp = self.data_get(
-                             '/stocks/{}/quotes/latest'.format(symbol),
-                             api_version='v2')
+            '/stocks/{}/quotes/latest'.format(symbol),
+            api_version='v2')
         return self.response_wrapper(resp['quote'], QuoteV2)
 
     def get_snapshot(self, symbol: str) -> SnapshotV2:

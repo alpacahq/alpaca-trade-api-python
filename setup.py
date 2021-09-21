@@ -33,7 +33,6 @@ setup(
     keywords='financial,timeseries,api,trade',
     packages=[
         'alpaca_trade_api',
-        'alpaca_trade_api.polygon',
     ],
     install_requires=REQUIREMENTS,
     tests_require=REQUIREMENTS_TEST,

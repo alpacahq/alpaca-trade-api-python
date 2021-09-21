@@ -36,9 +36,9 @@ def test_stream(websockets):
     ws.send = AsyncMock()
     ws.recv = AsyncMock(return_value=json.dumps({
         'stream': 'authentication',
-        'data': {
-                        'status': 'authorized',
-                        }
+        'data':   {
+            'status': 'authorized',
+        }
     }).encode())
 
     conn = StreamConn('key-id', 'secret-key')
@@ -48,6 +48,7 @@ def test_stream(websockets):
     @conn.on('authorized')
     async def on_auth(conn, stream, msg):
         on_auth.msg = msg
+
     _run(conn._connect())
     assert on_auth.msg.status == 'authorized'
     assert conn._consume_msg.mock.called
@@ -64,7 +65,7 @@ def test_stream(websockets):
     conn._ws = ws
     ws.recv = AsyncMock(return_value=json.dumps({
         'stream': 'raise',
-        'data': {
+        'data':   {
             'key': 'value',
         }
     }))

@@ -1,5 +1,4 @@
 from alpaca_trade_api.stream2 import StreamConn
-from alpaca_trade_api.polygon import StreamConn as PolyStream
 from alpaca_trade_api.entity import Account
 import asyncio
 import json
@@ -37,9 +36,9 @@ def test_stream(websockets):
     ws.send = AsyncMock()
     ws.recv = AsyncMock(return_value=json.dumps({
         'stream': 'authentication',
-        'data': {
-                        'status': 'authorized',
-                        }
+        'data':   {
+            'status': 'authorized',
+        }
     }).encode())
 
     conn = StreamConn('key-id', 'secret-key')
@@ -49,6 +48,7 @@ def test_stream(websockets):
     @conn.on('authorized')
     async def on_auth(conn, stream, msg):
         on_auth.msg = msg
+
     _run(conn._connect())
     assert on_auth.msg.status == 'authorized'
     assert conn._consume_msg.mock.called
@@ -65,7 +65,7 @@ def test_stream(websockets):
     conn._ws = ws
     ws.recv = AsyncMock(return_value=json.dumps({
         'stream': 'raise',
-        'data': {
+        'data':   {
             'key': 'value',
         }
     }))
@@ -77,16 +77,6 @@ def test_stream(websockets):
     @conn.on('raise')
     async def on_raise(conn, stream, msg):
         raise TestException()
-
-    # _ensure_polygon
-    with mock.patch('alpaca_trade_api.stream2.polygon') as polygon:
-        polygon.StreamConn().connect = AsyncMock()
-        polygon.StreamConn()._handlers = None
-
-        conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
-        _run(conn._ensure_ws(conn.data_ws))
-        assert conn.data_ws is not None
-        assert conn.data_ws.connect.mock.called
 
     # _ensure_ws
     conn = StreamConn('key-id', 'secret-key')
@@ -117,16 +107,3 @@ def test_stream(websockets):
     assert isinstance(ent, Account)
     ent = conn._cast('other', {'key': 'value'})
     assert ent.key == 'value'
-
-    # polygon _dispatch
-    conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
-    conn.data_ws = PolyStream('key-id')
-    msg_data = {'key': 'value', 'ev': 'Q'}
-    conn.data_ws._cast = mock.Mock(return_value=msg_data)
-
-    @conn.on('Q')
-    async def on_q(conn, subject, data):
-        on_q.data = data
-
-    _run(conn.data_ws._dispatch(msg_data))
-    assert on_q.data['key'] == 'value'

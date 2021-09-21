@@ -78,16 +78,6 @@ def test_stream(websockets):
     async def on_raise(conn, stream, msg):
         raise TestException()
 
-    # _ensure_polygon
-    with mock.patch('alpaca_trade_api.stream2.polygon') as polygon:
-        polygon.StreamConn().connect = AsyncMock()
-        polygon.StreamConn()._handlers = None
-
-        conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
-        _run(conn._ensure_ws(conn.data_ws))
-        assert conn.data_ws is not None
-        assert conn.data_ws.connect.mock.called
-
     # _ensure_ws
     conn = StreamConn('key-id', 'secret-key')
     conn.trading_ws._connect = AsyncMock()

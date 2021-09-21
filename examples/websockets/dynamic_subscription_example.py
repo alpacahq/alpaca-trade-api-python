@@ -11,7 +11,6 @@ from alpaca_trade_api.common import URL
 
 ALPACA_API_KEY = "<YOUR-API-KEY>"
 ALPACA_SECRET_KEY = "<YOUR-SECRET-KEY>"
-USE_POLYGON = False
 
 
 async def print_trade(t):

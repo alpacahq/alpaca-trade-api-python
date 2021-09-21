@@ -18,7 +18,6 @@ from .entity import (
 )
 from .entity_v2 import (
     BarsV2, SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2)
-from . import polygon
 
 logger = logging.getLogger(__name__)
 Positions = List[Position]
@@ -100,8 +99,7 @@ class REST(object):
         self._retry_wait = int(os.environ.get('APCA_RETRY_WAIT', 3))
         self._retry_codes = [int(o) for o in os.environ.get(
             'APCA_RETRY_CODES', '429,504').split(',')]
-        self.polygon = polygon.REST(
-            self._key_id, 'staging' in self._base_url, self._use_raw_data)
+
 
     def _request(self,
                  method,

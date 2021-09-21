@@ -25,6 +25,7 @@ class DATE(str):
     """
     date string in the format YYYY-MM-DD
     """
+
     def __new__(cls, value):
         if not value:
             raise ValueError('Unexpected empty string')
@@ -47,6 +48,7 @@ class FLOAT(str):
     let's make sure that param passed is one of the two, so we don't pass
     invalid strings all the way to the servers.
     """
+
     def __new__(cls, value):
         if isinstance(value, float) or isinstance(value, int):
             return value
@@ -69,7 +71,7 @@ def get_data_stream_url() -> URL:
     return URL(os.environ.get(
         'APCA_API_STREAM_URL',
         'https://stream.data.alpaca.markets').rstrip('/')
-    )
+               )
 
 
 def get_credentials(key_id: str = None,
@@ -88,18 +90,6 @@ def get_credentials(key_id: str = None,
                          ' (env: APCA_API_SECRET_KEY')
 
     return key_id, secret_key, oauth
-
-
-def get_polygon_credentials(alpaca_key: str = None) -> str:
-    try:
-        alpaca_key, _, _ = get_credentials(alpaca_key, 'ignored')
-    except ValueError:
-        pass
-    key_id = os.environ.get('POLYGON_KEY_ID') or alpaca_key
-    if key_id is None:
-        raise ValueError('Key ID must be given to access Polygon API'
-                         ' (env: APCA_API_KEY_ID or POLYGON_KEY_ID)')
-    return key_id
 
 
 def get_api_version(api_version: str) -> str:

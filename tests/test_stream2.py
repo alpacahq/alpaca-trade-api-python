@@ -1,5 +1,4 @@
 from alpaca_trade_api.stream2 import StreamConn
-from alpaca_trade_api.polygon import StreamConn as PolyStream
 from alpaca_trade_api.entity import Account
 import asyncio
 import json
@@ -117,16 +116,3 @@ def test_stream(websockets):
     assert isinstance(ent, Account)
     ent = conn._cast('other', {'key': 'value'})
     assert ent.key == 'value'
-
-    # polygon _dispatch
-    conn = StreamConn('key-id', 'secret-key', data_stream='polygon')
-    conn.data_ws = PolyStream('key-id')
-    msg_data = {'key': 'value', 'ev': 'Q'}
-    conn.data_ws._cast = mock.Mock(return_value=msg_data)
-
-    @conn.on('Q')
-    async def on_q(conn, subject, data):
-        on_q.data = data
-
-    _run(conn.data_ws._dispatch(msg_data))
-    assert on_q.data['key'] == 'value'

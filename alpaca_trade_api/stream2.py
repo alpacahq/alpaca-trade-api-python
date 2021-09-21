@@ -13,7 +13,6 @@ import queue
 import websockets
 from .common import get_base_url, get_data_url, get_credentials, URL
 from .entity import Account, Entity, trade_mapping, agg_mapping, quote_mapping
-from . import polygon
 from .entity import Trade, Quote, Agg
 import logging
 from typing import List, Callable
@@ -47,10 +46,10 @@ class _StreamConn(object):
     async def _connect(self):
         message = {
             'action': 'authenticate',
-            'data': {
-                'oauth_token': self._oauth
-            } if self._oauth else {
-                'key_id': self._key_id,
+            'data':   {
+                          'oauth_token': self._oauth
+                      } if self._oauth else {
+                'key_id':     self._key_id,
                 'secret_key': self._secret_key,
             }
         }
@@ -128,7 +127,7 @@ class _StreamConn(object):
             self._streams |= set(channels)
             await self._ws.send(json.dumps({
                 'action': 'listen',
-                'data': {
+                'data':   {
                     'streams': channels,
                 }
             }))
@@ -139,7 +138,7 @@ class _StreamConn(object):
         if len(channels) > 0:
             await self._ws.send(json.dumps({
                 'action': 'unlisten',
-                'data': {
+                'data':   {
                     'streams': channels,
                 }
             }))
@@ -215,7 +214,7 @@ class StreamConn(object):
         """
         :param base_url: api.alpaca.markets
         :param data_url: data.alpaca.markets
-        :param data_stream: alpacadatav1/polygon
+        :param data_stream: alpacadatav1
         :param debug: should print exceptions?
         :param raw_data: should we return stream data raw or wrap it with
                          Entity objects.
@@ -225,7 +224,7 @@ class StreamConn(object):
         self._base_url = base_url or get_base_url()
         self._data_url = data_url or get_data_url()
         if data_stream is not None:
-            if data_stream in ('alpacadatav1', 'polygon'):
+            if data_stream in ('alpacadatav1'):
                 _data_stream = data_stream
             else:
                 raise ValueError('invalid data_stream name {}'.format(
@@ -243,26 +242,13 @@ class StreamConn(object):
                                       self._oauth,
                                       raw_data=self._raw_data)
 
-        if self._data_stream == 'polygon':
-            # DATA_PROXY_WS is used for the alpaca-proxy-agent.
-            # this is how we set the polygon ws to go through the proxy agent
-            endpoint = os.environ.get("DATA_PROXY_WS", '')
-            if endpoint:
-                os.environ['POLYGON_WS_URL'] = endpoint
-            self.data_ws = polygon.StreamConn(
-                self._key_id + '-staging' if 'staging' in self._base_url else
-                self._key_id,
-                raw_data=self._raw_data
-            )
-            self._data_prefixes = (('Q.', 'T.', 'A.', 'AM.'))
-        else:
-            self.data_ws = _StreamConn(self._key_id,
-                                       self._secret_key,
-                                       self._data_url,
-                                       self._oauth,
-                                       raw_data=self._raw_data)
-            self._data_prefixes = (
-                ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
+        self.data_ws = _StreamConn(self._key_id,
+                                   self._secret_key,
+                                   self._data_url,
+                                   self._oauth,
+                                   raw_data=self._raw_data)
+        self._data_prefixes = (
+            ('Q.', 'T.', 'AM.', 'alpacadatav1/'))
 
         self._handlers = {}
         self._handler_symbols = {}
@@ -370,17 +356,11 @@ class StreamConn(object):
                                           self._base_url,
                                           self._oauth,
                                           raw_data=self._raw_data)
-            if self._data_stream == 'polygon':
-                self.data_ws = polygon.StreamConn(
-                    self._key_id + '-staging' if 'staging' in
-                    self._base_url else self._key_id,
-                    raw_data=self._raw_data)
-            else:
-                self.data_ws = _StreamConn(self._key_id,
-                                           self._secret_key,
-                                           self._data_url,
-                                           self._oauth,
-                                           raw_data=self._raw_data)
+            self.data_ws = _StreamConn(self._key_id,
+                                       self._secret_key,
+                                       self._data_url,
+                                       self._oauth,
+                                       raw_data=self._raw_data)
 
     async def stop_ws(self):
         """

@@ -8,7 +8,6 @@ import logging
 import json
 from typing import List, Optional
 import msgpack
-import os
 import re
 import websockets
 import queue
@@ -40,9 +39,9 @@ class _DataStream():
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._handlers = {
-            'trades': {},
-            'quotes': {},
-            'bars': {},
+            'trades':    {},
+            'quotes':    {},
+            'bars':      {},
             'dailyBars': {},
         }
         self._name = 'data'
@@ -60,7 +59,7 @@ class _DataStream():
         await self._ws.send(
             msgpack.packb({
                 'action': 'auth',
-                'key': self._key_id,
+                'key':    self._key_id,
                 'secret': self._secret_key,
             }))
         r = await self._ws.recv()
@@ -176,10 +175,10 @@ class _DataStream():
         if trades or quotes or bars or daily_bars:
             await self._ws.send(
                 msgpack.packb({
-                    'action': 'unsubscribe',
-                    'trades': trades,
-                    'quotes': quotes,
-                    'bars': bars,
+                    'action':    'unsubscribe',
+                    'trades':    trades,
+                    'quotes':    quotes,
+                    'bars':      bars,
                     'dailyBars': daily_bars,
                 }))
 
@@ -191,34 +190,24 @@ class _DataStream():
                 return
             await asyncio.sleep(0.1)
         log.info(f'started {self._name} stream')
-        retries = 0
         self._running = False
         while True:
             try:
                 if not self._running:
+                    log.info("starting websocket connection")
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
-                    retries = 0
                 await self._consume()
             except websockets.WebSocketException as wse:
-                retries += 1
-                if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):
-                    await self.close()
-                    self._running = False
-                    raise ConnectionError("max retries exceeded")
-                if retries > 1:
-                    await asyncio.sleep(
-                        int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                log.warn('websocket error, restarting connection: ' +
+                await self.close()
+                self._running = False
+                log.warn('data websocket error, restarting connection: ' +
                          str(wse))
             except Exception as e:
                 log.exception('error during websocket '
                               'communication: {}'.format(str(e)))
             finally:
-                if not self._running:
-                    log.info(f'terminating {self._name} stream')
-                    break
                 await asyncio.sleep(0.01)
 
     def subscribe_trades(self, handler, *symbols):
@@ -320,13 +309,13 @@ class DataStream(_DataStream):
         if trades or quotes or bars or daily_bars or statuses or lulds:
             await self._ws.send(
                 msgpack.packb({
-                    'action': 'unsubscribe',
-                    'trades': trades,
-                    'quotes': quotes,
-                    'bars': bars,
+                    'action':    'unsubscribe',
+                    'trades':    trades,
+                    'quotes':    quotes,
+                    'bars':      bars,
                     'dailyBars': daily_bars,
-                    'statuses': statuses,
-                    'lulds': lulds,
+                    'statuses':  statuses,
+                    'lulds':     lulds,
                 }))
 
     def subscribe_statuses(self, handler, *symbols):
@@ -395,8 +384,8 @@ class TradingStream:
         await self._ws.send(
             json.dumps({
                 'action': 'authenticate',
-                'data': {
-                    'key_id': self._key_id,
+                'data':   {
+                    'key_id':     self._key_id,
                     'secret_key': self._secret_key,
                 }
             }))
@@ -416,7 +405,7 @@ class TradingStream:
             await self._ws.send(
                 json.dumps({
                     'action': 'listen',
-                    'data': {
+                    'data':   {
                         'streams': ['trade_updates']
                     }
                 }))
@@ -453,33 +442,23 @@ class TradingStream:
                 return
             await asyncio.sleep(0.1)
         log.info('started trading stream')
-        retries = 0
         self._running = False
         while True:
             try:
                 if not self._running:
+                    log.info("starting websocket connection")
                     await self._start_ws()
                     self._running = True
-                    retries = 0
                     await self._consume()
             except websockets.WebSocketException as wse:
-                retries += 1
-                if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):
-                    await self.close()
-                    self._running = False
-                    raise ConnectionError("max retries exceeded")
-                if retries > 1:
-                    await asyncio.sleep(
-                        int(os.environ.get('APCA_RETRY_WAIT', 3)))
-                log.warn('websocket error, restarting connection: ' +
-                         str(wse))
+                await self.close()
+                self._running = False
+                log.warn('trading stream websocket error, restarting ' +
+                         ' connection: ' + str(wse))
             except Exception as e:
                 log.exception('error during websocket '
                               'communication: {}'.format(str(e)))
             finally:
-                if not self._running:
-                    log.info('terminating trading stream')
-                    break
                 await asyncio.sleep(0.01)
 
     async def close(self):

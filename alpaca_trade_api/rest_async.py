@@ -66,7 +66,7 @@ class AsyncRest:
             "adjustment": adjustment,
             "start":      start,
             "end":        end,
-            "timeframe":  timeframe.value,
+            "timeframe":  timeframe,
             "limit":      limit,
         }
         df = await self._iterate_requests(symbol, payload, limit, _type,

@@ -196,28 +196,21 @@ class _DataStream():
         while True:
             try:
                 if not self._running:
-                    log.warn("starting websocket connection")
+                    log.info("starting websocket connection")
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
                     retries = 0
                 await self._consume()
             except websockets.WebSocketException as wse:
-                retries += 1
-                if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):
-                    await self.close()
-                    self._running = False
-                    log.warn('data websocket error, restarting connection: ' +
-                             str(wse))
-                if retries > 1:
-                    await asyncio.sleep(
-                        int(os.environ.get('APCA_RETRY_WAIT', 3)))
+                await self.close()
+                self._running = False
+                log.warn('data websocket error, restarting connection: ' +
+                         str(wse))
             except Exception as e:
                 log.exception('error during websocket '
                               'communication: {}'.format(str(e)))
             finally:
-                if not self._running:
-                    log.info(f'terminating {self._name} stream')
                 await asyncio.sleep(0.01)
 
     def subscribe_trades(self, handler, *symbols):
@@ -457,27 +450,20 @@ class TradingStream:
         while True:
             try:
                 if not self._running:
-                    log.warn("starting websocket connection")
+                    log.info("starting websocket connection")
                     await self._start_ws()
                     self._running = True
                     retries = 0
                     await self._consume()
             except websockets.WebSocketException as wse:
-                retries += 1
-                if retries > int(os.environ.get('APCA_RETRY_MAX', 3)):
-                    await self.close()
-                    self._running = False
-                    log.warn('trading stream websocket error, restarting ' +
-                             ' connection: ' + str(wse))
-                if retries > 1:
-                    await asyncio.sleep(
-                        int(os.environ.get('APCA_RETRY_WAIT', 3)))
+                await self.close()
+                self._running = False
+                log.warn('trading stream websocket error, restarting ' +
+                         ' connection: ' + str(wse))
             except Exception as e:
                 log.exception('error during websocket '
                               'communication: {}'.format(str(e)))
             finally:
-                if not self._running:
-                    log.info('terminating trading stream')
                 await asyncio.sleep(0.01)
 
     async def close(self):

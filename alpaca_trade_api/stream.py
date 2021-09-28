@@ -191,7 +191,6 @@ class _DataStream():
                 return
             await asyncio.sleep(0.1)
         log.info(f'started {self._name} stream')
-        retries = 0
         self._running = False
         while True:
             try:
@@ -200,7 +199,6 @@ class _DataStream():
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
-                    retries = 0
                 await self._consume()
             except websockets.WebSocketException as wse:
                 await self.close()
@@ -445,7 +443,6 @@ class TradingStream:
                 return
             await asyncio.sleep(0.1)
         log.info('started trading stream')
-        retries = 0
         self._running = False
         while True:
             try:
@@ -453,7 +450,6 @@ class TradingStream:
                     log.info("starting websocket connection")
                     await self._start_ws()
                     self._running = True
-                    retries = 0
                     await self._consume()
             except websockets.WebSocketException as wse:
                 await self.close()

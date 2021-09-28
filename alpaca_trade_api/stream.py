@@ -8,7 +8,6 @@ import logging
 import json
 from typing import List, Optional
 import msgpack
-import os
 import re
 import websockets
 import queue
@@ -40,9 +39,9 @@ class _DataStream():
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._handlers = {
-            'trades': {},
-            'quotes': {},
-            'bars': {},
+            'trades':    {},
+            'quotes':    {},
+            'bars':      {},
             'dailyBars': {},
         }
         self._name = 'data'
@@ -60,7 +59,7 @@ class _DataStream():
         await self._ws.send(
             msgpack.packb({
                 'action': 'auth',
-                'key': self._key_id,
+                'key':    self._key_id,
                 'secret': self._secret_key,
             }))
         r = await self._ws.recv()
@@ -176,10 +175,10 @@ class _DataStream():
         if trades or quotes or bars or daily_bars:
             await self._ws.send(
                 msgpack.packb({
-                    'action': 'unsubscribe',
-                    'trades': trades,
-                    'quotes': quotes,
-                    'bars': bars,
+                    'action':    'unsubscribe',
+                    'trades':    trades,
+                    'quotes':    quotes,
+                    'bars':      bars,
                     'dailyBars': daily_bars,
                 }))
 
@@ -310,13 +309,13 @@ class DataStream(_DataStream):
         if trades or quotes or bars or daily_bars or statuses or lulds:
             await self._ws.send(
                 msgpack.packb({
-                    'action': 'unsubscribe',
-                    'trades': trades,
-                    'quotes': quotes,
-                    'bars': bars,
+                    'action':    'unsubscribe',
+                    'trades':    trades,
+                    'quotes':    quotes,
+                    'bars':      bars,
                     'dailyBars': daily_bars,
-                    'statuses': statuses,
-                    'lulds': lulds,
+                    'statuses':  statuses,
+                    'lulds':     lulds,
                 }))
 
     def subscribe_statuses(self, handler, *symbols):
@@ -385,8 +384,8 @@ class TradingStream:
         await self._ws.send(
             json.dumps({
                 'action': 'authenticate',
-                'data': {
-                    'key_id': self._key_id,
+                'data':   {
+                    'key_id':     self._key_id,
                     'secret_key': self._secret_key,
                 }
             }))
@@ -406,7 +405,7 @@ class TradingStream:
             await self._ws.send(
                 json.dumps({
                     'action': 'listen',
-                    'data': {
+                    'data':   {
                         'streams': ['trade_updates']
                     }
                 }))

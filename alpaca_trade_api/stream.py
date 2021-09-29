@@ -45,6 +45,7 @@ class _DataStream():
             'dailyBars': {},
         }
         self._name = 'data'
+        self._run_forever_flag = False
 
     async def _connect(self):
         self._ws = await websockets.connect(
@@ -79,6 +80,7 @@ class _DataStream():
             await self._ws.close()
             self._ws = None
             self._running = False
+        self._run_forever_flag = False
 
     async def stop_ws(self):
         self._stop_stream_queue.put_nowait({"should_stop": True})
@@ -191,7 +193,8 @@ class _DataStream():
             await asyncio.sleep(0.1)
         log.info(f'started {self._name} stream')
         self._running = False
-        while True:
+        self._run_forever_flag = True
+        while self._run_forever_flag:
             try:
                 if not self._running:
                     log.info("starting websocket connection")
@@ -376,6 +379,7 @@ class TradingStream:
         self._ws = None
         self._running = False
         self._stop_stream_queue = queue.Queue()
+        self._run_forever_flag = False
 
     async def _connect(self):
         self._ws = await websockets.connect(self._endpoint)
@@ -443,7 +447,8 @@ class TradingStream:
             await asyncio.sleep(0.1)
         log.info('started trading stream')
         self._running = False
-        while True:
+        self._run_forever_flag = True
+        while self._run_forever_flag:
             try:
                 if not self._running:
                     log.info("starting websocket connection")
@@ -466,6 +471,7 @@ class TradingStream:
             await self._ws.close()
             self._ws = None
             self._running = False
+        self._run_forever_flag = False
 
     async def stop_ws(self):
         self._stop_stream_queue.put_nowait({"should_stop": True})
@@ -644,6 +650,22 @@ class Stream:
         loop = asyncio.get_event_loop()
         try:
             loop.run_until_complete(self._run_forever())
+        except KeyboardInterrupt:
+            print('keyboard interrupt, bye')
+            pass
+
+    async def _close(self):
+        await asyncio.gather(
+            self.stop_ws(),
+            self._trading_ws.close(),
+            self._data_ws.close(),
+            self._crypto_ws.close()
+            )
+
+    def close(self):
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(self._close())
         except KeyboardInterrupt:
             print('keyboard interrupt, bye')
             pass

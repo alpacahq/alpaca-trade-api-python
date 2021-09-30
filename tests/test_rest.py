@@ -791,7 +791,8 @@ def test_data(reqmock):
 
 def test_timeframe(reqmock):
     # Custom timeframe: Minutes
-    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=45Min&adjustment=raw&'
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?'
+                'timeframe=45Min&adjustment=raw&'
                 'start=2021-06-08&end=2021-06-08', text='{}')
     api = tradeapi.REST('key-id', 'secret-key', api_version='v1')
     timeframe = tradeapi.TimeFrame(45, tradeapi.TimeFrameUnit.Minute)
@@ -799,7 +800,8 @@ def test_timeframe(reqmock):
     assert reqmock.called
 
     # Custom timeframe: Hours
-    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=23Hour&adjustment=raw&'
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?'
+                'timeframe=23Hour&adjustment=raw&'
                 'start=2021-06-08&end=2021-06-08', text='{}')
     timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
     api.get_bars('AAPL', timeframe, '2021-06-08', '2021-06-08')
@@ -817,7 +819,8 @@ def test_timeframe(reqmock):
     timeframe = tradeapi.TimeFrame(23, tradeapi.TimeFrameUnit.Hour)
     timeframe.amount = 5
     timeframe.unit = tradeapi.TimeFrameUnit.Minute
-    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?timeframe=5Min&adjustment=raw&'
+    reqmock.get('https://data.alpaca.markets/v2/stocks/AAPL/bars?'
+                'timeframe=5Min&adjustment=raw&'
                 'start=2021-06-08&end=2021-06-08', text='{}')
     api.get_bars('AAPL', timeframe, '2021-06-08', '2021-06-08')
     assert reqmock.called

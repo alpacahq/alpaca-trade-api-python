@@ -113,13 +113,14 @@ class TimeFrame:
             raise "Amount must be a positive integer value."
 
         if unit == TimeFrameUnit.Minute and amount > 59:
-            raise "Second or Minute units can only be used with amounts between 1-59."
+            raise "Second or Minute units can only be used " + \
+                "with amounts between 1-59."
 
         if unit == TimeFrameUnit.Hour and amount > 23:
             raise "Hour units can only be used with amounts 1-23"
 
 
-# TimeFrame.Minute, TimeFrame.Hour and TimeFrame.Day kept for backwards compatibility
+# These are kept for backwards compatibility
 TimeFrame.Minute = TimeFrame(1, TimeFrameUnit.Minute)
 TimeFrame.Hour = TimeFrame(1, TimeFrameUnit.Hour)
 TimeFrame.Day = TimeFrame(1, TimeFrameUnit.Day)

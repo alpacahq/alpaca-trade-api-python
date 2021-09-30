@@ -94,7 +94,7 @@ class MartingaleTrader(object):
 
                 self.process_current_tick(tick_open, tick_close)
 
-        stream.subscribe_bars(handle_bar, self.symbol)
+        conn.subscribe_bars(handle_bar, self.symbol)
 
         # Listen for quote data and perform trading logic
         async def handle_trades(trade):
@@ -114,7 +114,7 @@ class MartingaleTrader(object):
 
                 self.process_current_tick(tick_open, tick_close)
 
-        stream.subscribe_trades(handle_trades, self.symbol)
+        conn.subscribe_trades(handle_trades, self.symbol)
 
         # Listen for updates to our orders
         async def handle_trade_updates(data):
@@ -142,9 +142,9 @@ class MartingaleTrader(object):
             elif event_type != 'new':
                 print(f'Unexpected order event type {event_type} received')
 
-        stream.subscribe_trade_updates(handle_trade_updates)
+        conn.subscribe_trade_updates(handle_trade_updates)
 
-        stream.run()
+        conn.run()
 
     def process_current_tick(self, tick_open, tick_close):
         # Update streak info

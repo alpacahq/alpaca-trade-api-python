@@ -231,6 +231,7 @@ You could subscribe to bars, trades or quotes and trade updates as well.<br>
 Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets) to achieve different goals. Let's see the basic example<br>
 We present a new Streamer class under `alpaca_trade_api.stream` for API V2.
 ```py
+from alpaca_trade_api.stream import Stream
 
 async def trade_callback(t):
     print('trade', t)

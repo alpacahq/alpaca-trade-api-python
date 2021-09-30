@@ -71,7 +71,6 @@ class APIError(Exception):
 
 
 class TimeFrameUnit(Enum):
-    Second = "Sec"
     Minute = "Min"
     Hour = "Hour"
     Day = "Day"
@@ -114,15 +113,14 @@ class TimeFrame:
         if amount <= 0:
             raise "Amount must be a positive integer value."
 
-        if unit in [TimeFrameUnit.Second, TimeFrameUnit.Minute] and amount > 59:
+        if unit == TimeFrameUnit.Minute and amount > 59:
             raise "Second or Minute units can only be used with amounts between 1-59."
 
         if unit == TimeFrameUnit.Hour and amount > 23:
             raise "Hour units can only be used with amounts 1-23"
 
 
-# TimeFrame.Sec, TimeFrame.Minute, TimeFrame.Hour and TimeFrame.Day kept for backwards compatibility
-TimeFrame.Sec = TimeFrame(1, TimeFrameUnit.Second)
+# TimeFrame.Minute, TimeFrame.Hour and TimeFrame.Day kept for backwards compatibility
 TimeFrame.Minute = TimeFrame(1, TimeFrameUnit.Minute)
 TimeFrame.Hour = TimeFrame(1, TimeFrameUnit.Hour)
 TimeFrame.Day = TimeFrame(1, TimeFrameUnit.Day)

@@ -4,7 +4,7 @@ import asyncio
 from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
 import pandas as pd
-from alpaca_trade_api.common import URL, get_data_url
+from alpaca_trade_api.common import URL, get_credentials, get_data_url
 
 
 class AsyncRest:
@@ -19,7 +19,7 @@ class AsyncRest:
         :param raw_data: should we return api response raw or wrap it with
                          Entity objects.
         """
-        self._key_id, self._secret_key = key_id, secret_key
+        self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._data_url: URL = URL(data_url or get_data_url())
 
     def _get_historic_url(self, _type, symbol):

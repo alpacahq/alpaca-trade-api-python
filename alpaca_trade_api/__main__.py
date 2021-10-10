@@ -9,7 +9,7 @@ def run(args):
         embed()
     except ImportError:
         import code
-        code.interact(locals=locals())
+        code.interact(local=locals())
 
 
 def main():

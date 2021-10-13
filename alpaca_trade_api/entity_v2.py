@@ -167,6 +167,24 @@ class SnapshotsV2(dict):
             self[k] = _convert_or_none(SnapshotV2, v)
 
 
+class LatestBarsV2(dict):
+    def __init__(self, raw):
+        for k, v in raw.items():
+            self[k] = _convert_or_none(BarV2, v)
+
+
+class LatestTradesV2(dict):
+    def __init__(self, raw):
+        for k, v in raw.items():
+            self[k] = _convert_or_none(TradeV2, v)
+
+
+class LatestQuotesV2(dict):
+    def __init__(self, raw):
+        for k, v in raw.items():
+            self[k] = _convert_or_none(QuoteV2, v)
+
+
 def _convert_or_none(entityType, value):
     if value:
         return entityType(value)

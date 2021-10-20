@@ -42,7 +42,7 @@ These services are provided by Alpaca:
 * Data:
   * [Historical](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/historical/)
   * [Live Data Stream](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/)
-* [Account/Porfolio Management](https://alpaca.markets/docs/api-documentation/api-v2)
+* [Account/Portfolio Management](https://alpaca.markets/docs/api-documentation/api-v2)
 
 The free services are limited, please check the docs to see the differences between paid/free services.
 
@@ -218,8 +218,8 @@ for trade in trades_iter:
 ```
 
 ### Asyncio Rest module
-The `rest_async.py` module now provides an asyncion approach to retrieiving the historic data.<br>
-This module is, and thus may have expensions in the near future to support more endpoints.<br>
+The `rest_async.py` module now provides an asyncion approach to retrieving the historic data.<br>
+This module is, and thus may have expansions in the near future to support more endpoints.<br>
 It provides a much faster way to retrieve the historic data for multiple symbols.<br>
 Under the hood we use the [aiohttp](https://docs.aiohttp.org/en/stable/) library.<br>
 We provide a code sample to get you started with this new approach and it is located [here](examples/historic_async.py).<br>
@@ -255,7 +255,7 @@ stream.run()
 
 ```
 
-## Acount & Portfolio Management 
+## Account & Portfolio Management 
 
 The HTTP API document is located at https://docs.alpaca.markets/
 
@@ -301,7 +301,7 @@ You can access the following information through this object.
 - the API error code: `.code` property
 - the API error message: `str(error)`
 - the original request object: `.request` property
-- the original response objecgt: `.response` property
+- the original response object: `.response` property
 - the HTTP status code: `.status_code` property
 
 #### API REST Methods
@@ -351,7 +351,7 @@ api.submit_order(
 )
 ```
 
-For simple orders with `type='market'` and `time_in_force='day'`, you can pass a fractional amount (`qty`) or a `notional` amount (but not both). For instace, if the current market price for SPY is $300, the following calls are equivalent:
+For simple orders with `type='market'` and `time_in_force='day'`, you can pass a fractional amount (`qty`) or a `notional` amount (but not both). For instance, if the current market price for SPY is $300, the following calls are equivalent:
 
 ```py
 api.submit_order(

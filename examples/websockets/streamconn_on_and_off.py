@@ -7,6 +7,7 @@ import logging
 import threading
 import asyncio
 import time
+from concurrent.futures import ThreadPoolExecutor
 from alpaca_trade_api.stream import Stream
 from alpaca_trade_api.common import URL
 
@@ -48,10 +49,11 @@ if __name__ == '__main__':
                         level=logging.INFO)
 
     loop = asyncio.get_event_loop()
+    pool = ThreadPoolExecutor(1)
 
     while 1:
         try:
-            threading.Thread(target=consumer_thread).start()
+            pool.submit(consumer_thread)
             time.sleep(20)
             loop.run_until_complete(conn.stop_ws())
             time.sleep(20)

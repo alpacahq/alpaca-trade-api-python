@@ -207,6 +207,7 @@ class _DataStream():
             try:
                 if not self._should_run:
                     # when signaling to stop, this is how we break run_forever
+                    log.info("Data stream stopped")
                     break
                 if not self._running:
                     log.info("starting data websocket connection")
@@ -469,6 +470,7 @@ class TradingStream:
         while True:
             try:
                 if not self._should_run:
+                    log.info("Trading stream stopped")
                     break
                 if not self._running:
                     log.info("starting trading websocket connection")
@@ -690,3 +692,14 @@ class Stream:
         if self._crypto_ws:
             log.info("Stopping the crypto data websocket connection")
             await self._crypto_ws.stop_ws()
+
+    def is_open(self):
+        """
+        Checks if either of the websockets is open
+        :return:
+        """
+        open_ws = self._trading_ws._ws or \
+                  self._data_ws._ws or self._crypto_ws._ws
+        if open_ws:
+            return True
+        return False

@@ -372,7 +372,7 @@ Under the examples folder you could find several examples to do the following:
 
 
 ## Running Multiple Strategies
-The base version of this library only allows running a single algorithm due to Alpaca's limit of one websocket connection per account. For those looking to run multiple strategies, there is the [alpaca-proxy-agent project.](https://github.com/shlomikushchi/alpaca-proxy-agent)
+The base version of this library only allows running a single algorithm due to Alpaca's limit of one websocket connection per account. For those looking to run multiple strategies, there is [alpaca-proxy-agent project.](https://github.com/shlomikushchi/alpaca-proxy-agent)
 
 The steps to execute this are:
 
@@ -383,11 +383,10 @@ The steps to execute this are:
 
 
 ## Raw Data vs Entity Data
-By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use.<br>
-Some users may prefer working with raw python objects (lists, dicts, ...). <br>You have 2 options to get the raw data:
+By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use. Some users may prefer working with vanilla python objects (lists, dicts, ...). You have 2 options to get the raw data:
+
 * Each Entity object as a `_raw` property that extract the raw data from the object.
-* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) <br>you could pass `raw_data` argument
-  to `Rest()` object or the `StreamConn()` object.
+* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) you could pass `raw_data` argument to `Rest()` object or the `StreamConn()` object.
 
 ## Support and Contribution
 

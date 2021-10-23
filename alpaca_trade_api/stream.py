@@ -698,8 +698,8 @@ class Stream:
         Checks if either of the websockets is open
         :return:
         """
-        open_ws = self._trading_ws._ws or \
-                  self._data_ws._ws or self._crypto_ws._ws
+        open_ws = self._trading_ws._ws or self._data_ws._ws\
+                  or self._crypto_ws._ws
         if open_ws:
             return True
         return False

@@ -378,7 +378,7 @@ The steps to execute this are:
 
 * Run the Alpaca Proxy Agent as described in the project's README
 * Define a new environment variable: `DATA_PROXY_WS` set to the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
-* If you are using the Alpaca data stream, make sure you you initiate the StreamConn object with the container's url, like so: `data_url='http://127.0.0.1:8765'`
+* If you are using the Alpaca data stream, make sure to initiate the StreamConn object with the container's url: `data_url='http://127.0.0.1:8765'`
 * Execute your algorithm. It will connect to the Alpaca servers through the proxy agent, allowing you to execute multiple strategies
 
 

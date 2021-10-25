@@ -83,7 +83,7 @@ We provide you with both options to choose from.
 #### Bars
 option 1: wait for the data
 ```py
-from alpaca_trade_api.rest import REST
+from alpaca_trade_api.rest import REST, TimeFrame
 api = REST()
 
 api.get_bars("AAPL", TimeFrame.Hour, "2021-06-08", "2021-06-08", adjustment='raw').df
@@ -424,22 +424,21 @@ Under the examples folder you could find several examples to do the following:
 
 
 ## Running Multiple Strategies
-There's a way to execute more than one algorithm at once.<br>
-The websocket connection is limited to 1 connection per account. <br>
-For that exact purpose this ![project](https://github.com/shlomikushchi/alpaca-proxy-agent)  was created<br>
+The base version of this library only allows running a single algorithm due to Alpaca's limit of one websocket connection per account. For those looking to run multiple strategies, there is [alpaca-proxy-agent project.](https://github.com/shlomikushchi/alpaca-proxy-agent)
+
 The steps to execute this are:
+
 * Run the Alpaca Proxy Agent as described in the project's README
-* Define this env variable: `DATA_PROXY_WS` to be the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
-* If you are using the Alpaca data stream, make sure you you initiate the StreamConn object with the container's url, like so: data_url='http://127.0.0.1:8765'
-* execute your algorithm. it will connect to the servers through the proxy agent allowing you to execute multiple strategies
+* Define a new environment variable: `DATA_PROXY_WS` set to the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
+* If you are using the Alpaca data stream, make sure to initiate the StreamConn object with the container's url: `data_url='http://127.0.0.1:8765'`
+* Execute your algorithm. It will connect to the Alpaca servers through the proxy agent, allowing you to execute multiple strategies
 
 
 ## Raw Data vs Entity Data
-By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use.<br>
-Some users may prefer working with raw python objects (lists, dicts, ...). <br>You have 2 options to get the raw data:
+By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use. Some users may prefer working with vanilla python objects (lists, dicts, ...). You have 2 options to get the raw data:
+
 * Each Entity object as a `_raw` property that extract the raw data from the object.
-* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) <br>you could pass `raw_data` argument
-  to `Rest()` object or the `StreamConn()` object.
+* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) you could pass `raw_data` argument to `Rest()` object or the `StreamConn()` object.
 
 ## Support and Contribution
 

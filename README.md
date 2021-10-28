@@ -388,7 +388,8 @@ print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
 
 ```
 
-please note that if you are using limit, it is calculated from the start date. and if end date is not specified, "now" is used. <br>Take that under consideration when using end date with a limit. 
+(Deprecated: When using `get_barset()`, please note that if you are using limit, it is calculated from the end date. and if end date is not specified, "now" is used. Take that under consideration when using start date with a limit. ) <br>
+For `get_bars()`, when you are using limit, it is calculated from the start date.  If the end date is not specified, "now" is used. Take that under consideration when using end date with a limit.
 
 ---
 

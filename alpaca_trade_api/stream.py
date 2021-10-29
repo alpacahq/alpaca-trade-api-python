@@ -210,7 +210,8 @@ class _DataStream():
                     log.info("{} stream stopped".format(self._name))
                     return
                 if not self._running:
-                    log.info("starting {} websocket connection".format(self._name))
+                    log.info("starting {} websocket connection".format(
+                        self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True

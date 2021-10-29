@@ -17,6 +17,10 @@ ALPACA_SECRET_KEY = "<YOUR-SECRET-KEY>"
 def run_connection(conn):
     try:
         conn.run()
+    except KeyboardInterrupt:
+        print("Interrupted execution by user")
+        loop.run_until_complete(conn.stop_ws())
+        exit(0)
     except Exception as e:
         print(f'Exception from websocket connection: {e}')
     finally:
@@ -36,6 +40,5 @@ if __name__ == '__main__':
                   data_feed='iex')
 
     conn.subscribe_quotes(print_quote, 'AAPL')
-    conn.run()
 
     run_connection(conn)

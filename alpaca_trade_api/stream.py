@@ -207,10 +207,10 @@ class _DataStream():
             try:
                 if not self._should_run:
                     # when signaling to stop, this is how we break run_forever
-                    log.info("Data stream stopped")
-                    break
+                    log.info("{} stream stopped".format(self._name))
+                    return
                 if not self._running:
-                    log.info("starting data websocket connection")
+                    log.info("starting {} websocket connection".format(self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True

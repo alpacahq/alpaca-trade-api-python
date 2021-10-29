@@ -57,5 +57,10 @@ if __name__ == '__main__':
             time.sleep(20)
             loop.run_until_complete(conn.stop_ws())
             time.sleep(20)
-        except:
+        except KeyboardInterrupt:
+            print("Interrupted execution by user")
+            loop.run_until_complete(conn.stop_ws())
+            exit(0)
+        except Exception:
+            # let the execution continue
             pass

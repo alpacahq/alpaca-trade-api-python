@@ -6,4 +6,4 @@ websocket-client>=0.56.0,<2
 websockets==10.0
 msgpack==1.0.2
 aiohttp==3.8.0
-PyYAML==5.4.1
+PyYAML==6.0

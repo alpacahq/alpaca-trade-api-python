@@ -45,6 +45,7 @@ class _DataStream():
             'dailyBars': {},
         }
         self._name = 'data'
+        self._should_run = True
 
     async def _connect(self):
         self._ws = await websockets.connect(
@@ -81,19 +82,27 @@ class _DataStream():
             self._running = False
 
     async def stop_ws(self):
-        self._stop_stream_queue.put_nowait({"should_stop": True})
+        self._should_run = False
+        if self._stop_stream_queue.empty():
+            self._stop_stream_queue.put_nowait({"should_stop": True})
 
     async def _consume(self):
         while True:
             if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get()
+                self._stop_stream_queue.get(timeout=1)
                 await self.close()
                 break
             else:
-                r = await self._ws.recv()
-                msgs = msgpack.unpackb(r)
-                for msg in msgs:
-                    await self._dispatch(msg)
+                try:
+                    r = await asyncio.wait_for(self._ws.recv(), 5)
+                    msgs = msgpack.unpackb(r)
+                    for msg in msgs:
+                        await self._dispatch(msg)
+                except asyncio.TimeoutError:
+                    # ws.recv is hanging when no data is received. by using
+                    # wait_for we break when no data is received, allowing us
+                    # to break the loop when needed
+                    pass
 
     def _cast(self, msg_type, msg):
         result = msg
@@ -186,15 +195,23 @@ class _DataStream():
         # do not start the websocket connection until we subscribe to something
         while not any(self._handlers.values()):
             if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get()
+                # the ws was signaled to stop before starting the loop so
+                # we break
+                self._stop_stream_queue.get(timeout=1)
                 return
             await asyncio.sleep(0.1)
         log.info(f'started {self._name} stream')
+        self._should_run = True
         self._running = False
         while True:
             try:
+                if not self._should_run:
+                    # when signaling to stop, this is how we break run_forever
+                    log.info("{} stream stopped".format(self._name))
+                    return
                 if not self._running:
-                    log.info("starting websocket connection")
+                    log.info("starting {} websocket connection".format(
+                        self._name))
                     await self._start_ws()
                     await self._subscribe_all()
                     self._running = True
@@ -376,6 +393,7 @@ class TradingStream:
         self._ws = None
         self._running = False
         self._stop_stream_queue = queue.Queue()
+        self._should_run = True
 
     async def _connect(self):
         self._ws = await websockets.connect(self._endpoint)
@@ -426,27 +444,37 @@ class TradingStream:
     async def _consume(self):
         while True:
             if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get()
+                self._stop_stream_queue.get(timeout=1)
                 await self.close()
                 break
             else:
-                r = await self._ws.recv()
-                msg = json.loads(r)
-                await self._dispatch(msg)
+                try:
+                    r = await asyncio.wait_for(self._ws.recv(), 5)
+                    msg = json.loads(r)
+                    await self._dispatch(msg)
+                except asyncio.TimeoutError:
+                    # ws.recv is hanging when no data is received. by using
+                    # wait_for we break when no data is received, allowing us
+                    # to break the loop when needed
+                    pass
 
     async def _run_forever(self):
         # do not start the websocket connection until we subscribe to something
         while not self._trade_updates_handler:
             if not self._stop_stream_queue.empty():
-                self._stop_stream_queue.get()
+                self._stop_stream_queue.get(timeout=1)
                 return
             await asyncio.sleep(0.1)
         log.info('started trading stream')
+        self._should_run = True
         self._running = False
         while True:
             try:
+                if not self._should_run:
+                    log.info("Trading stream stopped")
+                    break
                 if not self._running:
-                    log.info("starting websocket connection")
+                    log.info("starting trading websocket connection")
                     await self._start_ws()
                     self._running = True
                     await self._consume()
@@ -468,7 +496,9 @@ class TradingStream:
             self._running = False
 
     async def stop_ws(self):
-        self._stop_stream_queue.put_nowait({"should_stop": True})
+        self._should_run = False
+        if self._stop_stream_queue.empty():
+            self._stop_stream_queue.put_nowait({"should_stop": True})
 
 
 class Stream:
@@ -653,13 +683,20 @@ class Stream:
         Signal the ws connections to stop listenning to api stream.
         """
         if self._trading_ws:
-            log.info("Stopping the trading websocket connection")
             await self._trading_ws.stop_ws()
 
         if self._data_ws:
-            log.info("Stopping the data websocket connection")
             await self._data_ws.stop_ws()
 
         if self._crypto_ws:
-            log.info("Stopping the crypto data websocket connection")
             await self._crypto_ws.stop_ws()
+
+    def is_open(self):
+        """
+        Checks if either of the websockets is open
+        :return:
+        """
+        open_ws = self._trading_ws._ws or self._data_ws._ws or self._crypto_ws._ws  # noqa
+        if open_ws:
+            return True
+        return False

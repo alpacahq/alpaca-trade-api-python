@@ -46,18 +46,19 @@ async def get_historic_data_base(symbols, data_type: DataType, start, end,
     msg += f", timeframe: {timeframe}" if timeframe else ""
     msg += f" between dates: start={start}, end={end}"
     print(msg)
+    step_size = 1000
+    results = []
+    for i in range(0, len(symbols), step_size):
+        tasks = []
+        for symbol in symbols[i:i+step_size]:
+            args = [symbol, start, end, timeframe.value] if timeframe else \
+                [symbol, start, end]
+            tasks.append(get_data_method(data_type)(*args))
 
-    tasks = []
-
-    for symbol in symbols:
-        args = [symbol, start, end, timeframe] if timeframe else \
-            [symbol, start, end]
-        tasks.append(get_data_method(data_type)(*args))
-
-    if minor >= 8:
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-    else:
-        results = await gather_with_concurrency(500, *tasks)
+        if minor >= 8:
+            results.extend(await asyncio.gather(*tasks, return_exceptions=True))
+        else:
+            results.extend(await gather_with_concurrency(500, *tasks))
 
     bad_requests = 0
     for response in results:

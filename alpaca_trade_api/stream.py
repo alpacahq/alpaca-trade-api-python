@@ -682,16 +682,13 @@ class Stream:
         """
         Signal the ws connections to stop listenning to api stream.
         """
-        if self._trading_ws and self._trading_ws._ws:
-            log.info("Stopping the trading websocket connection")
+        if self._trading_ws:
             await self._trading_ws.stop_ws()
 
-        if self._data_ws and self._data_ws._ws:
-            log.info("Stopping the data websocket connection")
+        if self._data_ws:
             await self._data_ws.stop_ws()
 
-        if self._crypto_ws and self._crypto_ws._ws:
-            log.info("Stopping the crypto data websocket connection")
+        if self._crypto_ws:
             await self._crypto_ws.stop_ws()
 
     def is_open(self):

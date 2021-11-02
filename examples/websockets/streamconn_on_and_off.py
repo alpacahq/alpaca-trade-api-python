@@ -61,6 +61,8 @@ if __name__ == '__main__':
             print("Interrupted execution by user")
             loop.run_until_complete(conn.stop_ws())
             exit(0)
-        except Exception:
+        except Exception as e:
+            print("You goe an exception: {} during execution. continue "
+                  "execution.".format(e))
             # let the execution continue
             pass

@@ -16,6 +16,8 @@ class Entity(object):
         self._raw = raw
 
     def __getattr__(self, key):
+        print('RAW')
+        print(key)
         if key in self._raw:
             val = self._raw[key]
             if (isinstance(val, str) and

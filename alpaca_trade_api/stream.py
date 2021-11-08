@@ -647,7 +647,6 @@ class Stream:
             loop.run_until_complete(self._run_forever())
         except KeyboardInterrupt:
             print('keyboard interrupt, bye')
-            sys.exit()
 
     async def stop_ws(self):
         """

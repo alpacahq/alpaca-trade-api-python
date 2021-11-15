@@ -11,7 +11,6 @@ import msgpack
 import re
 import websockets
 import queue
-import sys
 
 from .common import get_base_url, get_data_stream_url, get_credentials, URL
 from .entity import Entity
@@ -647,6 +646,7 @@ class Stream:
             loop.run_until_complete(self._run_forever())
         except KeyboardInterrupt:
             print('keyboard interrupt, bye')
+            pass
 
     async def stop_ws(self):
         """

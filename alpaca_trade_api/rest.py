@@ -114,7 +114,7 @@ class TimeFrame:
             raise ValueError("Amount must be a positive integer value.")
 
         if unit == TimeFrameUnit.Minute and amount > 59:
-            raise ValueError("Second or Minute units can only be " + \
+            raise ValueError("Second or Minute units can only be " +
                              "used with amounts between 1-59.")
 
         if unit == TimeFrameUnit.Hour and amount > 23:

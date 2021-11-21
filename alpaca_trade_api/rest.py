@@ -217,7 +217,13 @@ class REST(object):
             else:
                 raise
         if resp.text != '':
-            return resp.json()
+            result = resp.json()
+            try:
+                if result['bars'] == None:
+                    result['bars'] = []
+            except:
+                print('No bars on endpoint: {}'.format(url))
+            return result
         return None
 
     def get(self, path, data=None):

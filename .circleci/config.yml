@@ -95,6 +95,7 @@ jobs:
       - run:
           name: run tests
           command: |
+            pip install pandas==1.3.4 numpy==1.21.4
             python setup.py install
             pip install flake8 && flake8 alpaca_trade_api tests
             python setup.py test

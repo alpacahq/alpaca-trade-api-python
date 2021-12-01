@@ -61,6 +61,32 @@ luld_mapping_v2 = {
     "z": "tape"
 }
 
+cancel_error_mapping_v2 = {
+    "S": "symbol",
+    "i": "id",
+    "x": "exchange",
+    "p": "price",
+    "s": "size",
+    "a": "cancel_error_action",
+    "z": "tape",
+    "t": "timestamp",
+}
+
+correction_mapping_v2 = {
+    "S": "symbol",
+    "x": "exchange",
+    "oi": "original_id",
+    "op": "original_price",
+    "os": "original_size",
+    "oc": "original_conditions",
+    "ci": "corrected_id",
+    "cp": "corrected_price",
+    "cs": "corrected_size",
+    "cc": "corrected_conditions",
+    "z": "tape",
+    "t": "timestamp",
+}
+
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -150,6 +176,20 @@ class LULDV2(Remapped, _NanoTimestamped, Entity):
 
     def __init__(self, raw):
         super().__init__(luld_mapping_v2, raw)
+
+
+class CancelErrorV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(cancel_error_mapping_v2, raw)
+
+
+class CorrectionV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(correction_mapping_v2, raw)
 
 
 class SnapshotV2:

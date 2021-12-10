@@ -5,6 +5,7 @@ import requests
 from requests.exceptions import HTTPError
 import time
 from enum import Enum
+from alpaca_trade_api import __version__
 from .common import (
     get_base_url,
     get_data_url,
@@ -166,6 +167,7 @@ class REST(object):
         else:
             headers['APCA-API-KEY-ID'] = self._key_id
             headers['APCA-API-SECRET-KEY'] = self._secret_key
+        headers['User-Agent'] = 'APCA-TRADE-SDK-PY/' + __version__
         opts = {
             'headers':         headers,
             # Since we allow users to set endpoint URL via env var,

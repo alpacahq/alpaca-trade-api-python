@@ -1,0 +1,68 @@
+{% set name = "alpaca-trade-api" %}
+{% set version = "1.4.2" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 6647f972e7cc85d91df5eefd236ee8536059a1ae69f1a58cc61f769ab5706c8e
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - aiohttp ==3.7.4
+    - msgpack ==1.0.2
+    - numpy >=1.11.1
+    - pandas >=0.18.1
+    - pip
+    - python
+    - pyyaml ==5.4.1
+    - requests >2,<3
+    - urllib3 >1.24,<2
+    - websocket-client >=0.56.0,<2
+    - websockets >=8.0,<10
+    - pytest-runner =5.3.1
+    - flake8 =4.0.1
+  run:
+    - aiohttp ==3.7.4
+    - msgpack ==1.0.2
+    - numpy >=1.11.1
+    - pandas >=0.18.1
+    - python
+    - pyyaml ==5.4.1
+    - requests >2,<3
+    - urllib3 >1.24,<2
+    - websocket-client >=0.56.0,<2
+    - websockets >=8.0,<10
+    - pytest-runner =5.3.1
+    - flake8 =4.0.1
+
+test:
+  imports:
+    - alpaca_trade_api
+  requires:
+    - coverage >=4.4.1
+    - deprecated
+    - flake8
+    - mock >=1.0.1
+    - pytest
+    - pytest-cov
+    - requests-mock
+
+about:
+  home: "https://github.com/alpacahq/alpaca-trade-api-python"
+  license: UNKNOWN
+  license_family: OTHER
+  license_file: 
+  summary: "Alpaca API python client"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

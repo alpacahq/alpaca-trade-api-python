@@ -144,7 +144,7 @@ workflows:
   build:
     jobs:
       # - build-python27
-      - build-test-python36
+      # - build-test-python36
       - build-test-python37
       - build-python38
       - build-python39

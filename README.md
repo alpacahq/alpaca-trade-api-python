@@ -10,11 +10,10 @@ It allows rapid trading algo development easily, with support for
 both REST and streaming data interfaces. For details of each API behavior,
 please see the online [API document](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/).
 
-Note that this package supports only python version 3.6 and above, due to
-the async/await and websockets module dependency.
+Note that this package supports only python version 3.7 and above.
 
 ## Install
-We support python>=3.6. If you want to work with python 3.6, please note that these package dropped support for python <3.7 for the following versions:
+We support python>=3.7. If you want to work with python 3.6, please note that these package dropped support for python <3.7 for the following versions:
 ```
 pandas >= 1.2.0
 numpy >= 1.20.0

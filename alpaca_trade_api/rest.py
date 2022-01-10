@@ -20,7 +20,9 @@ from .entity import (
 )
 from .entity_v2 import (
     BarV2, BarsV2, LatestBarsV2, LatestQuotesV2, LatestTradesV2,
-    SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2, NewsV2, NewsListV2)
+    SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2,
+    NewsV2, NewsListV2
+)
 
 logger = logging.getLogger(__name__)
 Positions = List[Position]
@@ -910,7 +912,8 @@ class REST(object):
         news = self._data_get('news', symbol,
                               api_version='v1beta1', endpoint_base='',
                               start=start, end=end, limit=limit, sort=sort,
-                              include_content=include_content, exclude_contentless=exclude_contentless)
+                              include_content=include_content,
+                              exclude_contentless=exclude_contentless)
         for n in news:
             if raw:
                 yield n

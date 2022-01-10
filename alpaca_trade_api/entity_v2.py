@@ -204,13 +204,6 @@ class CorrectionV2(Remapped, _NanoTimestamped, Entity):
         super().__init__(correction_mapping_v2, raw)
 
 
-class NewsV2(Remapped, _NanoTimestamped, Entity):
-    _tskeys = ('t',)
-
-    def __init__(self, raw):
-        super().__init__(news_mapping_v2, raw)
-
-
 class SnapshotV2:
     def __init__(self, raw):
         self.latest_trade = _convert_or_none(TradeV2, raw.get('latestTrade'))
@@ -242,6 +235,16 @@ class LatestQuotesV2(dict):
     def __init__(self, raw):
         for k, v in raw.items():
             self[k] = _convert_or_none(QuoteV2, v)
+
+
+class NewsV2(Remapped, Entity):
+    def __init__(self, raw):
+        super().__init__(news_mapping_v2, raw)
+
+
+class NewsListV2(list):
+    def __init__(self, raw):
+        super().__init__([NewsV2(o) for o in raw])
 
 
 def _convert_or_none(entityType, value):

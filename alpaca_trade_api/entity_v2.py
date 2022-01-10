@@ -87,6 +87,18 @@ correction_mapping_v2 = {
     "t": "timestamp",
 }
 
+news_mapping_v2 = {
+    "id": "id",
+	"headline": "headline",
+	"summary": "summary",
+	"author": "author",
+	"created_at": "created_at",
+	"updated_at": "updated_at",
+	"url": "url",
+	"content": "content",
+	"symbols": "symbols",
+	"source": "source",
+}
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -190,6 +202,13 @@ class CorrectionV2(Remapped, _NanoTimestamped, Entity):
 
     def __init__(self, raw):
         super().__init__(correction_mapping_v2, raw)
+
+
+class NewsV2(Remapped, _NanoTimestamped, Entity):
+    _tskeys = ('t',)
+
+    def __init__(self, raw):
+        super().__init__(news_mapping_v2, raw)
 
 
 class SnapshotV2:

@@ -788,6 +788,77 @@ def test_data(reqmock):
     assert msft_snapshot.prev_daily_bar is None
     assert snapshots.get('INVALID') is None
 
+    # News
+    reqmock.get(
+        'https://data.alpaca.markets/v1beta1/news' +
+        '?symbols=AAPL,TSLA&limit=2',
+        text='''
+        {
+            "news": [
+                {
+                    "id": 24994117,
+                    "headline": "'Tesla Approved...",
+                    "author": "Benzinga Newsdesk",
+                    "created_at": "2022-01-11T13:50:47Z",
+                    "updated_at": "2022-01-11T13:50:47Z",
+                    "summary": "",
+                    "url": "https://www.benzinga.com/news/some/path",
+                    "images": [],
+                    "symbols": [
+                        "TSLA"
+                    ],
+                    "source": "benzinga"
+                },
+                {
+                    "id": 24993189,
+                    "headline": "Dogecoin Is Down 80% ...",
+                    "author": "Samyuktha Sriram",
+                    "created_at": "2022-01-11T13:49:40Z",
+                    "updated_at": "2022-01-11T13:49:41Z",
+                    "summary": "Popular meme-based cryptocurrency...",
+                    "url": "https://www.benzinga.com/markets/some/path",
+                    "images": [
+                        {
+                            "size": "large",
+                            "url": "https://cdn.benzinga.com/files/some.jpeg"
+                        },
+                        {
+                            "size": "small",
+                            "url": "https://cdn.benzinga.com/files/some.jpeg"
+                        },
+                        {
+                            "size": "thumb",
+                            "url": "https://cdn.benzinga.com/files/some.jpeg"
+                        }
+                    ],
+                    "symbols": [
+                        "BTCUSD",
+                        "DOGEUSD",
+                        "SHIBUSD",
+                        "TSLA"
+                    ],
+                    "source": "benzinga"
+                }
+            ]
+        }
+        '''
+    )
+    news = api.get_news(['AAPL', 'TSLA'], limit=2)
+    assert len(news) == 2
+    first = news[0]
+    assert first is not None
+    assert first.author == 'Benzinga Newsdesk'
+    assert 'TSLA' in first.symbols
+    assert first.source == 'benzinga'
+    assert type(first) == tradeapi.entity_v2.NewsV2
+    second = news[1]
+    assert second is not None
+    assert second.headline != ''
+    assert type(second.images) == list
+    assert 'TSLA' in second.symbols
+    assert second.source == 'benzinga'
+    assert type(second) == tradeapi.entity_v2.NewsV2
+
 
 def test_timeframe(reqmock):
     # Custom timeframe: Minutes

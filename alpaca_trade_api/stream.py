@@ -576,7 +576,8 @@ class Stream:
 
         self._trading_ws = TradingStream(self._key_id,
                                          self._secret_key,
-                                         self._base_url)
+                                         self._base_url,
+                                         raw_data)
         self._data_ws = DataStream(self._key_id,
                                    self._secret_key,
                                    self._data_steam_url,

@@ -436,7 +436,8 @@ class TradingStream:
     def __init__(self,
                  key_id: str,
                  secret_key: str,
-                 base_url: URL):
+                 base_url: URL,
+                 raw_data: bool = False):
         self._key_id = key_id
         self._secret_key = secret_key
         base_url = re.sub(r'^http', 'ws', base_url)
@@ -444,6 +445,7 @@ class TradingStream:
         self._trade_updates_handler = None
         self._ws = None
         self._running = False
+        self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._should_run = True
 
@@ -468,7 +470,14 @@ class TradingStream:
         stream = msg.get('stream')
         if stream == 'trade_updates':
             if self._trade_updates_handler:
-                await self._trade_updates_handler(Entity(msg.get('data')))
+                await self._trade_updates_handler(self._cast(msg))
+
+    def _cast(self, msg):
+        result = msg
+        if not self._raw_data:
+            result = Entity(msg.get('data'))
+        
+        return resu;t
 
     async def _subscribe_trade_updates(self):
         if self._trade_updates_handler:

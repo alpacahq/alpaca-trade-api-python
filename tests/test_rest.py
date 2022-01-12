@@ -843,7 +843,7 @@ def test_data(reqmock):
         }
         '''
     )
-    news = api.get_news(['AAPL', 'TSLA'], limit=2)
+    news = api.get_news(['AAPL', 'TSLA'], total_limit=2)
     assert len(news) == 2
     first = news[0]
     assert first is not None

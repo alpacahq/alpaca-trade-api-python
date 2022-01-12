@@ -5,7 +5,6 @@ import requests
 from requests.exceptions import HTTPError
 import time
 from enum import Enum
-import re
 from alpaca_trade_api import __version__
 from .common import (
     get_base_url,
@@ -37,6 +36,7 @@ BarIterator = Iterator[Union[Bar, dict]]
 NewsIterator = Iterator[Union[NewsV2, dict]]
 
 DATA_V2_MAX_LIMIT = 10000  # max items per api call
+NEWS_MAX_LIMIT = 50  # max items per api call
 
 
 class RetryException(Exception):
@@ -612,29 +612,38 @@ class REST(object):
                   symbol_or_symbols: Union[str, List[str]],
                   api_version: str = 'v2',
                   endpoint_base: str = 'stocks',
+                  resp_grouped_by_symbol: bool = None,
                   **kwargs):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
+        page_limit = DATA_V2_MAX_LIMIT
+        if endpoint_base == "news":
+            page_limit = NEWS_MAX_LIMIT
         while True:
             actual_limit = None
             if limit:
-                actual_limit = min(int(limit) - total_items, DATA_V2_MAX_LIMIT)
+                actual_limit = min(int(limit) - total_items, page_limit)
                 if actual_limit < 1:
                     break
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            if isinstance(symbol_or_symbols, str):
-                path = f'/{endpoint_base}/{symbol_or_symbols}/{endpoint}'
-            else:
-                path = f'/{endpoint_base}/{endpoint}'
+            path = f'/{endpoint_base}'
+            if isinstance(symbol_or_symbols, str) and symbol_or_symbols:
+                path += f'/{symbol_or_symbols}'
+            if endpoint:
+                path += f'/{endpoint}'
+            if isinstance(symbol_or_symbols, list) and symbol_or_symbols:
                 data['symbols'] = ','.join(symbol_or_symbols)
-            if not endpoint_base or not symbol_or_symbols or not endpoint:
-                path = re.sub(r'(\/)\1+', r'\1', path)  # Remove extra slashes
             resp = self.data_get(path, data=data, api_version=api_version)
-            if isinstance(symbol_or_symbols, str) or endpoint == "news":
-                for item in resp.get(endpoint, []) or []:
+            if (
+                resp_grouped_by_symbol is False
+                or isinstance(symbol_or_symbols, str)
+            ):
+                # Try first key if empty endpoint
+                k = endpoint or next(iter(resp), '')
+                for item in resp.get(k, []) or []:
                     yield item
                     total_items += 1
             else:
@@ -899,21 +908,28 @@ class REST(object):
         return self.response_wrapper(resp, SnapshotV2)
 
     def get_news_iter(self,
-                      symbol: Union[str, List[str]],
+                      symbol: Optional[Union[str, List[str]]] = None,
                       start: Optional[str] = None,
                       end: Optional[str] = None,
-                      limit: int = None,
                       sort: Sort = Sort.Desc,
                       include_content: bool = False,
                       exclude_contentless: bool = False,
+                      total_limit: int = None,
+                      no_total_limit: bool = False,
                       raw=False) -> NewsIterator:
+        symbol = symbol or []
+        # Avoid passing symbol as path param
         if isinstance(symbol, str):
             symbol = [symbol]
-        news = self._data_get('news', symbol,
-                              api_version='v1beta1', endpoint_base='',
+        limit = total_limit
+        if limit is None and not no_total_limit:
+            limit = NEWS_MAX_LIMIT
+        news = self._data_get('', symbol,
+                              api_version='v1beta1', endpoint_base='news',
                               start=start, end=end, limit=limit, sort=sort,
                               include_content=include_content,
-                              exclude_contentless=exclude_contentless)
+                              exclude_contentless=exclude_contentless,
+                              resp_grouped_by_symbol=False)
         for n in news:
             if raw:
                 yield n
@@ -921,18 +937,24 @@ class REST(object):
                 yield self.response_wrapper(n, NewsV2)
 
     def get_news(self,
-                 symbol: Union[str, List[str]],
+                 symbol: Optional[Union[str, List[str]]] = None,
                  start: Optional[str] = None,
                  end: Optional[str] = None,
-                 limit: int = None,
                  sort: Sort = Sort.Desc,
                  include_content: bool = False,
                  exclude_contentless: bool = False,
+                 total_limit: int = None,
+                 no_total_limit: bool = False,
+
                  ) -> NewsListV2:
-        news = list(self.get_news_iter(symbol,
-                                       start, end, limit,
-                                       sort, include_content,
-                                       exclude_contentless, raw=True))
+        news = list(self.get_news_iter(symbol=symbol,
+                                       start=start, end=end,
+                                       sort=sort,
+                                       include_content=include_content,
+                                       exclude_contentless=exclude_contentless,
+                                       total_limit=total_limit,
+                                       no_total_limit=no_total_limit,
+                                       raw=True))
         return NewsListV2(news)
 
     def get_clock(self) -> Clock:

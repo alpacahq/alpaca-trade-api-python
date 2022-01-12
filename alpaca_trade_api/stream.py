@@ -22,7 +22,6 @@ from .entity_v2 import (
     luld_mapping_v2,
     cancel_error_mapping_v2,
     correction_mapping_v2,
-    news_mapping_v2,
     Trade,
     Quote,
     Bar,
@@ -458,10 +457,7 @@ class NewsDataStream(_DataStream):
         result = super()._cast(msg_type, msg)
         if not self._raw_data:
             if msg_type == 'n':
-                result = NewsV2({
-                    news_mapping_v2[k]: v
-                    for k, v in msg.items() if k in news_mapping_v2
-                })
+                result = NewsV2(msg)
         return result
 
     async def _dispatch(self, msg):
@@ -859,7 +855,8 @@ class Stream:
         Checks if either of the websockets is open
         :return:
         """
-        open_ws = self._trading_ws._ws or self._data_ws._ws or self._crypto_ws._ws or self._news_ws # noqa
+        open_ws = (self._trading_ws._ws or self._data_ws._ws
+                   or self._crypto_ws._ws or self._news_ws) # noqa
         if open_ws:
             return True
         return False

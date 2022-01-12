@@ -87,19 +87,6 @@ correction_mapping_v2 = {
     "t": "timestamp",
 }
 
-news_mapping_v2 = {
-    "id": "id",
-    "headline": "headline",
-    "summary": "summary",
-    "author": "author",
-    "created_at": "created_at",
-    "updated_at": "updated_at",
-    "url": "url",
-    "content": "content",
-    "symbols": "symbols",
-    "source": "source",
-}
-
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -238,9 +225,9 @@ class LatestQuotesV2(dict):
             self[k] = _convert_or_none(QuoteV2, v)
 
 
-class NewsV2(Remapped, Entity):
+class NewsV2(Entity):
     def __init__(self, raw):
-        super().__init__(news_mapping_v2, raw)
+        super().__init__(raw)
 
 
 class NewsListV2(list):

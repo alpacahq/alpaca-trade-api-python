@@ -476,8 +476,7 @@ class TradingStream:
         result = msg
         if not self._raw_data:
             result = Entity(msg.get('data'))
-        
-        return resu;t
+        return result
 
     async def _subscribe_trade_updates(self):
         if self._trade_updates_handler:

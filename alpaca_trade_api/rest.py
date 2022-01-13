@@ -612,14 +612,14 @@ class REST(object):
                   symbol_or_symbols: Union[str, List[str]],
                   api_version: str = 'v2',
                   endpoint_base: str = 'stocks',
-                  resp_grouped_by_symbol: bool = None,
+                  resp_grouped_by_symbol: Optional[bool] = None,
+                  page_limit: int = DATA_V2_MAX_LIMIT,
                   **kwargs):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
-        page_limit = DATA_V2_MAX_LIMIT
-        if endpoint_base == "news":
-            page_limit = NEWS_MAX_LIMIT
+        if resp_grouped_by_symbol is None:
+            resp_grouped_by_symbol = not isinstance(symbol_or_symbols, str)
         while True:
             actual_limit = None
             if limit:
@@ -634,15 +634,11 @@ class REST(object):
                 path += f'/{symbol_or_symbols}'
             if endpoint:
                 path += f'/{endpoint}'
-            if isinstance(symbol_or_symbols, list) and symbol_or_symbols:
+            if not isinstance(symbol_or_symbols, str):
                 data['symbols'] = ','.join(symbol_or_symbols)
             resp = self.data_get(path, data=data, api_version=api_version)
-            if (
-                resp_grouped_by_symbol is False
-                or isinstance(symbol_or_symbols, str)
-            ):
-                # Try first key if empty endpoint
-                k = endpoint or next(iter(resp), '')
+            if not resp_grouped_by_symbol:
+                k = endpoint or endpoint_base
                 for item in resp.get(k, []) or []:
                     yield item
                     total_items += 1
@@ -911,25 +907,22 @@ class REST(object):
                       symbol: Optional[Union[str, List[str]]] = None,
                       start: Optional[str] = None,
                       end: Optional[str] = None,
+                      limit: int = 10,
                       sort: Sort = Sort.Desc,
                       include_content: bool = False,
                       exclude_contentless: bool = False,
-                      total_limit: int = None,
-                      no_total_limit: bool = False,
                       raw=False) -> NewsIterator:
         symbol = symbol or []
         # Avoid passing symbol as path param
         if isinstance(symbol, str):
             symbol = [symbol]
-        limit = total_limit
-        if limit is None and not no_total_limit:
-            limit = NEWS_MAX_LIMIT
         news = self._data_get('', symbol,
                               api_version='v1beta1', endpoint_base='news',
                               start=start, end=end, limit=limit, sort=sort,
                               include_content=include_content,
                               exclude_contentless=exclude_contentless,
-                              resp_grouped_by_symbol=False)
+                              resp_grouped_by_symbol=False,
+                              page_limit=NEWS_MAX_LIMIT)
         for n in news:
             if raw:
                 yield n
@@ -940,20 +933,17 @@ class REST(object):
                  symbol: Optional[Union[str, List[str]]] = None,
                  start: Optional[str] = None,
                  end: Optional[str] = None,
+                 limit: int = 10,
                  sort: Sort = Sort.Desc,
                  include_content: bool = False,
                  exclude_contentless: bool = False,
-                 total_limit: int = None,
-                 no_total_limit: bool = False,
 
                  ) -> NewsListV2:
         news = list(self.get_news_iter(symbol=symbol,
                                        start=start, end=end,
-                                       sort=sort,
+                                       limit=limit, sort=sort,
                                        include_content=include_content,
                                        exclude_contentless=exclude_contentless,
-                                       total_limit=total_limit,
-                                       no_total_limit=no_total_limit,
                                        raw=True))
         return NewsListV2(news)
 

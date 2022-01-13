@@ -632,10 +632,10 @@ class REST(object):
             path = f'/{endpoint_base}'
             if isinstance(symbol_or_symbols, str) and symbol_or_symbols:
                 path += f'/{symbol_or_symbols}'
+            else:
+                data['symbols'] = ','.join(symbol_or_symbols)
             if endpoint:
                 path += f'/{endpoint}'
-            if not isinstance(symbol_or_symbols, str):
-                data['symbols'] = ','.join(symbol_or_symbols)
             resp = self.data_get(path, data=data, api_version=api_version)
             if not resp_grouped_by_symbol:
                 k = endpoint or endpoint_base

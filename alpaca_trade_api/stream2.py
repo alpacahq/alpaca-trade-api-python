@@ -3,6 +3,7 @@ Stream V1
 The new Alpaca data stream is under stream.py
 """
 import asyncio
+import deprecation
 import json
 import os
 import re
@@ -47,8 +48,8 @@ class _StreamConn(object):
         message = {
             'action': 'authenticate',
             'data':   {
-                          'oauth_token': self._oauth
-                      } if self._oauth else {
+                'oauth_token': self._oauth
+            } if self._oauth else {
                 'key_id':     self._key_id,
                 'secret_key': self._secret_key,
             }
@@ -200,6 +201,7 @@ class _StreamConn(object):
         del self._handlers[channel_pat]
 
 
+@deprecation.deprecated(deprecated_in="v1.0.0", details="Use Stream instead")
 class StreamConn(object):
     def __init__(
             self,

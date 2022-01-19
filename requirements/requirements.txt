@@ -7,3 +7,4 @@ websockets>=8.0,<10
 msgpack==1.0.2
 aiohttp==3.7.4
 PyYAML==5.4.1
+deprecation==2.1.0

@@ -518,7 +518,8 @@ class REST(object):
         resp = self.get('/assets/{}'.format(symbol))
         return self.response_wrapper(resp, Asset)
 
-    @deprecation.deprecated(deprecated_in="v1.0.0", details="Use get_bars instead")
+    @deprecation.deprecated(deprecated_in="v1.0.0",
+                            details="Use get_bars instead")
     def get_barset(self,
                    symbols,
                    timeframe: str,
@@ -565,7 +566,8 @@ class REST(object):
         resp = self.data_get('/bars/{}'.format(timeframe), params)
         return self.response_wrapper(resp, BarSet)
 
-    @deprecation.deprecated(deprecated_in="v1.0.0", details="Use get_bars instead")
+    @deprecation.deprecated(deprecated_in="v1.0.0",
+                            details="Use get_bars instead")
     def get_aggs(self,
                  symbol: str,
                  multiplier: int,
@@ -586,7 +588,8 @@ class REST(object):
         ))
         return self.response_wrapper(resp, Aggs)
 
-    @deprecation.deprecated(deprecated_in="v1.0.0", details="Use get_latest_trade instead")
+    @deprecation.deprecated(deprecated_in="v1.0.0",
+                            details="Use get_latest_trade instead")
     def get_last_trade(self, symbol: str) -> Trade:
         """
         Get the last trade for the given symbol
@@ -594,7 +597,8 @@ class REST(object):
         resp = self.data_get('/last/stocks/{}'.format(symbol))
         return self.response_wrapper(resp['last'], Trade)
 
-    @deprecation.deprecated(deprecated_in="v1.0.0", details="Use get_latest_quote instead")
+    @deprecation.deprecated(deprecated_in="v1.0.0",
+                            details="Use get_latest_quote instead")
     def get_last_quote(self, symbol: str) -> Quote:
         """Get the last quote for the given symbol"""
         resp = self.data_get('/last_quote/stocks/{}'.format(symbol))

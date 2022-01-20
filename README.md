@@ -88,7 +88,7 @@ api = REST()
 api.get_bars("AAPL", TimeFrame.Hour, "2021-06-08", "2021-06-08", adjustment='raw').df
 
                               open      high       low     close    volume
-timestamp                                                                 
+timestamp
 2021-06-08 08:00:00+00:00  126.100  126.3000  125.9600  126.3000     42107
 2021-06-08 09:00:00+00:00  126.270  126.4000  126.2200  126.3800     21095
 2021-06-08 10:00:00+00:00  126.380  126.6000  125.8400  126.4900     54743
@@ -126,7 +126,7 @@ api = REST()
 api.get_bars("AAPL", TimeFrame(45, TimeFrameUnit.Minute), "2021-06-08", "2021-06-08", adjustment='raw').df
 
                                open      high       low     close    volume  trade_count        vwap
-timestamp                                                                                           
+timestamp
 2021-06-08 07:30:00+00:00  126.1000  126.1600  125.9600  126.0600     20951          304  126.049447
 2021-06-08 08:15:00+00:00  126.0500  126.3000  126.0500  126.3000     21181          349  126.231904
 2021-06-08 09:00:00+00:00  126.2700  126.3200  126.2200  126.2800     15955          308  126.284120
@@ -160,7 +160,7 @@ api = REST()
 api.get_quotes("AAPL", "2021-06-08", "2021-06-08", limit=10).df
 
                                     ask_exchange  ask_price  ask_size bid_exchange  bid_price  bid_size conditions
-timestamp                                                                                                         
+timestamp
 2021-06-08 08:00:00.070928640+00:00            P     143.00         1                    0.00         0        [Y]
 2021-06-08 08:00:00.070929408+00:00            P     143.00         1            P     102.51         1        [R]
 2021-06-08 08:00:00.070976768+00:00            P     143.00         1            P     116.50         1        [R]
@@ -192,7 +192,7 @@ api = REST()
 api.get_trades("AAPL", "2021-06-08", "2021-06-08", limit=10).df
 
                                     exchange   price  size conditions  id tape
-timestamp                                                                     
+timestamp
 2021-06-08 08:00:00.069956608+00:00        P  126.10   179     [@, T]   1    C
 2021-06-08 08:00:00.207859+00:00           K  125.97     1  [@, T, I]   1    C
 2021-06-08 08:00:00.207859+00:00           K  125.97    12  [@, T, I]   2    C
@@ -254,7 +254,7 @@ stream.run()
 
 ```
 
-## Account & Portfolio Management 
+## Account & Portfolio Management
 
 The HTTP API document is located at https://docs.alpaca.markets/
 
@@ -305,7 +305,7 @@ You can access the following information through this object.
 
 #### API REST Methods
 
-| Rest Method                                      | End Point          |   Result                                                                                | 
+| Rest Method                                      | End Point          |   Result                                                                                |
 | --------------------------------                 | -------------------| ------------------------------------------------------------------ |
 | get_account()                                    | `GET /account` and | `Account` entity.|
 | get_order_by_client_order_id(client_order_id)    | `GET /orders` with client_order_id | `Order` entity.|
@@ -318,10 +318,6 @@ You can access the following information through this object.
 | get_position(symbol)                             | `GET /positions/{symbol}` | `Position` entity.|
 | list_assets(status=None, asset_class=None)       | `GET /assets` | list of `Asset` entities|
 | get_asset(symbol)                                | `GET /assets/{symbol}` | `Asset` entity|
-| get_barset(symbols, timeframe, limit, start=None, end=None, after=None, until=None) | `GET /bars/{timeframe}` | Barset with `limit` Bar objects for each of the the requested symbols. `timeframe` can be one of `minute`, `1Min`, `5Min`, `15Min`, `day` or `1D`. `minute` is an alias of `1Min`. Similarly, `day` is an alias of `1D`. `start`, `end`, `after`, and `until` need to be string format, which you can obtain with `pd.Timestamp().isoformat()` `after` cannot be used with `start` and `until` cannot be used with `end`.|
-| get_aggs(symbol, timespan, multiplier, _from, to)| `GET /aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from}/{to}` | `Aggs` entity. `multiplier` is the size of the timespan multiplier. `timespan` is the size of the time window, can be one of `minute`, `hour`, `day`, `week`, `month`, `quarter` or `year`. `_from` and `to` must be in `YYYY-MM-DD` format, e.g. `2020-01-15`.| 
-| get_last_trade(symbol)                           | `GET /last/stocks/{symbol}` | `Trade` entity|
-| get_last_quote(symbol)                           | `GET /last_quote/stocks/{symbol}` | `Quote` entity|
 | get_clock()                                      | `GET /clock` | `Clock` entity|
 | get_calendar(start=None, end=None)               | `GET /calendar` | `Calendar` entity|
 | get_portfolio_history(date_start=None, date_end=None, period=None, timeframe=None, extended_hours=None) | `GET /account/portfolio/history` | PortfolioHistory entity. PortfolioHistory.df can be used to get the results as a dataframe|
@@ -372,38 +368,21 @@ api.submit_order(
 )
 ```
 
-##### Using `get_barset()` (Deprecated. use `get_bars()` instead)
-```python 
-import pandas as pd
-NY = 'America/New_York'
-start=pd.Timestamp('2020-08-01', tz=NY).isoformat()
-end=pd.Timestamp('2020-08-30', tz=NY).isoformat()
-print(api.get_barset(['AAPL', 'GOOG'], 'day', start=start, end=end).df)
-
-# Minute data example
-start=pd.Timestamp('2020-08-28 9:30', tz=NY).isoformat()
-end=pd.Timestamp('2020-08-28 16:00', tz=NY).isoformat()
-print(api.get_barset(['AAPL', 'GOOG'], 'minute', start=start, end=end).df)
-
-```
-
-please note that if you are using limit, it is calculated from the end date. and if end date is not specified, "now" is used. <br>Take that under consideration when using start date with a limit. 
-
 ---
 
 #### Debugging
 Websocket exceptions may occur during execution.
-It will usually happen during the `consume()` method, which basically is the 
+It will usually happen during the `consume()` method, which basically is the
 websocket steady-state.<br>
 exceptions during the consume method may occur due to:
 - server disconnections
 - error while handling the response data
 
 We handle the first issue by reconnecting the websocket every time there's a disconnection.
-The second issue, is usually a user's code issue. To help you find it, we added a flag to the 
+The second issue, is usually a user's code issue. To help you find it, we added a flag to the
 StreamConn object called `debug`. It is set to False by default, but you can turn it on to get a more
 verbose logs when this exception happens.
-Turn it on like so `StreamConn(debug=True)`  
+Turn it on like so `StreamConn(debug=True)`
 
 ## Logging
 You should define a logger in your app in order to make sure you get all the messages from the different components.<br>

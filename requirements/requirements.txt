@@ -5,6 +5,6 @@ urllib3>1.24,<2
 websocket-client>=0.56.0,<2
 websockets==10.1
 msgpack==1.0.3
-aiohttp==3.7.4
+aiohttp==3.8.1
 PyYAML==5.4.1
 deprecation==2.1.0

@@ -20,7 +20,9 @@ from .entity import (
 )
 from .entity_v2 import (
     BarV2, BarsV2, LatestBarsV2, LatestQuotesV2, LatestTradesV2,
-    SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2)
+    SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2,
+    NewsV2, NewsListV2
+)
 
 logger = logging.getLogger(__name__)
 Positions = List[Position]
@@ -32,8 +34,10 @@ Watchlists = List[Watchlist]
 TradeIterator = Iterator[Union[Trade, dict]]
 QuoteIterator = Iterator[Union[Quote, dict]]
 BarIterator = Iterator[Union[Bar, dict]]
+NewsIterator = Iterator[Union[NewsV2, dict]]
 
 DATA_V2_MAX_LIMIT = 10000  # max items per api call
+NEWS_MAX_LIMIT = 50  # max items per api call
 
 
 class RetryException(Exception):
@@ -127,6 +131,14 @@ class TimeFrame:
 TimeFrame.Minute = TimeFrame(1, TimeFrameUnit.Minute)
 TimeFrame.Hour = TimeFrame(1, TimeFrameUnit.Hour)
 TimeFrame.Day = TimeFrame(1, TimeFrameUnit.Day)
+
+
+class Sort(Enum):
+    Asc = "asc"
+    Desc = "desc"
+
+    def __str__(self):
+        return self.value
 
 
 class REST(object):
@@ -609,27 +621,34 @@ class REST(object):
                   symbol_or_symbols: Union[str, List[str]],
                   api_version: str = 'v2',
                   endpoint_base: str = 'stocks',
+                  resp_grouped_by_symbol: Optional[bool] = None,
+                  page_limit: int = DATA_V2_MAX_LIMIT,
                   **kwargs):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
+        if resp_grouped_by_symbol is None:
+            resp_grouped_by_symbol = not isinstance(symbol_or_symbols, str)
         while True:
             actual_limit = None
             if limit:
-                actual_limit = min(int(limit) - total_items, DATA_V2_MAX_LIMIT)
+                actual_limit = min(int(limit) - total_items, page_limit)
                 if actual_limit < 1:
                     break
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            if isinstance(symbol_or_symbols, str):
-                path = f'/{endpoint_base}/{symbol_or_symbols}/{endpoint}'
+            path = f'/{endpoint_base}'
+            if isinstance(symbol_or_symbols, str) and symbol_or_symbols:
+                path += f'/{symbol_or_symbols}'
             else:
-                path = f'/{endpoint_base}/{endpoint}'
                 data['symbols'] = ','.join(symbol_or_symbols)
+            if endpoint:
+                path += f'/{endpoint}'
             resp = self.data_get(path, data=data, api_version=api_version)
-            if isinstance(symbol_or_symbols, str):
-                for item in resp.get(endpoint, []) or []:
+            if not resp_grouped_by_symbol:
+                k = endpoint or endpoint_base
+                for item in resp.get(k, []) or []:
                     yield item
                     total_items += 1
             else:
@@ -892,6 +911,50 @@ class REST(object):
                              data={'exchange': exchange},
                              api_version='v1beta1')
         return self.response_wrapper(resp, SnapshotV2)
+
+    def get_news_iter(self,
+                      symbol: Optional[Union[str, List[str]]] = None,
+                      start: Optional[str] = None,
+                      end: Optional[str] = None,
+                      limit: int = 10,
+                      sort: Sort = Sort.Desc,
+                      include_content: bool = False,
+                      exclude_contentless: bool = False,
+                      raw=False) -> NewsIterator:
+        symbol = symbol or []
+        # Avoid passing symbol as path param
+        if isinstance(symbol, str):
+            symbol = [symbol]
+        news = self._data_get('', symbol,
+                              api_version='v1beta1', endpoint_base='news',
+                              start=start, end=end, limit=limit, sort=sort,
+                              include_content=include_content,
+                              exclude_contentless=exclude_contentless,
+                              resp_grouped_by_symbol=False,
+                              page_limit=NEWS_MAX_LIMIT)
+        for n in news:
+            if raw:
+                yield n
+            else:
+                yield self.response_wrapper(n, NewsV2)
+
+    def get_news(self,
+                 symbol: Optional[Union[str, List[str]]] = None,
+                 start: Optional[str] = None,
+                 end: Optional[str] = None,
+                 limit: int = 10,
+                 sort: Sort = Sort.Desc,
+                 include_content: bool = False,
+                 exclude_contentless: bool = False,
+
+                 ) -> NewsListV2:
+        news = list(self.get_news_iter(symbol=symbol,
+                                       start=start, end=end,
+                                       limit=limit, sort=sort,
+                                       include_content=include_content,
+                                       exclude_contentless=exclude_contentless,
+                                       raw=True))
+        return NewsListV2(news)
 
     def get_clock(self) -> Clock:
         resp = self.get('/clock')

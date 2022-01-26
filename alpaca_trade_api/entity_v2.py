@@ -225,6 +225,16 @@ class LatestQuotesV2(dict):
             self[k] = _convert_or_none(QuoteV2, v)
 
 
+class NewsV2(Entity):
+    def __init__(self, raw):
+        super().__init__(raw)
+
+
+class NewsListV2(list):
+    def __init__(self, raw):
+        super().__init__([NewsV2(o) for o in raw])
+
+
 def _convert_or_none(entityType, value):
     if value:
         return entityType(value)

@@ -29,6 +29,7 @@ from .entity_v2 import (
     LULDV2,
     CancelErrorV2,
     CorrectionV2,
+    NewsV2,
 )
 
 log = logging.getLogger(__name__)
@@ -432,6 +433,63 @@ class CryptoDataStream(_DataStream):
         self._name = 'crypto data'
 
 
+class NewsDataStream(_DataStream):
+    def __init__(self,
+                 key_id: str,
+                 secret_key: str,
+                 base_url: URL,
+                 raw_data: bool):
+        self._key_id = key_id
+        self._secret_key = secret_key
+        base_url = re.sub(r'^http', 'ws', base_url)
+        endpoint = base_url + '/v1beta1/news'
+        super().__init__(endpoint=endpoint,
+                         key_id=key_id,
+                         secret_key=secret_key,
+                         raw_data=raw_data,
+                         )
+        self._handlers = {
+            'news':    {},
+        }
+        self._name = 'news data'
+
+    def _cast(self, msg_type, msg):
+        result = super()._cast(msg_type, msg)
+        if not self._raw_data:
+            if msg_type == 'n':
+                result = NewsV2(msg)
+        return result
+
+    async def _dispatch(self, msg):
+        msg_type = msg.get('T')
+        symbol = msg.get('S')
+        if msg_type == 'n':
+            handler = self._handlers['news'].get(
+                symbol, self._handlers['news'].get('*', None))
+            if handler:
+                await handler(self._cast(msg_type, msg))
+        else:
+            await super()._dispatch(msg)
+
+    async def _unsubscribe(self, news=()):
+        if news:
+            await self._ws.send(
+                msgpack.packb({
+                    'action':    'unsubscribe',
+                    'news':    news,
+                }))
+
+    def subscribe_news(self, handler, *symbols):
+        self._subscribe(handler, symbols, self._handlers['news'])
+
+    def unsubscribe_news(self, *symbols):
+        if self._running:
+            asyncio.get_event_loop().run_until_complete(
+                self._unsubscribe(news=symbols))
+        for symbol in symbols:
+            del self._handlers['news'][symbol]
+
+
 class TradingStream:
     def __init__(self,
                  key_id: str,
@@ -588,6 +646,10 @@ class Stream:
                                            self._data_steam_url,
                                            raw_data,
                                            crypto_exchanges)
+        self._news_ws = NewsDataStream(self._key_id,
+                                       self._secret_key,
+                                       self._data_steam_url,
+                                       raw_data)
 
     def subscribe_trade_updates(self, handler):
         self._trading_ws.subscribe_trade_updates(handler)
@@ -633,6 +695,9 @@ class Stream:
 
     def subscribe_crypto_daily_bars(self, handler, *symbols):
         self._crypto_ws.subscribe_daily_bars(handler, *symbols)
+
+    def subscribe_news(self, handler, *symbols):
+        self._news_ws.subscribe_news(handler, *symbols)
 
     def on_trade_update(self, func):
         self.subscribe_trade_updates(func)
@@ -722,6 +787,13 @@ class Stream:
 
         return decorator
 
+    def on_news(self, *symbols):
+        def decorator(func):
+            self.subscribe_news(func, *symbols)
+            return func
+
+        return decorator
+
     def unsubscribe_trades(self, *symbols):
         self._data_ws.unsubscribe_trades(*symbols)
         self._data_ws.unregister_handler("cancelErrors", *symbols)
@@ -754,10 +826,14 @@ class Stream:
     def unsubscribe_crypto_daily_bars(self, *symbols):
         self._crypto_ws.unsubscribe_daily_bars(*symbols)
 
+    def unsubscribe_news(self, *symbols):
+        self._news_ws.unsubscribe_news(*symbols)
+
     async def _run_forever(self):
         await asyncio.gather(self._trading_ws._run_forever(),
                              self._data_ws._run_forever(),
-                             self._crypto_ws._run_forever())
+                             self._crypto_ws._run_forever(),
+                             self._news_ws._run_forever())
 
     def run(self):
         loop = asyncio.get_event_loop()
@@ -780,12 +856,16 @@ class Stream:
         if self._crypto_ws:
             await self._crypto_ws.stop_ws()
 
+        if self._news_ws:
+            await self._news_ws.stop_ws()
+
     def is_open(self):
         """
         Checks if either of the websockets is open
         :return:
         """
-        open_ws = self._trading_ws._ws or self._data_ws._ws or self._crypto_ws._ws  # noqa
+        open_ws = (self._trading_ws._ws or self._data_ws._ws
+                   or self._crypto_ws._ws or self._news_ws) # noqa
         if open_ws:
             return True
         return False

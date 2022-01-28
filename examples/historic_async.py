@@ -106,8 +106,7 @@ if __name__ == '__main__':
                         base_url=URL(base_url))
 
     start_time = time.time()
-    loop = asyncio.get_event_loop()
     symbols = [el.symbol for el in api.list_assets(status='active')]
     symbols = symbols[:200]
-    loop.run_until_complete(main(symbols))
+    asyncio.run(main(symbols))
     print(f"took {time.time() - start_time} sec")

@@ -27,13 +27,6 @@ async def print_bar(bar):
 
 
 def consumer_thread():
-    try:
-        # make sure we have an event loop, if not create a new one
-        loop = asyncio.get_event_loop()
-        loop.set_debug(True)
-    except RuntimeError:
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
     global conn
     conn = Stream(ALPACA_API_KEY,
                   ALPACA_SECRET_KEY,
@@ -48,18 +41,17 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s  %(levelname)s %(message)s',
                         level=logging.INFO)
 
-    loop = asyncio.get_event_loop()
     pool = ThreadPoolExecutor(1)
 
     while 1:
         try:
             pool.submit(consumer_thread)
-            time.sleep(20)
-            loop.run_until_complete(conn.stop_ws())
-            time.sleep(20)
+            time.sleep(3)
+            conn.stop()
+            time.sleep(3)
         except KeyboardInterrupt:
             print("Interrupted execution by user")
-            loop.run_until_complete(conn.stop_ws())
+            conn.stop()
             exit(0)
         except Exception as e:
             print("You goe an exception: {} during execution. continue "

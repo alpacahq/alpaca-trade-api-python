@@ -273,13 +273,23 @@ class LongShort:
   # Get the total price of the array of input stocks.
   def getTotalPrice(self, stocks, resp):
     totalPrice = 0
+
+    startTime = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=1)
+    startTime = startTime.replace(second=0, microsecond=0).isoformat()
+
+    endTime = datetime.datetime.now(datetime.timezone.utc)
+    endTime = endTime.replace(second=0, microsecond=0).isoformat()
+
     for stock in stocks:
       bars = self.alpaca.get_bars(stock, TimeFrame.Minute,
-                                  pd.Timestamp('now').date(),
-                                  pd.Timestamp('now').date(), limit=1,
+                                  startTime,
+                                  endTime, limit=1,
                                   adjustment='raw')
 
-      totalPrice += bars[stock][0].c
+      if len(bars) != 0:
+        totalPrice += bars[0].c
+      
+
     resp.append(totalPrice)
 
   # Submit a batch order that returns completed and uncompleted orders.
@@ -317,12 +327,19 @@ class LongShort:
   # Get percent changes of the stock prices over the past 10 minutes.
   def getPercentChanges(self):
     length = 10
+    startTime = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=length)
+    startTime = startTime.replace(second=0, microsecond=0).isoformat()
+
+    endTime = datetime.datetime.now(datetime.timezone.utc)
+    endTime = endTime.replace(second=0, microsecond=0).isoformat()
     for i, stock in enumerate(self.allStocks):
       bars = self.alpaca.get_bars(stock[0], TimeFrame.Minute,
-                                  pd.Timestamp('now').date(),
-                                  pd.Timestamp('now').date(), limit=length,
+                                  startTime,
+                                  endTime, limit=length,
                                   adjustment='raw')
-      self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]]) - 1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
+      if len(bars) != 0:
+        self.allStocks[i][1] = (bars[len(bars) - 1].c - bars[0].o) / bars[0].o
+      
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.
   def rank(self):

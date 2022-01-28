@@ -46,9 +46,9 @@ if __name__ == '__main__':
     while 1:
         try:
             pool.submit(consumer_thread)
-            time.sleep(3)
+            time.sleep(20)
             conn.stop()
-            time.sleep(3)
+            time.sleep(20)
         except KeyboardInterrupt:
             print("Interrupted execution by user")
             conn.stop()

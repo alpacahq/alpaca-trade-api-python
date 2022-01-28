@@ -180,7 +180,9 @@ class _DataStream():
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.run_coroutine_threadsafe(self._subscribe_all(), self._loop).result()
+            asyncio.run_coroutine_threadsafe(
+                self._subscribe_all(), self._loop
+            ).result()
 
     async def _subscribe_all(self):
         if any(
@@ -299,7 +301,6 @@ class _DataStream():
             asyncio.run_coroutine_threadsafe(
                 self.stop_ws(),
                 self._loop).result()
-            
 
 
 class DataStream(_DataStream):

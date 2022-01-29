@@ -386,9 +386,9 @@ def run_live(api):
         cycle += 1
 
 
-
 if __name__ == '__main__':
     api = tradeapi.REST()
+    rest = AsyncRest()
 
     if len(sys.argv) < 2:
         print(

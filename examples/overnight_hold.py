@@ -148,8 +148,7 @@ def get_ratings(api, algo_time, datasets=None):
                       timedelta(days=window_size)).strftime(
             api_time_format)
         formatted_time = algo_time.date().strftime(api_time_format)
-        end = pytz.timezone("America/New_York").localize(
-            pd.Timestamp(formatted_time))
+        end = pd.Timestamp(formatted_time)
     else:
         end = pytz.timezone("America/New_York").localize(pd.Timestamp('now'))
     start = end - timedelta(

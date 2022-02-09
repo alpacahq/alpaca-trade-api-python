@@ -4,7 +4,7 @@ import threading
 import alpaca_trade_api as tradeapi
 import time
 from alpaca_trade_api.rest import TimeFrame
-
+import pandas as pd
 API_KEY = "YOUR_API_KEY_HERE"
 API_SECRET = "YOUR_API_SECRET_HERE"
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
@@ -274,16 +274,10 @@ class LongShort:
   def getTotalPrice(self, stocks, resp):
     totalPrice = 0
 
-    startTime = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=1)
-    startTime = startTime.replace(second=0, microsecond=0).isoformat()
-
-    endTime = datetime.datetime.now(datetime.timezone.utc)
-    endTime = endTime.replace(second=0, microsecond=0).isoformat()
-
     for stock in stocks:
-      bars = self.alpaca.get_bars(stock, TimeFrame.Minute,
-                                  startTime,
-                                  endTime, limit=1,
+      bars = self.alpaca.get_bars(stock[0], TimeFrame.Minute,
+                                  pd.Timestamp('now').date(),
+                                  pd.Timestamp('now').date(), limit=1,
                                   adjustment='raw')
 
       if len(bars) != 0:
@@ -327,15 +321,10 @@ class LongShort:
   # Get percent changes of the stock prices over the past 10 minutes.
   def getPercentChanges(self):
     length = 10
-    startTime = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=length)
-    startTime = startTime.replace(second=0, microsecond=0).isoformat()
-
-    endTime = datetime.datetime.now(datetime.timezone.utc)
-    endTime = endTime.replace(second=0, microsecond=0).isoformat()
     for i, stock in enumerate(self.allStocks):
       bars = self.alpaca.get_bars(stock[0], TimeFrame.Minute,
-                                  startTime,
-                                  endTime, limit=length,
+                                  pd.Timestamp('now').date(),
+                                  pd.Timestamp('now').date(), limit=length,
                                   adjustment='raw')
       if len(bars) != 0:
         self.allStocks[i][1] = (bars[len(bars) - 1].c - bars[0].o) / bars[0].o

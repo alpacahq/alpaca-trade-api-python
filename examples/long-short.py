@@ -4,7 +4,7 @@ import threading
 import alpaca_trade_api as tradeapi
 import time
 from alpaca_trade_api.rest import TimeFrame
-
+import pandas as pd
 API_KEY = "YOUR_API_KEY_HERE"
 API_SECRET = "YOUR_API_SECRET_HERE"
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
@@ -273,13 +273,17 @@ class LongShort:
   # Get the total price of the array of input stocks.
   def getTotalPrice(self, stocks, resp):
     totalPrice = 0
+
     for stock in stocks:
-      bars = self.alpaca.get_bars(stock, TimeFrame.Minute,
+      bars = self.alpaca.get_bars(stock[0], TimeFrame.Minute,
                                   pd.Timestamp('now').date(),
                                   pd.Timestamp('now').date(), limit=1,
                                   adjustment='raw')
 
-      totalPrice += bars[stock][0].c
+      if len(bars) != 0:
+        totalPrice += bars[0].c
+      
+
     resp.append(totalPrice)
 
   # Submit a batch order that returns completed and uncompleted orders.
@@ -322,7 +326,9 @@ class LongShort:
                                   pd.Timestamp('now').date(),
                                   pd.Timestamp('now').date(), limit=length,
                                   adjustment='raw')
-      self.allStocks[i][1] = (bars[stock[0]][len(bars[stock[0]]) - 1].c - bars[stock[0]][0].o) / bars[stock[0]][0].o
+      if len(bars) != 0:
+        self.allStocks[i][1] = (bars[len(bars) - 1].c - bars[0].o) / bars[0].o
+      
 
   # Mechanism used to rank the stocks, the basis of the Long-Short Equity Strategy.
   def rank(self):

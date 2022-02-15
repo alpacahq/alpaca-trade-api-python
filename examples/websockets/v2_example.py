@@ -34,6 +34,10 @@ def main():
     async def _(bar):
         print('bar', bar)
 
+    @stream.on_updated_bar('MSFT')
+    async def _(bar):
+        print('updated bar', bar)
+
     @stream.on_status("*")
     async def _(status):
         print('status', status)

@@ -96,7 +96,7 @@ jobs:
           name: run tests
           command: |
             pip install pandas==1.3.4 numpy==1.21.4
-            python setup.py install
+            pip install .
             pip install flake8 && flake8 alpaca_trade_api tests
             python setup.py test
 
@@ -118,7 +118,7 @@ jobs:
       - run:
           name: make sure install works
           command: |
-            python setup.py install
+            pip install .
       - run:
           name: view installed packages
           command: |
@@ -133,11 +133,30 @@ jobs:
       - run:
           name: make sure install works
           command: |
-            python setup.py install
+            pip install .
       - run:
           name: view installed packages
           command: |
             pip freeze
+
+  build-test-python310:
+    docker:
+      - image: python:3.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: make sure install works
+          command: |
+            pip install .
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
+      - run:
+          name: unit test
+          command: |
+            python setup.py test
 
 workflows:
   version: 2
@@ -148,3 +167,4 @@ workflows:
       - build-test-python37
       - build-python38
       - build-python39
+      - build-test-python310

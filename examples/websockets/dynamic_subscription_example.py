@@ -28,13 +28,6 @@ PREVIOUS = None
 
 
 def consumer_thread():
-    try:
-        # make sure we have an event loop, if not create a new one
-        loop = asyncio.get_event_loop()
-        loop.set_debug(True)
-    except RuntimeError:
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
     global conn
     conn = Stream(ALPACA_API_KEY,
                   ALPACA_SECRET_KEY,
@@ -50,9 +43,6 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                         level=logging.INFO)
     threading.Thread(target=consumer_thread).start()
-
-    loop = asyncio.get_event_loop()
-
     time.sleep(5)  # give the initial connection time to be established
     subscriptions = {"BABA": print_quote,
                      "AAPL": print_quote,

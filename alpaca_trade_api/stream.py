@@ -51,6 +51,7 @@ class _DataStream():
         self._secret_key = secret_key
         self._ws = None
         self._running = False
+        self._loop = None
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._handlers = {
@@ -179,7 +180,9 @@ class _DataStream():
         for symbol in symbols:
             handlers[symbol] = handler
         if self._running:
-            asyncio.get_event_loop().run_until_complete(self._subscribe_all())
+            asyncio.run_coroutine_threadsafe(
+                self._subscribe_all(), self._loop
+            ).result()
 
     async def _subscribe_all(self):
         if any(
@@ -210,6 +213,7 @@ class _DataStream():
                 }))
 
     async def _run_forever(self):
+        self._loop = asyncio.get_running_loop()
         # do not start the websocket connection until we subscribe to something
         while not any(
             v for k, v in self._handlers.items()
@@ -262,31 +266,41 @@ class _DataStream():
 
     def unsubscribe_trades(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(trades=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(trades=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['trades'][symbol]
 
     def unsubscribe_quotes(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(quotes=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(quotes=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['quotes'][symbol]
 
     def unsubscribe_bars(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(bars=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(bars=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['bars'][symbol]
 
     def unsubscribe_daily_bars(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(daily_bars=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(daily_bars=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['dailyBars'][symbol]
+
+    def stop(self):
+        if self._loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.stop_ws(),
+                self._loop).result()
 
 
 class DataStream(_DataStream):
@@ -386,15 +400,17 @@ class DataStream(_DataStream):
 
     def unsubscribe_statuses(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(statuses=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(statuses=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['statuses'][symbol]
 
     def unsubscribe_lulds(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(lulds=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(lulds=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['lulds'][symbol]
 
@@ -484,8 +500,9 @@ class NewsDataStream(_DataStream):
 
     def unsubscribe_news(self, *symbols):
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._unsubscribe(news=symbols))
+            asyncio.run_coroutine_threadsafe(
+                self._unsubscribe(news=symbols),
+                self._loop).result()
         for symbol in symbols:
             del self._handlers['news'][symbol]
 
@@ -503,6 +520,7 @@ class TradingStream:
         self._trade_updates_handler = None
         self._ws = None
         self._running = False
+        self._loop = None
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._should_run = True
@@ -550,8 +568,9 @@ class TradingStream:
         _ensure_coroutine(handler)
         self._trade_updates_handler = handler
         if self._running:
-            asyncio.get_event_loop().run_until_complete(
-                self._subscribe_trade_updates())
+            asyncio.run_coroutine_threadsafe(
+                self._subscribe_trade_updates(),
+                self._loop).result()
 
     async def _start_ws(self):
         await self._connect()
@@ -577,6 +596,7 @@ class TradingStream:
                     pass
 
     async def _run_forever(self):
+        self._loop = asyncio.get_running_loop()
         # do not start the websocket connection until we subscribe to something
         while not self._trade_updates_handler:
             if not self._stop_stream_queue.empty():
@@ -590,7 +610,7 @@ class TradingStream:
             try:
                 if not self._should_run:
                     log.info("Trading stream stopped")
-                    break
+                    return
                 if not self._running:
                     log.info("starting trading websocket connection")
                     await self._start_ws()
@@ -618,6 +638,12 @@ class TradingStream:
         if self._stop_stream_queue.empty():
             self._stop_stream_queue.put_nowait({"should_stop": True})
 
+    def stop(self):
+        if self._loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.stop_ws(),
+                self._loop).result()
+
 
 class Stream:
     def __init__(self,
@@ -630,7 +656,7 @@ class Stream:
                  crypto_exchanges: Optional[List[str]] = None):
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
-        self._data_steam_url = data_stream_url or get_data_stream_url()
+        self._data_stream_url = data_stream_url or get_data_stream_url()
 
         self._trading_ws = TradingStream(self._key_id,
                                          self._secret_key,
@@ -638,17 +664,17 @@ class Stream:
                                          raw_data)
         self._data_ws = DataStream(self._key_id,
                                    self._secret_key,
-                                   self._data_steam_url,
+                                   self._data_stream_url,
                                    raw_data,
                                    data_feed.lower())
         self._crypto_ws = CryptoDataStream(self._key_id,
                                            self._secret_key,
-                                           self._data_steam_url,
+                                           self._data_stream_url,
                                            raw_data,
                                            crypto_exchanges)
         self._news_ws = NewsDataStream(self._key_id,
                                        self._secret_key,
-                                       self._data_steam_url,
+                                       self._data_stream_url,
                                        raw_data)
 
     def subscribe_trade_updates(self, handler):
@@ -836,9 +862,8 @@ class Stream:
                              self._news_ws._run_forever())
 
     def run(self):
-        loop = asyncio.get_event_loop()
         try:
-            loop.run_until_complete(self._run_forever())
+            asyncio.run(self._run_forever())
         except KeyboardInterrupt:
             print('keyboard interrupt, bye')
             pass
@@ -858,6 +883,16 @@ class Stream:
 
         if self._news_ws:
             await self._news_ws.stop_ws()
+
+    def stop(self):
+        if self._trading_ws:
+            self._trading_ws.stop()
+        if self._data_ws:
+            self._data_ws.stop()
+        if self._crypto_ws:
+            self._crypto_ws.stop()
+        if self._news_ws:
+            self._news_ws.stop()
 
     def is_open(self):
         """

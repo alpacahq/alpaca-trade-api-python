@@ -395,19 +395,21 @@ class DataStream(_DataStream):
                            trades=(),
                            quotes=(),
                            bars=(),
+                           updated_bars=(),
                            daily_bars=(),
                            statuses=(),
                            lulds=()):
-        if trades or quotes or bars or daily_bars or statuses or lulds:
+        if trades or quotes or bars or updated_bars or daily_bars or statuses or lulds:
             await self._ws.send(
                 msgpack.packb({
-                    'action':    'unsubscribe',
-                    'trades':    trades,
-                    'quotes':    quotes,
-                    'bars':      bars,
-                    'dailyBars': daily_bars,
-                    'statuses':  statuses,
-                    'lulds':     lulds,
+                    'action':      'unsubscribe',
+                    'trades':      trades,
+                    'quotes':      quotes,
+                    'bars':        bars,
+                    'updatedBars': updated_bars,
+                    'dailyBars':   daily_bars,
+                    'statuses':    statuses,
+                    'lulds':       lulds,
                 }))
 
     def subscribe_statuses(self, handler, *symbols):

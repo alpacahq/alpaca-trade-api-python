@@ -399,7 +399,8 @@ class DataStream(_DataStream):
                            daily_bars=(),
                            statuses=(),
                            lulds=()):
-        if trades or quotes or bars or updated_bars or daily_bars or statuses or lulds:
+        if (trades or quotes or bars or updated_bars or daily_bars or
+                statuses or lulds):
             await self._ws.send(
                 msgpack.packb({
                     'action':      'unsubscribe',

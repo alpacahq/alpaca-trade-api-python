@@ -422,7 +422,8 @@ class DataStream(_DataStream):
 
     def unregister_handler(self, msg_type, *symbols):
         for symbol in symbols:
-            del self._handlers[msg_type][symbol]
+            if symbol in self._handlers[msg_type]:
+                del self._handlers[msg_type][symbol]
 
 
 class CryptoDataStream(_DataStream):

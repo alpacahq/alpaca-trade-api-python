@@ -55,10 +55,11 @@ class _DataStream():
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._handlers = {
-            'trades':    {},
-            'quotes':    {},
-            'bars':      {},
-            'dailyBars': {},
+            'trades':      {},
+            'quotes':      {},
+            'bars':        {},
+            'updatedBars': {},
+            'dailyBars':   {},
         }
         self._name = 'data'
         self._should_run = True
@@ -137,7 +138,7 @@ class _DataStream():
                     quote_mapping_v2[k]: v
                     for k, v in msg.items() if k in quote_mapping_v2
                 })
-            elif msg_type in ('b', 'd'):
+            elif msg_type in ('b', 'u', 'd'):
                 result = Bar({
                     bar_mapping_v2[k]: v
                     for k, v in msg.items() if k in bar_mapping_v2
@@ -162,6 +163,11 @@ class _DataStream():
         elif msg_type == 'b':
             handler = self._handlers['bars'].get(
                 symbol, self._handlers['bars'].get('*', None))
+            if handler:
+                await handler(self._cast(msg_type, msg))
+        elif msg_type == 'u':
+            handler = self._handlers['updatedBars'].get(
+                symbol, self._handlers['updatedBars'].get('*', None))
             if handler:
                 await handler(self._cast(msg_type, msg))
         elif msg_type == 'd':
@@ -201,15 +207,17 @@ class _DataStream():
                            trades=(),
                            quotes=(),
                            bars=(),
+                           updated_bars=(),
                            daily_bars=()):
-        if trades or quotes or bars or daily_bars:
+        if trades or quotes or bars or updated_bars or daily_bars:
             await self._ws.send(
                 msgpack.packb({
-                    'action':    'unsubscribe',
-                    'trades':    trades,
-                    'quotes':    quotes,
-                    'bars':      bars,
-                    'dailyBars': daily_bars,
+                    'action':      'unsubscribe',
+                    'trades':      trades,
+                    'quotes':      quotes,
+                    'bars':        bars,
+                    'updatedBars': updated_bars,
+                    'dailyBars':   daily_bars,
                 }))
 
     async def _run_forever(self):
@@ -261,6 +269,9 @@ class _DataStream():
     def subscribe_bars(self, handler, *symbols):
         self._subscribe(handler, symbols, self._handlers['bars'])
 
+    def subscribe_updated_bars(self, handler, *symbols):
+        self._subscribe(handler, symbols, self._handlers['updatedBars'])
+
     def subscribe_daily_bars(self, handler, *symbols):
         self._subscribe(handler, symbols, self._handlers['dailyBars'])
 
@@ -287,6 +298,13 @@ class _DataStream():
                 self._loop).result()
         for symbol in symbols:
             del self._handlers['bars'][symbol]
+
+    def unsubscribe_updated_bars(self, *symbols):
+        if self._running:
+            asyncio.get_event_loop().run_until_complete(
+                self._unsubscribe(updated_bars=symbols))
+        for symbol in symbols:
+            del self._handlers['updatedBars'][symbol]
 
     def unsubscribe_daily_bars(self, *symbols):
         if self._running:
@@ -377,19 +395,22 @@ class DataStream(_DataStream):
                            trades=(),
                            quotes=(),
                            bars=(),
+                           updated_bars=(),
                            daily_bars=(),
                            statuses=(),
                            lulds=()):
-        if trades or quotes or bars or daily_bars or statuses or lulds:
+        if (trades or quotes or bars or updated_bars or daily_bars or
+                statuses or lulds):
             await self._ws.send(
                 msgpack.packb({
-                    'action':    'unsubscribe',
-                    'trades':    trades,
-                    'quotes':    quotes,
-                    'bars':      bars,
-                    'dailyBars': daily_bars,
-                    'statuses':  statuses,
-                    'lulds':     lulds,
+                    'action':      'unsubscribe',
+                    'trades':      trades,
+                    'quotes':      quotes,
+                    'bars':        bars,
+                    'updatedBars': updated_bars,
+                    'dailyBars':   daily_bars,
+                    'statuses':    statuses,
+                    'lulds':       lulds,
                 }))
 
     def subscribe_statuses(self, handler, *symbols):
@@ -702,6 +723,9 @@ class Stream:
     def subscribe_bars(self, handler, *symbols):
         self._data_ws.subscribe_bars(handler, *symbols)
 
+    def subscribe_updated_bars(self, handler, *symbols):
+        self._data_ws.subscribe_updated_bars(handler, *symbols)
+
     def subscribe_daily_bars(self, handler, *symbols):
         self._data_ws.subscribe_daily_bars(handler, *symbols)
 
@@ -719,6 +743,9 @@ class Stream:
 
     def subscribe_crypto_bars(self, handler, *symbols):
         self._crypto_ws.subscribe_bars(handler, *symbols)
+
+    def subscribe_crypto_updated_bars(self, handler, *symbols):
+        self._crypto_ws.subscribe_updated_bars(handler, *symbols)
 
     def subscribe_crypto_daily_bars(self, handler, *symbols):
         self._crypto_ws.subscribe_daily_bars(handler, *symbols)
@@ -747,6 +774,13 @@ class Stream:
     def on_bar(self, *symbols):
         def decorator(func):
             self.subscribe_bars(func, *symbols)
+            return func
+
+        return decorator
+
+    def on_updated_bar(self, *symbols):
+        def decorator(func):
+            self.subscribe_updated_bars(func, *symbols)
             return func
 
         return decorator
@@ -807,6 +841,13 @@ class Stream:
 
         return decorator
 
+    def on_crypto_updated_bar(self, *symbols):
+        def decorator(func):
+            self.subscribe_crypto_updated_bars(func, *symbols)
+            return func
+
+        return decorator
+
     def on_crypto_daily_bar(self, *symbols):
         def decorator(func):
             self.subscribe_crypto_daily_bars(func, *symbols)
@@ -832,6 +873,9 @@ class Stream:
     def unsubscribe_bars(self, *symbols):
         self._data_ws.unsubscribe_bars(*symbols)
 
+    def unsubscribe_updated_bars(self, *symbols):
+        self._data_ws.unsubscribe_updated_bars(*symbols)
+
     def unsubscribe_daily_bars(self, *symbols):
         self._data_ws.unsubscribe_daily_bars(*symbols)
 
@@ -849,6 +893,9 @@ class Stream:
 
     def unsubscribe_crypto_bars(self, *symbols):
         self._crypto_ws.unsubscribe_bars(*symbols)
+
+    def unsubscribe_crypto_updated_bars(self, *symbols):
+        self._crypto_ws.unsubscribe_updated_bars(*symbols)
 
     def unsubscribe_crypto_daily_bars(self, *symbols):
         self._crypto_ws.unsubscribe_daily_bars(*symbols)
@@ -901,7 +948,7 @@ class Stream:
         :return:
         """
         open_ws = (self._trading_ws._ws or self._data_ws._ws
-                   or self._crypto_ws._ws or self._news_ws) # noqa
+                   or self._crypto_ws._ws or self._news_ws)  # noqa
         if open_ws:
             return True
         return False

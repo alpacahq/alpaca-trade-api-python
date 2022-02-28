@@ -886,7 +886,9 @@ class REST(object):
             api_version='v1beta1')
         return self.response_wrapper(resp['bar'], BarV2)
 
-    def get_latest_crypto_bars(self, symbols: List[str], exchange: str) -> LatestBarsV2:
+    def get_latest_crypto_bars(self,
+                               symbols: List[str],
+                               exchange: str) -> LatestBarsV2:
         resp = self.data_get(
             '/crypto/bars/latest',
             data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
@@ -900,7 +902,9 @@ class REST(object):
             api_version='v1beta1')
         return self.response_wrapper(resp['trade'], TradeV2)
 
-    def get_latest_crypto_trades(self, symbols: List[str], exchange: str) -> LatestTradesV2:
+    def get_latest_crypto_trades(self,
+                                 symbols: List[str],
+                                 exchange: str) -> LatestTradesV2:
         resp = self.data_get(
             '/crypto/trades/latest',
             data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
@@ -914,7 +918,9 @@ class REST(object):
             api_version='v1beta1')
         return self.response_wrapper(resp['quote'], QuoteV2)
 
-    def get_latest_crypto_quotes(self, symbols: List[str], exchange: str) -> LatestQuotesV2:
+    def get_latest_crypto_quotes(self,
+                                 symbols: List[str],
+                                 exchange: str) -> LatestQuotesV2:
         resp = self.data_get(
             '/crypto/quotes/latest',
             data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
@@ -953,7 +959,9 @@ class REST(object):
                              api_version='v1beta1')
         return self.response_wrapper(resp, SnapshotV2)
 
-    def get_latest_crypto_snapshots(self, symbols: List[str], exchange: str) -> SnapshotsV2:
+    def get_latest_crypto_snapshots(self,
+                                    symbols: List[str],
+                                    exchange: str) -> SnapshotsV2:
         resp = self.data_get(
             '/crypto/snapshots',
             data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},

@@ -756,7 +756,7 @@ class REST(object):
 
     def get_latest_bars(self, symbols: List[str]) -> LatestBarsV2:
         resp = self.data_get(
-            f'/stocks/bars/latest?symbols={",".join(symbols)}',
+            f'/stocks/bars/latest?symbols={_join_with_commas(symbols)}',
             api_version='v2')
         return self.response_wrapper(resp['bars'], LatestBarsV2)
 
@@ -768,7 +768,7 @@ class REST(object):
 
     def get_latest_trades(self, symbols: List[str]) -> LatestTradesV2:
         resp = self.data_get(
-            f'/stocks/trades/latest?symbols={",".join(symbols)}',
+            f'/stocks/trades/latest?symbols={_join_with_commas(symbols)}',
             api_version='v2')
         return self.response_wrapper(resp['trades'], LatestTradesV2)
 
@@ -780,7 +780,7 @@ class REST(object):
 
     def get_latest_quotes(self, symbols: List[str]) -> LatestQuotesV2:
         resp = self.data_get(
-            f'/stocks/quotes/latest?symbols={",".join(symbols)}',
+            f'/stocks/quotes/latest?symbols={_join_with_commas(symbols)}',
             api_version='v2')
         return self.response_wrapper(resp['quotes'], LatestQuotesV2)
 
@@ -791,7 +791,7 @@ class REST(object):
 
     def get_snapshots(self, symbols: List[str]) -> SnapshotsV2:
         resp = self.data_get(
-            '/stocks/snapshots?symbols={}'.format(','.join(symbols)),
+            '/stocks/snapshots?symbols={}'.format(_join_with_commas(symbols)),
             api_version='v2')
         return self.response_wrapper(resp, SnapshotsV2)
 
@@ -879,12 +879,33 @@ class REST(object):
         return BarsV2(list(self.get_crypto_bars_iter(
             symbol, timeframe, start, end, limit, exchanges, raw=True)))
 
+    def get_latest_crypto_bar(self, symbol: str, exchange: str) -> BarV2:
+        resp = self.data_get(
+            '/crypto/{}/bars/latest'.format(symbol),
+            data={'exchange': exchange},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['bar'], BarV2)
+
+    def get_latest_crypto_bars(self, symbols: List[str], exchange: str) -> LatestBarsV2:
+        resp = self.data_get(
+            '/crypto/bars/latest',
+            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['bars'], LatestBarsV2)
+
     def get_latest_crypto_trade(self, symbol: str, exchange: str) -> TradeV2:
         resp = self.data_get(
             '/crypto/{}/trades/latest'.format(symbol),
             data={'exchange': exchange},
             api_version='v1beta1')
         return self.response_wrapper(resp['trade'], TradeV2)
+
+    def get_latest_crypto_trades(self, symbols: List[str], exchange: str) -> LatestTradesV2:
+        resp = self.data_get(
+            '/crypto/trades/latest',
+            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['trades'], LatestTradesV2)
 
     def get_latest_crypto_quote(self, symbol: str, exchange: str) -> QuoteV2:
         resp = self.data_get(
@@ -893,24 +914,51 @@ class REST(object):
             api_version='v1beta1')
         return self.response_wrapper(resp['quote'], QuoteV2)
 
+    def get_latest_crypto_quotes(self, symbols: List[str], exchange: str) -> LatestQuotesV2:
+        resp = self.data_get(
+            '/crypto/quotes/latest',
+            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['quotes'], LatestQuotesV2)
+
     def get_latest_crypto_xbbo(self,
                                symbol: str,
                                exchanges: Optional[List[str]] = None,
                                ) -> QuoteV2:
         params = {}
         if exchanges:
-            params['exchanges'] = ','.join(exchanges)
+            params['exchanges'] = _join_with_commas(exchanges)
         resp = self.data_get(
             '/crypto/{}/xbbo/latest'.format(symbol),
             data=params,
             api_version='v1beta1')
         return self.response_wrapper(resp['xbbo'], QuoteV2)
 
+    def get_latest_crypto_xbbos(self,
+                                symbols: List[str],
+                                exchanges: Optional[List[str]] = None,
+                                ) -> QuoteV2:
+        params = {'symbols': _join_with_commas(symbols)}
+        if exchanges:
+            params['exchanges'] = _join_with_commas(exchanges)
+        resp = self.data_get(
+            '/crypto/xbbos/latest',
+            data=params,
+            api_version='v1beta1')
+        return self.response_wrapper(resp['xbbos'], QuotesV2)
+
     def get_crypto_snapshot(self, symbol: str, exchange: str) -> SnapshotV2:
         resp = self.data_get('/crypto/{}/snapshot'.format(symbol),
                              data={'exchange': exchange},
                              api_version='v1beta1')
         return self.response_wrapper(resp, SnapshotV2)
+
+    def get_latest_crypto_snapshots(self, symbols: List[str], exchange: str) -> SnapshotsV2:
+        resp = self.data_get(
+            '/crypto/snapshots',
+            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
+            api_version='v1beta1')
+        return self.response_wrapper(resp['snapshots'], SnapshotsV2)
 
     def get_news_iter(self,
                       symbol: Optional[Union[str, List[str]]] = None,
@@ -1137,3 +1185,9 @@ class REST(object):
             return obj
         else:
             return entity(obj)
+
+
+def _join_with_commas(lst: List[str]) -> str:
+    if isinstance(lst, str):
+        raise ValueError('expected list, str found')
+    return ','.join(lst)

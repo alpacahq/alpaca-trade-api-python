@@ -80,6 +80,8 @@ class TimeFrameUnit(Enum):
     Minute = "Min"
     Hour = "Hour"
     Day = "Day"
+    Week = "Week"
+    Month = "Month"
 
 
 class TimeFrame:
@@ -126,11 +128,21 @@ class TimeFrame:
         if unit == TimeFrameUnit.Hour and amount > 23:
             raise ValueError("Hour units can only be used with amounts 1-23")
 
+        if unit in (TimeFrameUnit.Day, TimeFrameUnit.Week) and amount != 1:
+            raise ValueError(
+                "Day and Week units can only be used with amount 1")
+
+        if unit == TimeFrameUnit.Month and amount not in (1, 2, 3, 6, 12):
+            raise ValueError(
+                "Month units can only be used with amount 1, 2, 3, 6 and 12")
+
 
 # These are kept for backwards compatibility
 TimeFrame.Minute = TimeFrame(1, TimeFrameUnit.Minute)
 TimeFrame.Hour = TimeFrame(1, TimeFrameUnit.Hour)
 TimeFrame.Day = TimeFrame(1, TimeFrameUnit.Day)
+TimeFrame.Week = TimeFrame(1, TimeFrameUnit.Week)
+TimeFrame.Month = TimeFrame(1, TimeFrameUnit.Month)
 
 
 class Sort(Enum):

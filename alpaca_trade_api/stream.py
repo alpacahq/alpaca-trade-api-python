@@ -64,7 +64,7 @@ class _DataStream():
         }
         self._name = 'data'
         self._should_run = True
-        self._maxSymbolsInMessage = 100 # should be change
+        self._maxSymbolsInMessage = 100  # should be change
 
     async def _connect(self):
         self._ws = await websockets.connect(

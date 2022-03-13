@@ -421,7 +421,7 @@ class REST(object):
             params['trail_percent'] = trail_percent
         resp = self.post('/orders', params)
         return self.response_wrapper(resp, Order)
-
+    
     def get_order_by_client_order_id(self, client_order_id: str) -> Order:
         """Get an order by client order id"""
         params = {

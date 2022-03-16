@@ -64,7 +64,7 @@ class _DataStream():
         }
         self._name = 'data'
         self._should_run = True
-        self._maxSymbolsInMessage = 100  # should be change
+        self._max_frame_size = 128  # should be change
 
     async def _connect(self):
         self._ws = await websockets.connect(
@@ -193,23 +193,15 @@ class _DataStream():
             ).result()
 
     async def _subscribe_all(self):
-        symbolsInMsg = 0
         msg = defaultdict(list)
         for k, v in self._handlers.items():
             if k not in ("cancelErrors", "corrections") and v:
                 for s in v.keys():
-                    if (symbolsInMsg == self._maxSymbolsInMessage):
-                        await self._send_subscribe_msg(msg)
-                        msg = defaultdict(list)
-                        symbolsInMsg = 0
                     msg[k].append(s)
-                    symbolsInMsg += 1
-        if msg:
-            await self._send_subscribe_msg(msg)
-
-    async def _send_subscribe_msg(self, msg):
         msg['action'] = 'subscribe'
-        await self._ws.send(msgpack.packb(msg))
+        bs = msgpack.packb(msg)
+        frames =  ( bs[i:i+self._max_frame_size] for i in range(0, len(bs), self._max_frame_size) )
+        await self._ws.send(frames)
 
     async def _unsubscribe(self,
                            trades=(),

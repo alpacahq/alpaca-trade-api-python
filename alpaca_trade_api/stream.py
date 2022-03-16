@@ -200,7 +200,8 @@ class _DataStream():
                     msg[k].append(s)
         msg['action'] = 'subscribe'
         bs = msgpack.packb(msg)
-        frames =  ( bs[i:i+self._max_frame_size] for i in range(0, len(bs), self._max_frame_size) )
+        frames = (bs[i:i+self._max_frame_size] for i in
+            range(0, len(bs), self._max_frame_size))
         await self._ws.send(frames)
 
     async def _unsubscribe(self,

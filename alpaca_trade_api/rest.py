@@ -262,7 +262,7 @@ class REST(object):
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 
-    def data_get(self, path, data=None, api_version='v1'):
+    def data_get(self, path, data=None, api_version='v2'):
         base_url: URL = get_data_url()
         return self._request(
             'GET', path, data, base_url=base_url, api_version=api_version,

@@ -1,4 +1,3 @@
-import deprecation
 import logging
 import os
 from typing import Iterator, List, Optional, Union
@@ -15,8 +14,8 @@ from .common import (
 )
 from .entity import (
     Bar, Entity, Account, AccountConfigurations, AccountActivity,
-    Asset, Order, Position, BarSet, Clock, Calendar,
-    Aggs, Trade, Quote, Watchlist, PortfolioHistory
+    Asset, Order, Position, Clock, Calendar,
+    Trade, Quote, Watchlist, PortfolioHistory
 )
 from .entity_v2 import (
     BarV2, BarsV2, LatestBarsV2, LatestQuotesV2, LatestTradesV2,
@@ -541,92 +540,6 @@ class REST(object):
         """Get an asset"""
         resp = self.get('/assets/{}'.format(symbol))
         return self.response_wrapper(resp, Asset)
-
-    @deprecation.deprecated(deprecated_in="v1.0.0",
-                            details="Use get_bars instead")
-    def get_barset(self,
-                   symbols,
-                   timeframe: str,
-                   limit: int = None,
-                   start: str = None,
-                   end: str = None,
-                   after: str = None,
-                   until: str = None) -> BarSet:
-        """
-        read the documentation here:
-        https://alpaca.markets/docs/api-documentation/api-v2/market-data/bars/
-        Get BarSet(dict[str]->list[Bar])
-        :param symbols: The parameter symbols can be either a comma-split
-               string or a list of string. Each symbol becomes the key of the
-               returned value.
-        :param timeframe: One of minute, 1Min, 5Min, 15Min, day or 1D. minute
-               is an alias of 1Min. Similarly, day is of 1D.
-        :param limit: The maximum number of bars per symbol. It can be between
-               1 and 1000. Default is 100.
-        :param start: ISO Format str, ex: '2019-04-15T09:30:00-04:00' or
-               '2019-04-15'
-        :param end: ISO Format str
-        :param after: ISO Format str
-        :param until: ISO Format str
-        :return: BarSet
-
-        note: start can't be used with after. end cannot be used with until.
-        """
-        if not isinstance(symbols, str):
-            symbols = ','.join(symbols)
-        params = {
-            'symbols': symbols,
-        }
-        if limit is not None:
-            params['limit'] = limit
-        if start is not None:
-            params['start'] = start
-        if end is not None:
-            params['end'] = end
-        if after is not None:
-            params['after'] = after
-        if until is not None:
-            params['until'] = until
-        resp = self.data_get('/bars/{}'.format(timeframe), params)
-        return self.response_wrapper(resp, BarSet)
-
-    @deprecation.deprecated(deprecated_in="v1.0.0",
-                            details="Use get_bars instead")
-    def get_aggs(self,
-                 symbol: str,
-                 multiplier: int,
-                 timespan: str,
-                 _from: str,
-                 to: str) -> Aggs:
-        """
-
-        :param symbol: str eg AAPL
-        :param multiplier: must be 1
-        :param timespan: day or minute
-        :param _from: yyyy-mm-dd
-        :param to: yyyy-mm-dd
-        :return:
-        """
-        resp = self.data_get('/aggs/ticker/{}/range/{}/{}/{}/{}'.format(
-            symbol, multiplier, timespan, _from, to
-        ))
-        return self.response_wrapper(resp, Aggs)
-
-    @deprecation.deprecated(deprecated_in="v1.0.0",
-                            details="Use get_latest_trade instead")
-    def get_last_trade(self, symbol: str) -> Trade:
-        """
-        Get the last trade for the given symbol
-        """
-        resp = self.data_get('/last/stocks/{}'.format(symbol))
-        return self.response_wrapper(resp['last'], Trade)
-
-    @deprecation.deprecated(deprecated_in="v1.0.0",
-                            details="Use get_latest_quote instead")
-    def get_last_quote(self, symbol: str) -> Quote:
-        """Get the last quote for the given symbol"""
-        resp = self.data_get('/last_quote/stocks/{}'.format(symbol))
-        return self.response_wrapper(resp['last'], Quote)
 
     def _data_get(self,
                   endpoint: str,

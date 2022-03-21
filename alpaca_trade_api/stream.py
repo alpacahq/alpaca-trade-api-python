@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 import logging
 import json
 from typing import List, Optional
@@ -58,6 +59,7 @@ class _DataStream():
         }
         self._name = 'data'
         self._should_run = True
+        self._max_frame_size = 32768
 
     async def _connect(self):
         self._ws = await websockets.connect(
@@ -186,17 +188,16 @@ class _DataStream():
             ).result()
 
     async def _subscribe_all(self):
-        if any(
-            v for k, v in self._handlers.items()
-            if k not in ("cancelErrors", "corrections")
-        ):
-            msg = {
-                k: tuple(v.keys())
-                for k, v in self._handlers.items()
-                if v
-            }
-            msg['action'] = 'subscribe'
-            await self._ws.send(msgpack.packb(msg))
+        msg = defaultdict(list)
+        for k, v in self._handlers.items():
+            if k not in ("cancelErrors", "corrections") and v:
+                for s in v.keys():
+                    msg[k].append(s)
+        msg['action'] = 'subscribe'
+        bs = msgpack.packb(msg)
+        frames = (bs[i:i+self._max_frame_size]
+                  for i in range(0, len(bs), self._max_frame_size))
+        await self._ws.send(frames)
 
     async def _unsubscribe(self,
                            trades=(),

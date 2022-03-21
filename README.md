@@ -266,7 +266,7 @@ API Version now defaults to 'v2', however, if you still have a 'v1' account, you
 
 The Alpaca API requires API key ID and secret key, which you can obtain from the
 web console after you sign in.  You can pass `key_id` and `secret_key` to the initializers of
-`REST` or `StreamConn` as arguments, or set up environment variables as
+`REST` or `Stream` as arguments, or set up environment variables as
 outlined below.
 
 ### REST
@@ -370,20 +370,6 @@ api.submit_order(
 
 ---
 
-#### Debugging
-Websocket exceptions may occur during execution.
-It will usually happen during the `consume()` method, which basically is the
-websocket steady-state.<br>
-exceptions during the consume method may occur due to:
-- server disconnections
-- error while handling the response data
-
-We handle the first issue by reconnecting the websocket every time there's a disconnection.
-The second issue, is usually a user's code issue. To help you find it, we added a flag to the
-StreamConn object called `debug`. It is set to False by default, but you can turn it on to get a more
-verbose logs when this exception happens.
-Turn it on like so `StreamConn(debug=True)`
-
 ## Logging
 You should define a logger in your app in order to make sure you get all the messages from the different components.<br>
 It will help you debug, and make sure you don't miss issues when they occur.<br>
@@ -408,15 +394,15 @@ The steps to execute this are:
 
 * Run the Alpaca Proxy Agent as described in the project's README
 * Define a new environment variable: `DATA_PROXY_WS` set to the address of the proxy agent. (e.g: `DATA_PROXY_WS=ws://127.0.0.1:8765`)
-* If you are using the Alpaca data stream, make sure to initiate the StreamConn object with the container's url: `data_url='http://127.0.0.1:8765'`
+* If you are using the Alpaca data stream, make sure to initiate the Stream object with the container's url: `data_url='http://127.0.0.1:8765'`
 * Execute your algorithm. It will connect to the Alpaca servers through the proxy agent, allowing you to execute multiple strategies
 
 
 ## Raw Data vs Entity Data
-By default the data returned from the api or streamed via StreamConn is wrapped with an Entity object for ease of use. Some users may prefer working with vanilla python objects (lists, dicts, ...). You have 2 options to get the raw data:
+By default the data returned from the api or streamed via Stream is wrapped with an Entity object for ease of use. Some users may prefer working with vanilla python objects (lists, dicts, ...). You have 2 options to get the raw data:
 
 * Each Entity object as a `_raw` property that extract the raw data from the object.
-* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) you could pass `raw_data` argument to `Rest()` object or the `StreamConn()` object.
+* If you only want to work with raw data, and avoid casting to Entity (which may take more time, casting back and forth) you could pass `raw_data` argument to `Rest()` object or the `Stream()` object.
 
 ## Support and Contribution
 

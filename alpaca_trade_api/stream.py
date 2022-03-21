@@ -64,7 +64,7 @@ class _DataStream():
         }
         self._name = 'data'
         self._should_run = True
-        self._max_frame_size = 128  # should be change
+        self._max_frame_size = 32768
 
     async def _connect(self):
         self._ws = await websockets.connect(

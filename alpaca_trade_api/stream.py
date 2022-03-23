@@ -64,7 +64,11 @@ class _DataStream():
     async def _connect(self):
         self._ws = await websockets.connect(
             self._endpoint,
-            extra_headers={'Content-Type': 'application/msgpack'})
+            extra_headers={'Content-Type': 'application/msgpack'},
+            ping_interval=10,
+            ping_timeout=180,
+            max_queue=1024,
+        )
         r = await self._ws.recv()
         msg = msgpack.unpackb(r)
         if msg[0]['T'] != 'success' or msg[0]['msg'] != 'connected':

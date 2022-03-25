@@ -68,7 +68,10 @@ class _DataStream:
         self._name = 'data'
         self._should_run = True
         self._max_frame_size = 32768
-        self._websocket_params = websocket_params if websocket_params is not None else WEBSOCKET_DEFAULTS
+        self._websocket_params = websocket_params
+
+        if self._websocket_params is None:
+            self._websocket_params = WEBSOCKET_DEFAULTS
 
     async def _connect(self):
         self._ws = await websockets.connect(
@@ -560,10 +563,16 @@ class TradingStream:
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._should_run = True
-        self._websocket_params = websocket_params if websocket_params is not None else WEBSOCKET_DEFAULTS
+        self._websocket_params = websocket_params
+
+        if self._websocket_params is not None:
+            self._websocket_params = WEBSOCKET_DEFAULTS
 
     async def _connect(self):
-        self._ws = await websockets.connect(self._endpoint, **self._websocket_params)
+        self._ws = await websockets.connect(
+            self._endpoint,
+            **self._websocket_params
+        )
 
     async def _auth(self):
         await self._ws.send(

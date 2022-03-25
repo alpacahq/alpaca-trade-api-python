@@ -229,8 +229,8 @@ There are 2 streams available as described [here](https://alpaca.markets/docs/ma
 
 The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.
 
-You could subscribe to bars, trades or quotes and trade updates as well.
-Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets)
+You can subscribe to bars, trades, quotes, and trade updates for your account as well.
+Under the example folder you can find different [code samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets)
 to achieve different goals.
 
 Here in this basic example, We use the Stream class under `alpaca_trade_api.stream` for API V2 to subscribe to trade

@@ -223,12 +223,18 @@ It provides a much faster way to retrieve the historic data for multiple symbols
 Under the hood we use the [aiohttp](https://docs.aiohttp.org/en/stable/) library.<br>
 We provide a code sample to get you started with this new approach and it is located [here](examples/historic_async.py).<br>
 Follow along the example code to learn more, and to utilize it to your own needs.<br>
-### Live Stream Data
-There are 2 streams available as described [here](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/real-time/).<br>
-The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.<br>
-You could subscribe to bars, trades or quotes and trade updates as well.<br>
-Under the example folder you could find different code [samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets) to achieve different goals. Let's see the basic example<br>
-We present a new Streamer class under `alpaca_trade_api.stream` for API V2.
+
+### Live Stream Market Data
+There are 2 streams available as described [here](https://alpaca.markets/docs/market-data/#subscription-plans).
+
+The free plan is using the `iex` stream, while the paid subscription is using the `sip` stream.
+
+You can subscribe to bars, trades, quotes, and trade updates for your account as well.
+Under the example folder you can find different [code samples](https://github.com/alpacahq/alpaca-trade-api-python/tree/master/examples/websockets)
+to achieve different goals.
+
+Here in this basic example, We use the Stream class under `alpaca_trade_api.stream` for API V2 to subscribe to trade
+updates for AAPL and quote updates for IBM.
 ```py
 from alpaca_trade_api.stream import Stream
 
@@ -251,8 +257,35 @@ stream.subscribe_trades(trade_callback, 'AAPL')
 stream.subscribe_quotes(quote_callback, 'IBM')
 
 stream.run()
-
 ```
+
+#### Websockets Config For Live Data
+Under the hood our SDK uses the [Websockets library](https://websockets.readthedocs.io/en/stable/index.html) to handle
+our websocket connections. Since different environments can have wildly differing requirements for resources we allow you
+to pass your own config options to the websockets lib via the `websocket_params` kwarg found on the Stream class.
+
+ie:
+```python
+# Initiate Class Instance
+stream = Stream(<ALPACA_API_KEY>,
+                <ALPACA_SECRET_KEY>,
+                base_url=URL('https://paper-api.alpaca.markets'),
+                data_feed='iex',
+                websocket_params =  {'ping_interval': 5}, #here we set ping_interval to 5 seconds 
+                )
+```
+
+If you're curious [this link to their docs](https://websockets.readthedocs.io/en/stable/reference/client.html#opening-a-connection)
+shows the values that websockets uses by default as well as any parameters they allow changing. Additionally, if you
+don't specify any we set the following defaults on top of the ones the websockets library uses:
+```python
+{
+    "ping_interval": 10,
+    "ping_timeout": 180,
+    "max_queue": 1024,
+}
+```
+
 
 ## Account & Portfolio Management
 

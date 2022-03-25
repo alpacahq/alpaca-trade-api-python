@@ -2,7 +2,7 @@ import asyncio
 from collections import defaultdict
 import logging
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 import msgpack
 import re
 import websockets
@@ -30,18 +30,26 @@ from .entity_v2 import (
 
 log = logging.getLogger(__name__)
 
+# Default Params we pass to the websocket constructors
+WEBSOCKET_DEFAULTS = {
+    "ping_interval": 10,
+    "ping_timeout": 180,
+    "max_queue": 1024,
+}
+
 
 def _ensure_coroutine(handler):
     if not asyncio.iscoroutinefunction(handler):
         raise ValueError('handler must be a coroutine function')
 
 
-class _DataStream():
+class _DataStream:
     def __init__(self,
                  endpoint: str,
                  key_id: str,
                  secret_key: str,
-                 raw_data: bool = False) -> None:
+                 raw_data: bool = False,
+                 websocket_params: Optional[Dict] = None) -> None:
         self._endpoint = endpoint
         self._key_id = key_id
         self._secret_key = secret_key
@@ -60,14 +68,16 @@ class _DataStream():
         self._name = 'data'
         self._should_run = True
         self._max_frame_size = 32768
+        self._websocket_params = websocket_params
+
+        if self._websocket_params is None:
+            self._websocket_params = WEBSOCKET_DEFAULTS
 
     async def _connect(self):
         self._ws = await websockets.connect(
             self._endpoint,
             extra_headers={'Content-Type': 'application/msgpack'},
-            ping_interval=10,
-            ping_timeout=180,
-            max_queue=1024,
+            **self._websocket_params
         )
         r = await self._ws.recv()
         msg = msgpack.unpackb(r)
@@ -327,12 +337,14 @@ class DataStream(_DataStream):
                  secret_key: str,
                  base_url: URL,
                  raw_data: bool,
-                 feed: str = 'iex'):
+                 feed: str = 'iex',
+                 websocket_params: Optional[Dict] = None):
         base_url = re.sub(r'^http', 'ws', base_url)
         super().__init__(endpoint=base_url + '/v2/' + feed,
                          key_id=key_id,
                          secret_key=secret_key,
                          raw_data=raw_data,
+                         websocket_params=websocket_params
                          )
         self._handlers['statuses'] = {}
         self._handlers['lulds'] = {}
@@ -453,7 +465,8 @@ class CryptoDataStream(_DataStream):
                  secret_key: str,
                  base_url: URL,
                  raw_data: bool,
-                 exchanges: Optional[List[str]] = None):
+                 exchanges: Optional[List[str]] = None,
+                 websocket_params: Optional[Dict] = None):
         self._key_id = key_id
         self._secret_key = secret_key
         base_url = re.sub(r'^http', 'ws', base_url)
@@ -467,6 +480,7 @@ class CryptoDataStream(_DataStream):
                          key_id=key_id,
                          secret_key=secret_key,
                          raw_data=raw_data,
+                         websocket_params=websocket_params,
                          )
         self._name = 'crypto data'
 
@@ -476,7 +490,8 @@ class NewsDataStream(_DataStream):
                  key_id: str,
                  secret_key: str,
                  base_url: URL,
-                 raw_data: bool):
+                 raw_data: bool,
+                 websocket_params: Optional[Dict] = None):
         self._key_id = key_id
         self._secret_key = secret_key
         base_url = re.sub(r'^http', 'ws', base_url)
@@ -485,6 +500,7 @@ class NewsDataStream(_DataStream):
                          key_id=key_id,
                          secret_key=secret_key,
                          raw_data=raw_data,
+                         websocket_params=websocket_params
                          )
         self._handlers = {
             'news':    {},
@@ -534,7 +550,8 @@ class TradingStream:
                  key_id: str,
                  secret_key: str,
                  base_url: URL,
-                 raw_data: bool = False):
+                 raw_data: bool = False,
+                 websocket_params: Optional[Dict] = None):
         self._key_id = key_id
         self._secret_key = secret_key
         base_url = re.sub(r'^http', 'ws', base_url)
@@ -546,9 +563,16 @@ class TradingStream:
         self._raw_data = raw_data
         self._stop_stream_queue = queue.Queue()
         self._should_run = True
+        self._websocket_params = websocket_params
+
+        if self._websocket_params is None:
+            self._websocket_params = WEBSOCKET_DEFAULTS
 
     async def _connect(self):
-        self._ws = await websockets.connect(self._endpoint)
+        self._ws = await websockets.connect(
+            self._endpoint,
+            **self._websocket_params
+        )
 
     async def _auth(self):
         await self._ws.send(
@@ -675,7 +699,8 @@ class Stream:
                  data_stream_url: URL = None,
                  data_feed: str = 'iex',
                  raw_data: bool = False,
-                 crypto_exchanges: Optional[List[str]] = None):
+                 crypto_exchanges: Optional[List[str]] = None,
+                 websocket_params: Optional[Dict] = None):
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._base_url = base_url or get_base_url()
         self._data_stream_url = data_stream_url or get_data_stream_url()
@@ -683,21 +708,25 @@ class Stream:
         self._trading_ws = TradingStream(self._key_id,
                                          self._secret_key,
                                          self._base_url,
-                                         raw_data)
+                                         raw_data,
+                                         websocket_params=websocket_params)
         self._data_ws = DataStream(self._key_id,
                                    self._secret_key,
                                    self._data_stream_url,
                                    raw_data,
-                                   data_feed.lower())
+                                   data_feed.lower(),
+                                   websocket_params=websocket_params)
         self._crypto_ws = CryptoDataStream(self._key_id,
                                            self._secret_key,
                                            self._data_stream_url,
                                            raw_data,
-                                           crypto_exchanges)
+                                           crypto_exchanges,
+                                           websocket_params=websocket_params)
         self._news_ws = NewsDataStream(self._key_id,
                                        self._secret_key,
                                        self._data_stream_url,
-                                       raw_data)
+                                       raw_data,
+                                       websocket_params=websocket_params)
 
     def subscribe_trade_updates(self, handler):
         self._trading_ws.subscribe_trade_updates(handler)

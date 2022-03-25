@@ -565,7 +565,7 @@ class TradingStream:
         self._should_run = True
         self._websocket_params = websocket_params
 
-        if self._websocket_params is not None:
+        if self._websocket_params is None:
             self._websocket_params = WEBSOCKET_DEFAULTS
 
     async def _connect(self):

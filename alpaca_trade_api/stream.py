@@ -215,7 +215,12 @@ class _DataStream:
                   for i in range(0, len(bs), self._max_frame_size))
         await self._ws.send(frames)
 
-    async def _unsubscribe(self):
+    async def _unsubscribe(self,
+                           trades=(),
+                           quotes=(),
+                           bars=(),
+                           updated_bars=(),
+                           daily_bars=()):
         raise NotImplementedError()
 
     async def _run_forever(self):

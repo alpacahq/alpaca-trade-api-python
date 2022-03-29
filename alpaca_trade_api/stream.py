@@ -502,7 +502,10 @@ class CryptoDataStream(_DataStream):
                            bars=(),
                            updated_bars=(),
                            daily_bars=()):
-        if trades or quotes or orderbooks or bars or updated_bars or daily_bars:
+        if (
+            trades or quotes or orderbooks or bars or updated_bars
+            or daily_bars
+        ):
             await self._ws.send(
                 msgpack.packb({
                     'action':      'unsubscribe',
@@ -524,6 +527,7 @@ class CryptoDataStream(_DataStream):
                 self._loop).result()
         for symbol in symbols:
             del self._handlers['orderbooks'][symbol]
+
 
 class NewsDataStream(_DataStream):
     def __init__(self,

@@ -87,6 +87,14 @@ correction_mapping_v2 = {
     "t": "timestamp",
 }
 
+orderbook_mapping_v2 = {
+    "S": "symbol",
+    "x": "exchange",
+    "t": "timestamp",
+    "b": "bids",
+    "a": "asks",
+}
+
 
 class EntityListType(Enum):
     Trade = Trade, trade_mapping_v2
@@ -223,6 +231,22 @@ class LatestQuotesV2(dict):
     def __init__(self, raw):
         for k, v in raw.items():
             self[k] = _convert_or_none(QuoteV2, v)
+
+
+class BidOrAsk(Entity):
+    def __init__(self, raw):
+        super().__init__(raw)
+
+
+class OrderbookV2(Entity):
+    def __init__(self, raw):
+        super().__init__(raw)
+        if self.bids:
+            for i in range(len(self.bids)):
+                self.bids[i] = BidOrAsk(self.bids[i])
+        if self.asks:
+            for i in range(len(self.asks)):
+                self.asks[i] = BidOrAsk(self.asks[i])
 
 
 class NewsV2(Entity):

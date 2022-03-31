@@ -18,7 +18,6 @@ from .entity_v2 import (
     luld_mapping_v2,
     cancel_error_mapping_v2,
     correction_mapping_v2,
-    orderbook_mapping_v2,
     Trade,
     Quote,
     Bar,
@@ -27,7 +26,6 @@ from .entity_v2 import (
     CancelErrorV2,
     CorrectionV2,
     NewsV2,
-    OrderbookV2,
 )
 
 log = logging.getLogger(__name__)
@@ -221,7 +219,16 @@ class _DataStream:
                            bars=(),
                            updated_bars=(),
                            daily_bars=()):
-        raise NotImplementedError()
+        if trades or quotes or bars or updated_bars or daily_bars:
+            await self._ws.send(
+                msgpack.packb({
+                    'action':      'unsubscribe',
+                    'trades':      trades,
+                    'quotes':      quotes,
+                    'bars':        bars,
+                    'updatedBars': updated_bars,
+                    'dailyBars':   daily_bars,
+                }))
 
     async def _run_forever(self):
         self._loop = asyncio.get_running_loop()
@@ -304,9 +311,8 @@ class _DataStream:
 
     def unsubscribe_updated_bars(self, *symbols):
         if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(updated_bars=symbols),
-                self._loop).result()
+            asyncio.get_event_loop().run_until_complete(
+                self._unsubscribe(updated_bars=symbols))
         for symbol in symbols:
             del self._handlers['updatedBars'][symbol]
 
@@ -476,62 +482,7 @@ class CryptoDataStream(_DataStream):
                          raw_data=raw_data,
                          websocket_params=websocket_params,
                          )
-        self._handlers['orderbooks'] = {}
         self._name = 'crypto data'
-
-    def _cast(self, msg_type, msg):
-        result = super()._cast(msg_type, msg)
-        if not self._raw_data:
-            if msg_type == 'o':
-                result = OrderbookV2({
-                    orderbook_mapping_v2[k]: v
-                    for k, v in msg.items() if k in orderbook_mapping_v2
-                })
-        return result
-
-    async def _dispatch(self, msg):
-        msg_type = msg.get('T')
-        symbol = msg.get('S')
-        if msg_type == 'o':
-            handler = self._handlers['orderbooks'].get(
-                symbol, self._handlers['orderbooks'].get('*', None))
-            if handler:
-                await handler(self._cast(msg_type, msg))
-        else:
-            await super()._dispatch(msg)
-
-    async def _unsubscribe(self,
-                           trades=(),
-                           quotes=(),
-                           orderbooks=(),
-                           bars=(),
-                           updated_bars=(),
-                           daily_bars=()):
-        if (
-            trades or quotes or orderbooks or bars or updated_bars
-            or daily_bars
-        ):
-            await self._ws.send(
-                msgpack.packb({
-                    'action':      'unsubscribe',
-                    'trades':      trades,
-                    'quotes':      quotes,
-                    'orderbooks':  orderbooks,
-                    'bars':        bars,
-                    'updatedBars': updated_bars,
-                    'dailyBars':   daily_bars,
-                }))
-
-    def subscribe_orderbooks(self, handler, *symbols):
-        self._subscribe(handler, symbols, self._handlers['orderbooks'])
-
-    def unsubscribe_orderbooks(self, *symbols):
-        if self._running:
-            asyncio.run_coroutine_threadsafe(
-                self._unsubscribe(orderbooks=symbols),
-                self._loop).result()
-        for symbol in symbols:
-            del self._handlers['orderbooks'][symbol]
 
 
 class NewsDataStream(_DataStream):
@@ -578,7 +529,7 @@ class NewsDataStream(_DataStream):
         if news:
             await self._ws.send(
                 msgpack.packb({
-                    'action': 'unsubscribe',
+                    'action':    'unsubscribe',
                     'news':    news,
                 }))
 
@@ -828,9 +779,6 @@ class Stream:
     def subscribe_crypto_daily_bars(self, handler, *symbols):
         self._crypto_ws.subscribe_daily_bars(handler, *symbols)
 
-    def subscribe_crypto_orderbooks(self, handler, *symbols):
-        self._crypto_ws.subscribe_orderbooks(handler, *symbols)
-
     def subscribe_news(self, handler, *symbols):
         self._news_ws.subscribe_news(handler, *symbols)
 
@@ -894,7 +842,7 @@ class Stream:
 
         return decorator
 
-    def on_correction(self, *symbols):
+    def on_corrections(self, *symbols):
         def decorator(func):
             self._data_ws.register_handler("corrections", func, *symbols)
             return func
@@ -932,13 +880,6 @@ class Stream:
     def on_crypto_daily_bar(self, *symbols):
         def decorator(func):
             self.subscribe_crypto_daily_bars(func, *symbols)
-            return func
-
-        return decorator
-
-    def on_crypto_orderbook(self, *symbols):
-        def decorator(func):
-            self.subscribe_crypto_orderbooks(func, *symbols)
             return func
 
         return decorator
@@ -987,9 +928,6 @@ class Stream:
 
     def unsubscribe_crypto_daily_bars(self, *symbols):
         self._crypto_ws.unsubscribe_daily_bars(*symbols)
-
-    def unsubscribe_crypto_orderbooks(self, *symbols):
-        self._crypto_ws.unsubscribe_orderbooks(*symbols)
 
     def unsubscribe_news(self, *symbols):
         self._news_ws.unsubscribe_news(*symbols)

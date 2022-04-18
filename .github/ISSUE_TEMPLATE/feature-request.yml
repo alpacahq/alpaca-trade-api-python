@@ -1,8 +1,8 @@
 name: 🚀 Feature request
-description: As a user,
+description: As a user, I would like to see this new feature implemented into the SDK
 labels: [kind/feature]
 assignees:
- Enter Assign Here
+-
 body:
 - type: markdown
   attributes:
@@ -43,4 +43,4 @@ body:
   validations:
     required: false
 
-   
+

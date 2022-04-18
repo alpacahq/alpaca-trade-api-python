@@ -1,9 +1,9 @@
 name: 🐞 Bug report
-description: Create a bug report to help us improve Alpaca
+description: Create a bug report to help us improve the SDK
 title: "[Bug]: "
-labels: [kind/bug, ]
-assignees: 
-- 
+labels: [kind/bug]
+assignees:
+-
 body:
 - type: markdown
   attributes:
@@ -25,6 +25,7 @@ body:
       ```...```
   validations:
     required: true
+
 - type: textarea
   attributes:
     label: Expected Behavior
@@ -32,6 +33,17 @@ body:
     placeholder: When I do <X>, <Z> should happen instead.
   validations:
     required: false
+
+- type: textarea
+  attributes:
+    label: SDK Version I encountered this issue in
+    description: |
+      What versions of the SDK have you tried in which the issue is present. 
+      Before opening an issue please make sure you try the latest version of the SDK in case a fix has already been made.
+    placeholder: | 
+      alpaca-trade-api version: 2.x.x
+  validations:
+    required: true
 
 - type: textarea
   attributes:
@@ -44,7 +56,15 @@ body:
       4. See error...
     render: markdown
   validations:
-    required: false
+    required: true
+
+- type: checkboxes
+  attributes:
+    label: Filled out the Steps to Reproduce section?
+    description: Please verify you have filled out the above section in regards to attaching steps or code that can reproduce your issue so that Alpaca developers can investigate. Not filling out the section will have your issue flagged as invalid and might not be investigated.
+    options:
+      - label: I have entered valid steps to reproduce my issue or have attached a minimally reproducible case in code that shows my issue happening; and understand that without this my issue will be flagged as invalid and closed after 30 days.
+        required: true
 
 - type: textarea
   attributes:

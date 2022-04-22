@@ -1,0 +1,33 @@
+name: ❓ Questions About the SDK ❓
+description: I have a question about the SDK I can't find an answer to in the documentation or README.
+title: "[Question]: "
+labels: [kind/question]
+assignees:
+  -
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill the form in English!
+  - type: checkboxes
+    attributes:
+      label: Question form pre-submit checklist.
+      description: |
+        Please verify that all these checkboxes are true before opening an issue.
+        If your issue is determined to violate one of the below questions it will be closed for being invalid.
+      options:
+        - label: I have searched the existing issues to ensure there isn't already an issue about this question.
+          required: true
+        - label: My question has to do with the Python SDK and isn't a general question about the API. (If it is please open your issue [here](https://github.com/alpacahq/Alpaca-API))
+          required: true
+        - label: My question isn't about how to do a specific algorithm or asking for trade advice (answers to these are outside the scope of this repo).
+          required: true
+  - type: textarea
+    attributes:
+      label: Question
+      description: Please describe your question here
+      placeholder: |
+        I couldn't find an example or documentation on X. How do I do X ?
+        ```...```
+    validations:
+      required: true

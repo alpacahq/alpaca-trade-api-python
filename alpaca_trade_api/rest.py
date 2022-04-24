@@ -309,7 +309,8 @@ class REST(object):
                     direction: str = None,
                     params=None,
                     nested: bool = None,
-                    symbols: List[str] = None
+                    symbols: List[str] = None,
+                    side: str = None
                     ) -> Orders:
         """
         Get a list of orders
@@ -323,6 +324,7 @@ class REST(object):
         :param params: refer to documentation
         :param nested: should the data be nested like json
         :param symbols: list of str (symbols)
+        :param side: Lets you filter to only 'buy' or 'sell' orders
         """
         if params is None:
             params = dict()
@@ -338,6 +340,8 @@ class REST(object):
             params['status'] = status
         if nested is not None:
             params['nested'] = nested
+        if side is not None:
+            params['side'] = side
         if symbols is not None:
             params['symbols'] = ",".join(symbols)
         url = '/orders'

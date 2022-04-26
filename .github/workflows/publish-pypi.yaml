@@ -1,9 +1,11 @@
 name: Run tests & Publish Python 🐍 distributions 📦 to PyPI
 
-on:
-  push:
-    tags:
-      - '*'
+on: [push]
+
+#on:
+#  push:
+#    tags:
+#      - '*'
 
 jobs:
   tests-ci:

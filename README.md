@@ -250,7 +250,7 @@ async def quote_callback(q):
 stream = Stream(<ALPACA_API_KEY>,
                 <ALPACA_SECRET_KEY>,
                 base_url='https://paper-api.alpaca.markets',
-                data_feed='iex')  # <- replace to SIP if you have PRO subscription
+                data_feed='iex')  # <- replace to 'sip' if you have PRO subscription
 
 # subscribing to event
 stream.subscribe_trades(trade_callback, 'AAPL')

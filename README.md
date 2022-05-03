@@ -249,7 +249,7 @@ async def quote_callback(q):
 # Initiate Class Instance
 stream = Stream(<ALPACA_API_KEY>,
                 <ALPACA_SECRET_KEY>,
-                base_url='https://paper-api.alpaca.markets',
+                base_url=URL('https://paper-api.alpaca.markets'),
                 data_feed='iex')  # <- replace to 'sip' if you have PRO subscription
 
 # subscribing to event
@@ -269,8 +269,8 @@ ie:
 # Initiate Class Instance
 stream = Stream(<ALPACA_API_KEY>,
                 <ALPACA_SECRET_KEY>,
-                base_url='https://paper-api.alpaca.markets',
-                data_feed='iex',
+                base_url=URL('https://paper-api.alpaca.markets'),
+                data_feed='iex', # <- replace to 'sip' if you have PRO subscription
                 websocket_params =  {'ping_interval': 5}, #here we set ping_interval to 5 seconds 
                 )
 ```

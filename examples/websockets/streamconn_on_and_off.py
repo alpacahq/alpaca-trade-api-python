@@ -54,7 +54,7 @@ if __name__ == '__main__':
             conn.stop()
             exit(0)
         except Exception as e:
-            print("You goe an exception: {} during execution. continue "
+            print("You got an exception: {} during execution. continue "
                   "execution.".format(e))
             # let the execution continue
             pass

@@ -261,8 +261,12 @@ class REST(object):
     def delete(self, path, data=None):
         return self._request('DELETE', path, data)
 
-    def data_get(self, path, data=None, api_version='v1'):
+    def data_get(self, path, data=None,
+                 feed: Optional[str] = None, api_version='v1'):
         base_url: URL = get_data_url()
+        if feed:
+            data = data or {}
+            data['feed'] = feed
         return self._request(
             'GET', path, data, base_url=base_url, api_version=api_version,
         )
@@ -552,6 +556,7 @@ class REST(object):
                   endpoint_base: str = 'stocks',
                   resp_grouped_by_symbol: Optional[bool] = None,
                   page_limit: int = DATA_V2_MAX_LIMIT,
+                  feed: Optional[str] = None,
                   **kwargs):
         page_token = None
         total_items = 0
@@ -574,7 +579,8 @@ class REST(object):
                 data['symbols'] = ','.join(symbol_or_symbols)
             if endpoint:
                 path += f'/{endpoint}'
-            resp = self.data_get(path, data=data, api_version=api_version)
+            resp = self.data_get(path, data=data, feed=feed,
+                                 api_version=api_version)
             if not resp_grouped_by_symbol:
                 k = endpoint or endpoint_base
                 for item in resp.get(k, []) or []:
@@ -596,9 +602,10 @@ class REST(object):
                         start: Optional[str] = None,
                         end: Optional[str] = None,
                         limit: int = None,
+                        feed: Optional[str] = None,
                         raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
-                                start=start, end=end, limit=limit)
+                                start=start, end=end, limit=limit, feed=feed)
         for trade in trades:
             if raw:
                 yield trade
@@ -610,9 +617,10 @@ class REST(object):
                    start: Optional[str] = None,
                    end: Optional[str] = None,
                    limit: int = None,
+                   feed: Optional[str] = None,
                    ) -> TradesV2:
         trades = list(self.get_trades_iter(symbol,
-                                           start, end, limit, raw=True))
+                                           start, end, limit, feed, raw=True))
         return TradesV2(trades)
 
     def get_quotes_iter(self,
@@ -620,9 +628,10 @@ class REST(object):
                         start: Optional[str] = None,
                         end: Optional[str] = None,
                         limit: int = None,
+                        feed: Optional[str] = None,
                         raw=False) -> QuoteIterator:
         quotes = self._data_get('quotes', symbol,
-                                start=start, end=end, limit=limit)
+                                start=start, end=end, limit=limit, feed=feed)
         for quote in quotes:
             if raw:
                 yield quote
@@ -634,11 +643,13 @@ class REST(object):
                    start: Optional[str] = None,
                    end: Optional[str] = None,
                    limit: int = None,
+                   feed: Optional[str] = None,
                    ) -> QuotesV2:
-        quotes = list(self.get_quotes_iter(symbol,
-                                           start,
-                                           end,
-                                           limit,
+        quotes = list(self.get_quotes_iter(symbol=symbol,
+                                           start=start,
+                                           end=end,
+                                           limit=limit,
+                                           feed=feed,
                                            raw=True))
         return QuotesV2(quotes)
 
@@ -649,11 +660,12 @@ class REST(object):
                       end: Optional[str] = None,
                       adjustment: str = 'raw',
                       limit: int = None,
+                      feed: Optional[str] = None,
                       raw=False) -> BarIterator:
         bars = self._data_get('bars', symbol,
                               timeframe=timeframe,
                               adjustment=adjustment,
-                              start=start, end=end, limit=limit)
+                              start=start, end=end, limit=limit, feed=feed)
         for bar in bars:
             if raw:
                 yield bar
@@ -667,6 +679,7 @@ class REST(object):
                  end: Optional[str] = None,
                  adjustment: str = 'raw',
                  limit: int = None,
+                 feed: Optional[str] = None,
                  ) -> BarsV2:
         bars = list(self.get_bars_iter(symbol,
                                        timeframe,
@@ -674,53 +687,69 @@ class REST(object):
                                        end,
                                        adjustment,
                                        limit,
+                                       feed=feed,
                                        raw=True))
         return BarsV2(bars)
 
-    def get_latest_bar(self, symbol: str) -> BarV2:
+    def get_latest_bar(self, symbol: str, feed: Optional[str] = None) -> BarV2:
         resp = self.data_get(
             '/stocks/{}/bars/latest'.format(symbol),
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['bar'], BarV2)
 
-    def get_latest_bars(self, symbols: List[str]) -> LatestBarsV2:
+    def get_latest_bars(self, symbols: List[str],
+                        feed: Optional[str] = None) -> LatestBarsV2:
         resp = self.data_get(
             f'/stocks/bars/latest?symbols={_join_with_commas(symbols)}',
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['bars'], LatestBarsV2)
 
-    def get_latest_trade(self, symbol: str) -> TradeV2:
+    def get_latest_trade(self, symbol: str,
+                         feed: Optional[str] = None) -> TradeV2:
         resp = self.data_get(
             '/stocks/{}/trades/latest'.format(symbol),
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['trade'], TradeV2)
 
-    def get_latest_trades(self, symbols: List[str]) -> LatestTradesV2:
+    def get_latest_trades(self, symbols: List[str],
+                          feed: Optional[str] = None) -> LatestTradesV2:
         resp = self.data_get(
             f'/stocks/trades/latest?symbols={_join_with_commas(symbols)}',
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['trades'], LatestTradesV2)
 
-    def get_latest_quote(self, symbol: str) -> QuoteV2:
+    def get_latest_quote(self, symbol: str,
+                         feed: Optional[str] = None) -> QuoteV2:
         resp = self.data_get(
             '/stocks/{}/quotes/latest'.format(symbol),
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['quote'], QuoteV2)
 
-    def get_latest_quotes(self, symbols: List[str]) -> LatestQuotesV2:
+    def get_latest_quotes(self, symbols: List[str],
+                          feed: Optional[str] = None) -> LatestQuotesV2:
         resp = self.data_get(
             f'/stocks/quotes/latest?symbols={_join_with_commas(symbols)}',
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp['quotes'], LatestQuotesV2)
 
-    def get_snapshot(self, symbol: str) -> SnapshotV2:
+    def get_snapshot(self, symbol: str,
+                     feed: Optional[str] = None) -> SnapshotV2:
         resp = self.data_get('/stocks/{}/snapshot'.format(symbol),
+                             feed=feed,
                              api_version='v2')
         return self.response_wrapper(resp, SnapshotV2)
 
-    def get_snapshots(self, symbols: List[str]) -> SnapshotsV2:
+    def get_snapshots(self, symbols: List[str],
+                      feed: Optional[str] = None) -> SnapshotsV2:
         resp = self.data_get(
             '/stocks/snapshots?symbols={}'.format(_join_with_commas(symbols)),
+            feed=feed,
             api_version='v2')
         return self.response_wrapper(resp, SnapshotsV2)
 

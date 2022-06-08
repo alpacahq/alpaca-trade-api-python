@@ -1,4 +1,4 @@
-__version__ = '2.1.0'
+__version__ = '2.2.0'
 
 from .rest import REST, TimeFrame, TimeFrameUnit  # noqa
 from .rest_async import AsyncRest  # noqa

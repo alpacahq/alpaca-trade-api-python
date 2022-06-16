@@ -236,6 +236,7 @@ to achieve different goals.
 Here in this basic example, We use the Stream class under `alpaca_trade_api.stream` for API V2 to subscribe to trade
 updates for AAPL and quote updates for IBM.
 ```py
+from alpaca_trade_api.common import URL
 from alpaca_trade_api.stream import Stream
 
 async def trade_callback(t):

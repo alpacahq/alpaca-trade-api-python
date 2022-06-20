@@ -19,7 +19,7 @@ pandas >= 1.2.0
 numpy >= 1.20.0
 scipy >= 1.6.0
 ```
-The solution - manually install these package's before installing alpaca-trade-api. e.g:
+The solution - manually install these packages before installing alpaca-trade-api. e.g:
 ```bash
 pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
 ```

@@ -19,11 +19,11 @@ pandas >= 1.2.0
 numpy >= 1.20.0
 scipy >= 1.6.0
 ```
-The solution - manually install these package before installing alpaca-trade-api. e.g:
+The solution - manually install these package's before installing alpaca-trade-api. e.g:
 ```bash
 pip install pandas==1.1.5 numpy==1.19.4 scipy==1.5.4
 ```
-Also note that we do not limit the version of the websockets library, but we advice using
+Also note that we do not limit the version of the websockets library, but we advise using
 ```
 websockets>=9.0
 ```
@@ -73,7 +73,7 @@ You now have 2 pythonic ways to retrieve historical data.<br>
 One using the traditional rest module and the other is to use the experimental asyncio module added lately.<br>
 Let's have a look at both:<br>
 
-First thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
+The first thing to understand is the new data polling mechanism. You could query up to 10000 items, and the API is using a pagination mechanism to provide you with the data.<br>
 You now have 2 options:
 * Working with data as it is received with a generator. (meaning it's faster but you need to process each item alone)
 * Wait for the entire data to be received, and then work with it as a list or dataframe.
@@ -222,7 +222,7 @@ This module is, and thus may have expansions in the near future to support more 
 It provides a much faster way to retrieve the historic data for multiple symbols.<br>
 Under the hood we use the [aiohttp](https://docs.aiohttp.org/en/stable/) library.<br>
 We provide a code sample to get you started with this new approach and it is located [here](examples/historic_async.py).<br>
-Follow along the example code to learn more, and to utilize it to your own needs.<br>
+Follow along with the example code to learn more, and utilize it for your own needs.<br>
 
 ### Live Stream Market Data
 There are 2 streams available as described [here](https://alpaca.markets/docs/market-data/#subscription-plans).

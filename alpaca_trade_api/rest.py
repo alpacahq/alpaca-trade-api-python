@@ -557,6 +557,7 @@ class REST(object):
                   resp_grouped_by_symbol: Optional[bool] = None,
                   page_limit: int = DATA_V2_MAX_LIMIT,
                   feed: Optional[str] = None,
+                  asof: Optional[str] = None,
                   **kwargs):
         page_token = None
         total_items = 0
@@ -577,6 +578,8 @@ class REST(object):
                 path += f'/{symbol_or_symbols}'
             else:
                 data['symbols'] = ','.join(symbol_or_symbols)
+            if asof:
+                data['asof'] = asof
             if endpoint:
                 path += f'/{endpoint}'
             resp = self.data_get(path, data=data, feed=feed,
@@ -603,9 +606,15 @@ class REST(object):
                         end: Optional[str] = None,
                         limit: int = None,
                         feed: Optional[str] = None,
+                        asof: Optional[str] = None,
                         raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
-                                start=start, end=end, limit=limit, feed=feed)
+                                start=start,
+                                end=end,
+                                limit=limit,
+                                feed=feed,
+                                asof=asof,
+                                )
         for trade in trades:
             if raw:
                 yield trade
@@ -618,9 +627,15 @@ class REST(object):
                    end: Optional[str] = None,
                    limit: int = None,
                    feed: Optional[str] = None,
+                   asof: Optional[str] = None,
                    ) -> TradesV2:
         trades = list(self.get_trades_iter(symbol,
-                                           start, end, limit, feed, raw=True))
+                                           start=start,
+                                           end=end,
+                                           limit=limit,
+                                           feed=feed,
+                                           asof=asof,
+                                           raw=True))
         return TradesV2(trades)
 
     def get_quotes_iter(self,
@@ -629,9 +644,15 @@ class REST(object):
                         end: Optional[str] = None,
                         limit: int = None,
                         feed: Optional[str] = None,
+                        asof: Optional[str] = None,
                         raw=False) -> QuoteIterator:
         quotes = self._data_get('quotes', symbol,
-                                start=start, end=end, limit=limit, feed=feed)
+                                start=start,
+                                end=end,
+                                limit=limit,
+                                feed=feed,
+                                asof=asof,
+                                )
         for quote in quotes:
             if raw:
                 yield quote
@@ -644,13 +665,16 @@ class REST(object):
                    end: Optional[str] = None,
                    limit: int = None,
                    feed: Optional[str] = None,
+                   asof: Optional[str] = None,
                    ) -> QuotesV2:
         quotes = list(self.get_quotes_iter(symbol=symbol,
                                            start=start,
                                            end=end,
                                            limit=limit,
                                            feed=feed,
-                                           raw=True))
+                                           raw=True,
+                                           asof=asof,
+                                           ))
         return QuotesV2(quotes)
 
     def get_bars_iter(self,
@@ -661,11 +685,16 @@ class REST(object):
                       adjustment: str = 'raw',
                       limit: int = None,
                       feed: Optional[str] = None,
+                      asof: Optional[str] = None,
                       raw=False) -> BarIterator:
         bars = self._data_get('bars', symbol,
                               timeframe=timeframe,
                               adjustment=adjustment,
-                              start=start, end=end, limit=limit, feed=feed)
+                              start=start,
+                              end=end,
+                              limit=limit,
+                              feed=feed,
+                              asof=asof)
         for bar in bars:
             if raw:
                 yield bar
@@ -680,6 +709,7 @@ class REST(object):
                  adjustment: str = 'raw',
                  limit: int = None,
                  feed: Optional[str] = None,
+                 asof: Optional[str] = None,
                  ) -> BarsV2:
         bars = list(self.get_bars_iter(symbol,
                                        timeframe,
@@ -688,6 +718,7 @@ class REST(object):
                                        adjustment,
                                        limit,
                                        feed=feed,
+                                       asof=asof,
                                        raw=True))
         return BarsV2(bars)
 

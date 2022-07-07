@@ -22,8 +22,17 @@ class AsyncRest:
         self._key_id, self._secret_key, _ = get_credentials(key_id, secret_key)
         self._data_url: URL = URL(data_url or get_data_url())
 
-    def _get_historic_url(self, _type, symbol):
-        return f"{self._data_url}/v2/stocks/{symbol}/{_type}"
+    def _get_historic_url(self, _type, symbol, asset_type: str = 'stock'):
+
+        if asset_type == 'stock':
+            endpoint_base = 'v2/stocks'
+        elif asset_type == 'crypto':
+            endpoint_base = 'v1beta1/crypto'
+        else:
+            endpoint_base = 'v2/stocks'
+
+        return f"{self._data_url}/{endpoint_base}/{symbol}/{_type}"
+
 
     def _get_latest_url(self, _type, symbol):
         return f"{self._data_url}/v2/stocks/{symbol}/{_type}/latest"
@@ -33,7 +42,8 @@ class AsyncRest:
                                 payload,
                                 limit,
                                 entity_type: str,
-                                entity_list_type: EntityList) -> pd.DataFrame:
+                                entity_list_type: EntityList,
+                                asset_type : str = 'stock') -> pd.DataFrame:
         """
         iterates the api asynchronously until we get all requested data
         :param symbol:
@@ -43,7 +53,7 @@ class AsyncRest:
         :return:
         """
         df = pd.DataFrame({})
-        url = self._get_historic_url(entity_type, symbol)
+        url = self._get_historic_url(entity_type, symbol,asset_type)
         async for packet in self._request(url, payload):
             if packet.get(entity_type):
                 response = entity_list_type(packet[entity_type]).df
@@ -58,9 +68,13 @@ class AsyncRest:
                              start,
                              end,
                              timeframe,
-                             limit=1000,
-                             adjustment='raw'):
+                             asset_type: str = 'stock',
+                             limit=10000,
+                             adjustment='raw',
+                            ):
         _type = "bars"
+
+
 
         payload = {
             "adjustment": adjustment,
@@ -69,8 +83,13 @@ class AsyncRest:
             "timeframe":  timeframe,
             "limit":      limit,
         }
+
+        if asset_type == 'crypto':
+            del payload['adjustment']
+            payload['exchanges'] = 'FTXU'
+
         df = await self._iterate_requests(symbol, payload, limit, _type,
-                                          BarsV2)
+                                          BarsV2, asset_type)
 
         return symbol, df
 

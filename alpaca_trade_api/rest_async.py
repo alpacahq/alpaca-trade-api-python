@@ -71,6 +71,7 @@ class AsyncRest:
                              asset_type: str = 'stock',
                              limit=10000,
                              adjustment='raw',
+                             feed ='iex'
                             ):
         _type = "bars"
 
@@ -82,11 +83,15 @@ class AsyncRest:
             "end":        end,
             "timeframe":  timeframe,
             "limit":      limit,
+            "feed": feed
         }
 
         if asset_type == 'crypto':
             del payload['adjustment']
+            del payload['feed']
             payload['exchanges'] = 'FTXU'
+
+
 
         df = await self._iterate_requests(symbol, payload, limit, _type,
                                           BarsV2, asset_type)

@@ -32,7 +32,7 @@ Installing using pip
 ```bash
 $ pip3 install alpaca-trade-api
 ```
-
+ 
 ## API Keys
 To use this package you first need to obtain an API key. Go here to [signup](https://app.alpaca.markets/signup)
 

@@ -241,12 +241,17 @@ class BidOrAsk(Entity):
 class OrderbookV2(Entity):
     def __init__(self, raw):
         super().__init__(raw)
-        if self.bids:
-            for i in range(len(self.bids)):
-                self.bids[i] = BidOrAsk(self.bids[i])
-        if self.asks:
-            for i in range(len(self.asks)):
-                self.asks[i] = BidOrAsk(self.asks[i])
+        if self.b:
+            for i in range(len(self.b)):
+                self.b[i] = BidOrAsk(self.b[i])
+        if self.a:
+            for i in range(len(self.a)):
+                self.a[i] = BidOrAsk(self.a[i])
+
+class OrderbooksV2(dict):
+    def __init__(self, raw):
+        for k, v in raw.items():
+            self[k] = _convert_or_none(OrderbookV2, v)
 
 
 class NewsV2(Entity):

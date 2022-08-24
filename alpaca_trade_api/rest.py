@@ -950,6 +950,13 @@ class REST(object):
             api_version='v1beta2')
         return self.response_wrapper(resp['snapshots'], SnapshotsV2)
 
+    def get_latest_crypto_orderbook(self, symbol: str) -> OrderbookV2:
+        resp = self.data_get(
+            '/crypto/latest/orderbooks',
+            data={'symbols': symbol},
+            api_version='v1beta2')
+        return self.response_wrapper(resp['orderbooks'], OrderbooksV2)
+
     def get_latest_crypto_orderbooks(self, symbols: List[str]) -> OrderbookV2:
         resp = self.data_get(
             '/crypto/latest/orderbooks',

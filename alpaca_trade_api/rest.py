@@ -857,26 +857,12 @@ class REST(object):
         return BarsV2(list(self.get_crypto_bars_iter(
             symbol, timeframe, start, end, limit, raw=True)))
 
-    def get_latest_crypto_bar(self, symbol: str, exchange: str) -> BarV2:
-        resp = self.data_get(
-            '/crypto/{}/bars/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['bar'], BarV2)
-
     def get_latest_crypto_bars(self, symbols: List[str]) -> LatestBarsV2:
         resp = self.data_get(
             '/crypto/latest/bars',
             data={'symbols': _join_with_commas(symbols)},
             api_version='v1beta2')
         return self.response_wrapper(resp['bars'], LatestBarsV2)
-
-    def get_latest_crypto_trade(self, symbol: str, exchange: str) -> TradeV2:
-        resp = self.data_get(
-            '/crypto/{}/trades/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['trade'], TradeV2)
 
     def get_latest_crypto_trades(self, symbols: List[str]) -> LatestTradesV2:
         resp = self.data_get(
@@ -885,13 +871,6 @@ class REST(object):
             api_version='v1beta2')
         return self.response_wrapper(resp['trades'], LatestTradesV2)
 
-    def get_latest_crypto_quote(self, symbol: str, exchange: str) -> QuoteV2:
-        resp = self.data_get(
-            '/crypto/{}/quotes/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['quote'], QuoteV2)
-
     def get_latest_crypto_quotes(self, symbols: List[str]) -> LatestQuotesV2:
         resp = self.data_get(
             '/crypto/latest/quotes',
@@ -899,13 +878,14 @@ class REST(object):
             api_version='v1beta2')
         return self.response_wrapper(resp['quotes'], LatestQuotesV2)
 
-    def get_crypto_snapshot(self, symbol: str, exchange: str) -> SnapshotV2:
-        resp = self.data_get('/crypto/{}/snapshot'.format(symbol),
-                             data={'exchange': exchange},
-                             api_version='v1beta1')
-        return self.response_wrapper(resp, SnapshotV2)
+    def get_crypto_snapshot(self, symbols: str) -> SnapshotsV2:
+        resp = self.data_get(
+            '/crypto/snapshots',
+            data={'symbols': symbols},
+            api_version='v1beta2')
+        return self.response_wrapper(resp['snapshots'], SnapshotsV2)
 
-    def get_latest_crypto_snapshots(self, symbols: List[str]) -> SnapshotsV2:
+    def get_crypto_snapshots(self, symbols: List[str]) -> SnapshotsV2:
         resp = self.data_get(
             '/crypto/snapshots',
             data={'symbols': _join_with_commas(symbols)},

@@ -20,7 +20,7 @@ from .entity import (
 from .entity_v2 import (
     BarV2, BarsV2, LatestBarsV2, LatestQuotesV2, LatestTradesV2,
     SnapshotV2, SnapshotsV2, TradesV2, TradeV2, QuotesV2, QuoteV2,
-    NewsV2, NewsListV2
+    NewsV2, NewsListV2, OrderbookV2, OrderbooksV2
 )
 
 logger = logging.getLogger(__name__)
@@ -562,8 +562,9 @@ class REST(object):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
+        is_multi_symbol = not isinstance(symbol_or_symbols, str)
         if resp_grouped_by_symbol is None:
-            resp_grouped_by_symbol = not isinstance(symbol_or_symbols, str)
+            resp_grouped_by_symbol = is_multi_symbol
         while True:
             actual_limit = None
             if limit:
@@ -573,11 +574,11 @@ class REST(object):
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            path = f'/{endpoint_base}'
-            if isinstance(symbol_or_symbols, str) and symbol_or_symbols:
+            path = f'/{endpoint_base}'           
+            if api_version == 'v1beta2' or is_multi_symbol:
+                data['symbols'] = _join_with_commas(symbol_or_symbols)
+            elif symbol_or_symbols:
                 path += f'/{symbol_or_symbols}'
-            else:
-                data['symbols'] = ','.join(symbol_or_symbols)
             if asof:
                 data['asof'] = asof
             if endpoint:
@@ -789,12 +790,10 @@ class REST(object):
                                start: Optional[str] = None,
                                end: Optional[str] = None,
                                limit: int = None,
-                               exchanges: Optional[List[str]] = None,
                                raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
-                                api_version='v1beta1', endpoint_base='crypto',
-                                start=start, end=end, limit=limit,
-                                exchanges=exchanges)
+                                api_version='v1beta2', endpoint_base='crypto',
+                                start=start, end=end, limit=limit)
         for trade in trades:
             if raw:
                 yield trade
@@ -805,23 +804,19 @@ class REST(object):
                           symbol: str,
                           start: Optional[str] = None,
                           end: Optional[str] = None,
-                          limit: int = None,
-                          exchanges: Optional[List[str]] = None,
-                          ) -> TradesV2:
+                          limit: int = None) -> TradesV2:
         return TradesV2(list(self.get_crypto_trades_iter(
-            symbol, start, end, limit, exchanges, raw=True)))
+            symbol, start, end, limit, raw=True)))
 
     def get_crypto_quotes_iter(self,
                                symbol: str,
                                start: Optional[str] = None,
                                end: Optional[str] = None,
                                limit: int = None,
-                               exchanges: Optional[List[str]] = None,
                                raw=False) -> QuoteIterator:
         quotes = self._data_get('quotes', symbol,
-                                api_version='v1beta1', endpoint_base='crypto',
-                                start=start, end=end, limit=limit,
-                                exchanges=exchanges)
+                                api_version='v1beta2', endpoint_base='crypto',
+                                start=start, end=end, limit=limit)
         for quote in quotes:
             if raw:
                 yield quote
@@ -832,11 +827,9 @@ class REST(object):
                           symbol: str,
                           start: Optional[str] = None,
                           end: Optional[str] = None,
-                          limit: int = None,
-                          exchanges: Optional[List[str]] = None,
-                          ) -> QuotesV2:
+                          limit: int = None) -> QuotesV2:
         return QuotesV2(list(self.get_crypto_quotes_iter(
-            symbol, start, end, limit, exchanges, raw=True)))
+            symbol, start, end, limit, raw=True)))
 
     def get_crypto_bars_iter(self,
                              symbol: Union[str, List[str]],
@@ -844,13 +837,11 @@ class REST(object):
                              start: Optional[str] = None,
                              end: Optional[str] = None,
                              limit: int = None,
-                             exchanges: Optional[List[str]] = None,
                              raw=False) -> BarIterator:
         bars = self._data_get('bars', symbol,
-                              api_version='v1beta1', endpoint_base='crypto',
+                              api_version='v1beta2', endpoint_base='crypto',
                               timeframe=timeframe,
-                              start=start, end=end, limit=limit,
-                              exchanges=exchanges)
+                              start=start, end=end, limit=limit)
         for bar in bars:
             if raw:
                 yield bar
@@ -862,100 +853,58 @@ class REST(object):
                         timeframe: TimeFrame,
                         start: Optional[str] = None,
                         end: Optional[str] = None,
-                        limit: int = None,
-                        exchanges: Optional[List[str]] = None,
-                        ) -> BarsV2:
+                        limit: int = None) -> BarsV2:
         return BarsV2(list(self.get_crypto_bars_iter(
-            symbol, timeframe, start, end, limit, exchanges, raw=True)))
+            symbol, timeframe, start, end, limit, raw=True)))
 
-    def get_latest_crypto_bar(self, symbol: str, exchange: str) -> BarV2:
+    def get_latest_crypto_bars(self, symbols: List[str]) -> LatestBarsV2:
         resp = self.data_get(
-            '/crypto/{}/bars/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['bar'], BarV2)
-
-    def get_latest_crypto_bars(self,
-                               symbols: List[str],
-                               exchange: str) -> LatestBarsV2:
-        resp = self.data_get(
-            '/crypto/bars/latest',
-            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
-            api_version='v1beta1')
+            '/crypto/latest/bars',
+            data={'symbols': _join_with_commas(symbols)},
+            api_version='v1beta2')
         return self.response_wrapper(resp['bars'], LatestBarsV2)
 
-    def get_latest_crypto_trade(self, symbol: str, exchange: str) -> TradeV2:
+    def get_latest_crypto_trades(self, symbols: List[str]) -> LatestTradesV2:
         resp = self.data_get(
-            '/crypto/{}/trades/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['trade'], TradeV2)
-
-    def get_latest_crypto_trades(self,
-                                 symbols: List[str],
-                                 exchange: str) -> LatestTradesV2:
-        resp = self.data_get(
-            '/crypto/trades/latest',
-            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
-            api_version='v1beta1')
+            '/crypto/latest/trades',
+            data={'symbols': _join_with_commas(symbols)},
+            api_version='v1beta2')
         return self.response_wrapper(resp['trades'], LatestTradesV2)
 
-    def get_latest_crypto_quote(self, symbol: str, exchange: str) -> QuoteV2:
+    def get_latest_crypto_quotes(self, symbols: List[str]) -> LatestQuotesV2:
         resp = self.data_get(
-            '/crypto/{}/quotes/latest'.format(symbol),
-            data={'exchange': exchange},
-            api_version='v1beta1')
-        return self.response_wrapper(resp['quote'], QuoteV2)
-
-    def get_latest_crypto_quotes(self,
-                                 symbols: List[str],
-                                 exchange: str) -> LatestQuotesV2:
-        resp = self.data_get(
-            '/crypto/quotes/latest',
-            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
-            api_version='v1beta1')
+            '/crypto/latest/quotes',
+            data={'symbols': _join_with_commas(symbols)},
+            api_version='v1beta2')
         return self.response_wrapper(resp['quotes'], LatestQuotesV2)
 
-    def get_latest_crypto_xbbo(self,
-                               symbol: str,
-                               exchanges: Optional[List[str]] = None,
-                               ) -> QuoteV2:
-        params = {}
-        if exchanges:
-            params['exchanges'] = _join_with_commas(exchanges)
-        resp = self.data_get(
-            '/crypto/{}/xbbo/latest'.format(symbol),
-            data=params,
-            api_version='v1beta1')
-        return self.response_wrapper(resp['xbbo'], QuoteV2)
-
-    def get_latest_crypto_xbbos(self,
-                                symbols: List[str],
-                                exchanges: Optional[List[str]] = None,
-                                ) -> QuoteV2:
-        params = {'symbols': _join_with_commas(symbols)}
-        if exchanges:
-            params['exchanges'] = _join_with_commas(exchanges)
-        resp = self.data_get(
-            '/crypto/xbbos/latest',
-            data=params,
-            api_version='v1beta1')
-        return self.response_wrapper(resp['xbbos'], QuotesV2)
-
-    def get_crypto_snapshot(self, symbol: str, exchange: str) -> SnapshotV2:
-        resp = self.data_get('/crypto/{}/snapshot'.format(symbol),
-                             data={'exchange': exchange},
-                             api_version='v1beta1')
-        return self.response_wrapper(resp, SnapshotV2)
-
-    def get_latest_crypto_snapshots(self,
-                                    symbols: List[str],
-                                    exchange: str) -> SnapshotsV2:
+    def get_crypto_snapshot(self, symbols: str) -> SnapshotsV2:
         resp = self.data_get(
             '/crypto/snapshots',
-            data={'exchange': exchange, 'symbols': _join_with_commas(symbols)},
-            api_version='v1beta1')
+            data={'symbols': symbols},
+            api_version='v1beta2')
         return self.response_wrapper(resp['snapshots'], SnapshotsV2)
+
+    def get_crypto_snapshots(self, symbols: List[str]) -> SnapshotsV2:
+        resp = self.data_get(
+            '/crypto/snapshots',
+            data={'symbols': _join_with_commas(symbols)},
+            api_version='v1beta2')
+        return self.response_wrapper(resp['snapshots'], SnapshotsV2)
+
+    def get_latest_crypto_orderbook(self, symbol: str) -> OrderbookV2:
+        resp = self.data_get(
+            '/crypto/latest/orderbooks',
+            data={'symbols': symbol},
+            api_version='v1beta2')
+        return self.response_wrapper(resp['orderbooks'], OrderbooksV2)
+
+    def get_latest_crypto_orderbooks(self, symbols: List[str]) -> OrderbookV2:
+        resp = self.data_get(
+            '/crypto/latest/orderbooks',
+            data={'symbols': _join_with_commas(symbols)},
+            api_version='v1beta2')
+        return self.response_wrapper(resp['orderbooks'], OrderbooksV2)
 
     def get_news_iter(self,
                       symbol: Optional[Union[str, List[str]]] = None,

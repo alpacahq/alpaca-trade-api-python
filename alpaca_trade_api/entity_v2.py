@@ -249,6 +249,17 @@ class OrderbookV2(Entity):
                 self.asks[i] = BidOrAsk(self.asks[i])
 
 
+class OrderbooksV2(dict):
+    def __init__(self, raw):
+        for k, v in raw.items():
+            for side in orderbook_mapping_v2.keys():
+                if side not in v: continue
+                readable_side = orderbook_mapping_v2[side]
+                v[readable_side] = v[side]
+                v.pop(side)
+            self[k] = _convert_or_none(OrderbookV2, v)
+
+
 class NewsV2(Entity):
     def __init__(self, raw):
         super().__init__(raw)

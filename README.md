@@ -5,7 +5,7 @@
 
 # alpaca-trade-api-python
 
-`alpaca-trade-api-python` is a python library for the [Alpaca Commission Free Trading API](https://alpaca.markets).
+`alpaca-trade-api-python` is a [python library](https://www.interviewbit.com/blog/python-libraries/) for the [Alpaca Commission Free Trading API](https://alpaca.markets).
 It allows rapid trading algo development easily, with support for
 both REST and streaming data interfaces. For details of each API behavior,
 please see the online [API document](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/).

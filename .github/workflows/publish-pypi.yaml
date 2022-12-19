@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         # you have to quote any version number ending in a 0 or gh truncates it. ie 3.10 turned into 3.1
-        python-version: [ 3.8, '3.10' ]
+        python-version: [ 3.8, '3.10', 3.11 ]
         os: [ ubuntu-latest ] #in the future we should add windows here
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,10 +32,10 @@ jobs:
     needs: tests-ci
     steps:
       - uses: actions/checkout@master
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: 3.11
       - name: Install pypa/build
         run: >-
           python -m

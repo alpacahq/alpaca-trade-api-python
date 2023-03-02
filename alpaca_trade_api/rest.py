@@ -574,7 +574,7 @@ class REST(object):
             data = kwargs
             data['limit'] = actual_limit
             data['page_token'] = page_token
-            path = f'/{endpoint_base}'           
+            path = f'/{endpoint_base}'
             if api_version == 'v1beta2' or is_multi_symbol:
                 data['symbols'] = _join_with_commas(symbol_or_symbols)
             elif symbol_or_symbols:

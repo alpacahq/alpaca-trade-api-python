@@ -841,49 +841,56 @@ class REST(object):
         return BarsV2(list(self.get_crypto_bars_iter(
             symbol, timeframe, start, end, limit, loc, raw=True)))
 
-    def get_latest_crypto_bars(self, symbols: List[str], loc: str = "us") -> LatestBarsV2:
+    def get_latest_crypto_bars(self, symbols: List[str],
+                               loc: str = "us") -> LatestBarsV2:
         resp = self.data_get(
             f'/crypto/{loc}/latest/bars',
             data={'symbols': _join_with_commas(symbols)},
             api_version='v1beta3')
         return self.response_wrapper(resp['bars'], LatestBarsV2)
 
-    def get_latest_crypto_trades(self, symbols: List[str], loc: str = "us") -> LatestTradesV2:
+    def get_latest_crypto_trades(self, symbols: List[str],
+                                 loc: str = "us") -> LatestTradesV2:
         resp = self.data_get(
             f'/crypto/{loc}/latest/trades',
             data={'symbols': _join_with_commas(symbols)},
             api_version='v1beta3')
         return self.response_wrapper(resp['trades'], LatestTradesV2)
 
-    def get_latest_crypto_quotes(self, symbols: List[str], loc: str = "us") -> LatestQuotesV2:
+    def get_latest_crypto_quotes(self, symbols: List[str],
+                                 loc: str = "us") -> LatestQuotesV2:
         resp = self.data_get(
             f'/crypto/{loc}/latest/quotes',
             data={'symbols': _join_with_commas(symbols)},
             api_version='v1beta3')
         return self.response_wrapper(resp['quotes'], LatestQuotesV2)
 
-    def get_crypto_snapshot(self, symbols: str, loc: str = "us") -> SnapshotsV2:
+    def get_crypto_snapshot(self, symbols: str,
+                            loc: str = "us") -> SnapshotsV2:
         resp = self.data_get(
             f'/crypto/{loc}/snapshots',
             data={'symbols': symbols},
             api_version='v1beta3')
         return self.response_wrapper(resp['snapshots'], SnapshotsV2)
 
-    def get_crypto_snapshots(self, symbols: List[str], loc: str = "us") -> SnapshotsV2:
+    def get_crypto_snapshots(self, symbols: List[str],
+                             loc: str = "us") -> SnapshotsV2:
         resp = self.data_get(
             f'/crypto/{loc}/snapshots',
             data={'symbols': _join_with_commas(symbols)},
             api_version='v1beta3')
         return self.response_wrapper(resp['snapshots'], SnapshotsV2)
 
-    def get_latest_crypto_orderbook(self, symbol: str, loc: str = "us") -> OrderbookV2:
+    def get_latest_crypto_orderbook(self, symbol: str,
+                                    loc: str = "us") -> OrderbookV2:
         resp = self.data_get(
             f'/crypto/{loc}/latest/orderbooks',
             data={'symbols': symbol},
             api_version='v1beta3')
         return self.response_wrapper(resp['orderbooks'], OrderbooksV2)
 
-    def get_latest_crypto_orderbooks(self, symbols: List[str], loc: str = "us") -> OrderbookV2:
+    def get_latest_crypto_orderbooks(self, symbols: List[str],
+                                     loc: str = "us") -> OrderbookV2:
         resp = self.data_get(
             f'/crypto/{loc}/latest/orderbooks',
             data={'symbols': _join_with_commas(symbols)},

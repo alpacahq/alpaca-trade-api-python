@@ -565,12 +565,20 @@ class NewsDataStream(_DataStream):
 
     async def _dispatch(self, msg):
         msg_type = msg.get('T')
-        symbol = msg.get('S')
         if msg_type == 'n':
-            handler = self._handlers['news'].get(
-                symbol, self._handlers['news'].get('*', None))
-            if handler:
-                await handler(self._cast(msg_type, msg))
+            symbols = msg.get('symbols', [])
+            # A news article could be unrelated to any symbols, resulting in an empty symbols list. Those news articles
+            # should still be dispatched to the wildcard event handler.
+            if not symbols:
+                symbols.append('*')
+
+            for symbol in symbols:
+                handler = self._handlers['news'].get(symbol)
+                if handler is None:
+                    handler = self._handlers['news'].get('*')
+
+                if handler is not None:
+                    await handler(self._cast(msg_type, msg))
         else:
             await super()._dispatch(msg)
 

@@ -567,7 +567,8 @@ class NewsDataStream(_DataStream):
         msg_type = msg.get('T')
         if msg_type == 'n':
             symbols = msg.get('symbols', [])
-            # A news article could be unrelated to any symbols, resulting in an empty symbols list. Those news articles
+            # A news article could be unrelated to any symbols,
+            # resulting in an empty symbols list. Those news articles
             # should still be dispatched to the wildcard event handler.
             if not symbols:
                 symbols.append('*')
@@ -579,6 +580,8 @@ class NewsDataStream(_DataStream):
 
                 if handler is not None:
                     await handler(self._cast(msg_type, msg))
+                    # For a single message, only call the handler once
+                    break
         else:
             await super()._dispatch(msg)
 

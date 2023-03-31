@@ -573,15 +573,14 @@ class NewsDataStream(_DataStream):
             if not symbols:
                 symbols.append('*')
 
+            handlers = set()
             for symbol in symbols:
-                handler = self._handlers['news'].get(symbol)
-                if handler is None:
-                    handler = self._handlers['news'].get('*')
-
+                handler = self._handlers['news'].get(
+                    symbol, self._handlers['news'].get('*'))
                 if handler is not None:
-                    await handler(self._cast(msg_type, msg))
-                    # For a single message, only call the handler once
-                    break
+                    handlers.add(handler)
+            for handler in handlers:
+                await handler(self._cast(msg_type, msg))
         else:
             await super()._dispatch(msg)
 

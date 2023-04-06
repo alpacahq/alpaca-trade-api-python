@@ -575,8 +575,9 @@ class NewsDataStream(_DataStream):
 
             handlers = set()
             for symbol in symbols:
-                handler = self._handlers['news'].get(
-                    symbol, self._handlers['news'].get('*'))
+                handler = self._handlers['news'].get(symbol)
+                if handler is None:
+                    handler = self._handlers['news'].get('*')
                 if handler is not None:
                     handlers.add(handler)
             for handler in handlers:

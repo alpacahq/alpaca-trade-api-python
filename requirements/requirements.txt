@@ -3,7 +3,7 @@ numpy>=1.11.1  # pyup: ignore - allow all versions above this
 requests>2,<3
 urllib3==2.0.1
 websocket-client>=0.56.0,<2
-websockets>=9.0,<11
+websockets==11.0.2
 msgpack==1.0.3
 aiohttp==3.8.1
 PyYAML==6.0

@@ -28,7 +28,7 @@ jobs:
 
   build-n-publish:
     name: Build the 🐍 package and push PyPI
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     needs: tests-ci
     steps:
       - uses: actions/checkout@master

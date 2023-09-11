@@ -42,7 +42,7 @@ jobs:
     steps:
       - run: echo "hello python 3.6.4"
       - checkout
- 
+
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -162,9 +162,6 @@ workflows:
   version: 2
   build:
     jobs:
-      # - build-python27
-      # - build-test-python36
-      - build-test-python37
       - build-python38
       - build-python39
       - build-test-python310

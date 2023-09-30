@@ -34,6 +34,10 @@ setup(
     packages=[
         'alpaca_trade_api',
     ],
+    package_data={
+        'alpaca_trade_api': ['py.typed'],
+        'alpaca_trade_api.polygon': ['py.typed'],
+    },
     install_requires=REQUIREMENTS,
     tests_require=REQUIREMENTS_TEST,
     setup_requires=['pytest-runner', 'flake8'],

@@ -56,7 +56,7 @@ class APIError(Exception):
 
     @property
     def code(self):
-        return self._error['code']
+        return self._error.get('code', self.status_code)
 
     @property
     def status_code(self):
@@ -73,6 +73,15 @@ class APIError(Exception):
     def response(self):
         if self._http_error is not None:
             return self._http_error.response
+
+def raise_api_error(resp: requests.Response, http_error: requests.HTTPError):
+    try:
+        error = resp.json()
+    except:
+        raise http_error from None
+    if 'message' in error:
+        raise APIError(error, http_error) from None
+    raise http_error from None
 
 
 class TimeFrameUnit(Enum):
@@ -236,12 +245,7 @@ class REST(object):
             # retry if we hit Rate Limit
             if resp.status_code in retry_codes and retry > 0:
                 raise RetryException()
-            if 'code' in resp.text:
-                error = resp.json()
-                if 'code' in error:
-                    raise APIError(error, http_error)
-            else:
-                raise
+            raise_api_error(resp, http_error)
         if resp.text != '':
             return resp.json()
         return None

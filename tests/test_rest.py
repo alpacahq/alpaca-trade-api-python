@@ -1,3 +1,4 @@
+import warnings
 import alpaca_trade_api as tradeapi
 from alpaca_trade_api.rest import APIError
 
@@ -1172,7 +1173,7 @@ def test_errors(reqmock):
 
 
 def test_no_resource_warning_with_context_manager():
-    with pytest.warns(None) as record:  # ensure no warnings are raised
-        with tradeapi.REST('key-id', 'secret-key', api_version='v1') as api:
+    with warnings.catch_warnings():  # ensure no warnings are raised
+        warnings.simplefilter("error")
+        with tradeapi.REST("key-id", "secret-key", api_version="v1") as api:
             assert api
-    assert not record

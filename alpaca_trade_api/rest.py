@@ -56,7 +56,7 @@ class APIError(Exception):
 
     @property
     def code(self):
-        return self._error['code']
+        return self._error.get('code', self.status_code)
 
     @property
     def status_code(self):
@@ -73,6 +73,15 @@ class APIError(Exception):
     def response(self):
         if self._http_error is not None:
             return self._http_error.response
+
+def raise_api_error(resp: requests.Response, http_error: requests.HTTPError):
+    try:
+        error = resp.json()
+    except:
+        raise http_error from None
+    if 'message' in error:
+        raise APIError(error, http_error) from None
+    raise http_error from None
 
 
 class TimeFrameUnit(Enum):
@@ -236,12 +245,7 @@ class REST(object):
             # retry if we hit Rate Limit
             if resp.status_code in retry_codes and retry > 0:
                 raise RetryException()
-            if 'code' in resp.text:
-                error = resp.json()
-                if 'code' in error:
-                    raise APIError(error, http_error)
-            else:
-                raise
+            raise_api_error(resp, http_error)
         if resp.text != '':
             return resp.json()
         return None
@@ -563,7 +567,8 @@ class REST(object):
         page_token = None
         total_items = 0
         limit = kwargs.get('limit')
-        is_multi_symbol = not isinstance(symbol_or_symbols, str)
+        is_multi_symbol = api_version == 'v1beta3' or \
+            not isinstance(symbol_or_symbols, str)
         if resp_grouped_by_symbol is None:
             resp_grouped_by_symbol = is_multi_symbol
         while True:
@@ -578,7 +583,7 @@ class REST(object):
             path = f'/{endpoint_base}'
             if loc:
                 path += f'/{loc}'
-            if api_version == 'v1beta3' or is_multi_symbol:
+            if is_multi_symbol:
                 data['symbols'] = _join_with_commas(symbol_or_symbols)
             elif symbol_or_symbols:
                 path += f'/{symbol_or_symbols}'
@@ -611,6 +616,7 @@ class REST(object):
                         limit: int = None,
                         feed: Optional[str] = None,
                         asof: Optional[str] = None,
+                        sort: Optional[Sort] = None,
                         raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
                                 start=start,
@@ -618,6 +624,7 @@ class REST(object):
                                 limit=limit,
                                 feed=feed,
                                 asof=asof,
+                                sort=sort,
                                 )
         for trade in trades:
             if raw:
@@ -632,6 +639,7 @@ class REST(object):
                    limit: int = None,
                    feed: Optional[str] = None,
                    asof: Optional[str] = None,
+                   sort: Optional[Sort] = None,
                    ) -> TradesV2:
         trades = list(self.get_trades_iter(symbol,
                                            start=start,
@@ -639,6 +647,7 @@ class REST(object):
                                            limit=limit,
                                            feed=feed,
                                            asof=asof,
+                                           sort=sort,
                                            raw=True))
         return TradesV2(trades)
 
@@ -649,6 +658,7 @@ class REST(object):
                         limit: int = None,
                         feed: Optional[str] = None,
                         asof: Optional[str] = None,
+                        sort: Optional[Sort] = None,
                         raw=False) -> QuoteIterator:
         quotes = self._data_get('quotes', symbol,
                                 start=start,
@@ -656,6 +666,7 @@ class REST(object):
                                 limit=limit,
                                 feed=feed,
                                 asof=asof,
+                                sort=sort,
                                 )
         for quote in quotes:
             if raw:
@@ -670,6 +681,7 @@ class REST(object):
                    limit: int = None,
                    feed: Optional[str] = None,
                    asof: Optional[str] = None,
+                   sort: Optional[Sort] = None,
                    ) -> QuotesV2:
         quotes = list(self.get_quotes_iter(symbol=symbol,
                                            start=start,
@@ -678,6 +690,7 @@ class REST(object):
                                            feed=feed,
                                            raw=True,
                                            asof=asof,
+                                           sort=sort,
                                            ))
         return QuotesV2(quotes)
 
@@ -690,6 +703,7 @@ class REST(object):
                       limit: int = None,
                       feed: Optional[str] = None,
                       asof: Optional[str] = None,
+                      sort: Optional[Sort] = None,
                       raw=False) -> BarIterator:
         bars = self._data_get('bars', symbol,
                               timeframe=timeframe,
@@ -698,7 +712,9 @@ class REST(object):
                               end=end,
                               limit=limit,
                               feed=feed,
-                              asof=asof)
+                              asof=asof,
+                              sort=sort,
+                              )
         for bar in bars:
             if raw:
                 yield bar
@@ -714,6 +730,7 @@ class REST(object):
                  limit: int = None,
                  feed: Optional[str] = None,
                  asof: Optional[str] = None,
+                 sort: Optional[Sort] = None,
                  ) -> BarsV2:
         bars = list(self.get_bars_iter(symbol,
                                        timeframe,
@@ -723,6 +740,7 @@ class REST(object):
                                        limit,
                                        feed=feed,
                                        asof=asof,
+                                       sort=sort,
                                        raw=True))
         return BarsV2(bars)
 
@@ -789,15 +807,17 @@ class REST(object):
         return self.response_wrapper(resp, SnapshotsV2)
 
     def get_crypto_trades_iter(self,
-                               symbol: str,
+                               symbol: Union[str, List[str]],
                                start: Optional[str] = None,
                                end: Optional[str] = None,
                                limit: int = None,
+                               sort: Optional[Sort] = None,
                                loc: str = "us",
                                raw=False) -> TradeIterator:
         trades = self._data_get('trades', symbol,
                                 api_version='v1beta3', endpoint_base='crypto',
-                                start=start, end=end, limit=limit, loc=loc)
+                                start=start, end=end, limit=limit, sort=sort,
+                                loc=loc)
         for trade in trades:
             if raw:
                 yield trade
@@ -805,13 +825,42 @@ class REST(object):
                 yield self.response_wrapper(trade, Trade)
 
     def get_crypto_trades(self,
-                          symbol: str,
+                          symbol: Union[str, List[str]],
                           start: Optional[str] = None,
                           end: Optional[str] = None,
                           limit: int = None,
+                          sort: Optional[Sort] = None,
                           loc: str = "us") -> TradesV2:
         return TradesV2(list(self.get_crypto_trades_iter(
-            symbol, start, end, limit, loc, raw=True)))
+            symbol, start, end, limit, sort, loc, raw=True)))
+
+    def get_crypto_quotes_iter(self,
+                               symbol: Union[str, List[str]],
+                               start: Optional[str] = None,
+                               end: Optional[str] = None,
+                               limit: int = None,
+                               sort: Optional[Sort] = None,
+                               loc: str = "us",
+                               raw=False) -> QuoteIterator:
+        quotes = self._data_get('quotes', symbol,
+                                api_version='v1beta3', endpoint_base='crypto',
+                                start=start, end=end, limit=limit, sort=sort,
+                                loc=loc)
+        for quote in quotes:
+            if raw:
+                yield quote
+            else:
+                yield self.response_wrapper(quote, Quote)
+
+    def get_crypto_quotes(self,
+                          symbol: Union[str, List[str]],
+                          start: Optional[str] = None,
+                          end: Optional[str] = None,
+                          limit: int = None,
+                          sort: Optional[Sort] = None,
+                          loc: str = "us") -> QuotesV2:
+        return QuotesV2(list(self.get_crypto_quotes_iter(
+            symbol, start, end, limit, sort, loc, raw=True)))
 
     def get_crypto_bars_iter(self,
                              symbol: Union[str, List[str]],
@@ -819,12 +868,14 @@ class REST(object):
                              start: Optional[str] = None,
                              end: Optional[str] = None,
                              limit: int = None,
+                             sort: Optional[Sort] = None,
                              loc: str = "us",
                              raw=False) -> BarIterator:
         bars = self._data_get('bars', symbol,
                               api_version='v1beta3', endpoint_base='crypto',
                               timeframe=timeframe,
-                              start=start, end=end, limit=limit, loc=loc)
+                              start=start, end=end, limit=limit, sort=sort,
+                              loc=loc)
         for bar in bars:
             if raw:
                 yield bar
@@ -837,9 +888,10 @@ class REST(object):
                         start: Optional[str] = None,
                         end: Optional[str] = None,
                         limit: int = None,
+                        sort: Optional[Sort] = None,
                         loc: str = "us") -> BarsV2:
         return BarsV2(list(self.get_crypto_bars_iter(
-            symbol, timeframe, start, end, limit, loc, raw=True)))
+            symbol, timeframe, start, end, limit, sort, loc, raw=True)))
 
     def get_latest_crypto_bars(self, symbols: List[str],
                                loc: str = "us") -> LatestBarsV2:
@@ -1124,7 +1176,7 @@ class REST(object):
             return entity(obj)
 
 
-def _join_with_commas(lst: List[str]) -> str:
-    if isinstance(lst, str):
-        raise ValueError('expected list, str found')
-    return ','.join(lst)
+def _join_with_commas(x: Union[str, List[str]]) -> str:
+    if isinstance(x, str):
+        return x
+    return ','.join(x)

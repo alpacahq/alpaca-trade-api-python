@@ -158,6 +158,25 @@ jobs:
           command: |
             python setup.py test
 
+  build-test-python311:
+    docker:
+      - image: python:3.11
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: make sure install works
+          command: |
+            pip install .
+      - run:
+          name: view installed packages
+          command: |
+            pip freeze
+      - run:
+          name: unit test
+          command: |
+            python setup.py test
+
 workflows:
   version: 2
   build:
@@ -165,3 +184,4 @@ workflows:
       - build-python38
       - build-python39
       - build-test-python310
+      - build-test-python311

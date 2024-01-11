@@ -5,7 +5,7 @@
 
 # Deprecation Notice
 
-A new python SDK, [Alpaca-py](https://github.com/alpacahq/alpaca-py), is available. This SDK will be the primary python SDK starting in 2023. We recommend slowly moving over your code to use the new SDK. Keep in mind, we will be maintaining this repo as usual until the end of 2022.
+A new python SDK, [Alpaca-py](https://github.com/alpacahq/alpaca-py), is available. This SDK will be the primary python SDK starting in 2023. We recommend moving over your code to use the new SDK. Keep in mind, we will be maintaining this repo as usual until the end of 2022.
 
 # alpaca-trade-api-python
 

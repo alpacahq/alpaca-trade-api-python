@@ -3,6 +3,10 @@
 [![Updates](https://pyup.io/repos/github/alpacahq/alpaca-trade-api-python/shield.svg)](https://pyup.io/repos/github/alpacahq/alpaca-trade-api-python/)
 [![Python 3](https://pyup.io/repos/github/alpacahq/alpaca-trade-api-python/python-3-shield.svg)](https://pyup.io/repos/github/alpacahq/alpaca-trade-api-python/)
 
+# Deprecation Notice
+
+A new python SDK, [Alpaca-py](https://github.com/alpacahq/alpaca-py), is available. This SDK will be the primary python SDK starting in 2023. We recommend slowly moving over your code to use the new SDK. Keep in mind, we will be maintaining this repo as usual until the end of 2022.
+
 # alpaca-trade-api-python
 
 `alpaca-trade-api-python` is a python library for the [Alpaca Commission Free Trading API](https://alpaca.markets).
@@ -11,10 +15,6 @@ both REST and streaming data interfaces. For details of each API behavior,
 please see the online [API document](https://alpaca.markets/docs/api-documentation/api-v2/market-data/alpaca-data-api-v2/).
 
 Note that this package supports only python version 3.7 and above.
-
-## Deprecation Notice
-
-A new python SDK, [Alpaca-py](https://github.com/alpacahq/alpaca-py), is available. This SDK will be the primary python SDK starting in 2023. We recommend slowly moving over your code to use the new SDK. Keep in mind, we will be maintaining this repo as usual until the end of 2022.
 
 ## Install
 We support python>=3.7. If you want to work with python 3.6, please note that these package dropped support for python <3.7 for the following versions:

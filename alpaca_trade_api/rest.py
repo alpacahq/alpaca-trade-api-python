@@ -528,9 +528,9 @@ class REST(object):
         resp = self.delete('/positions/{}'.format(symbol), data=data)
         return self.response_wrapper(resp, Position)
 
-    def close_all_positions(self) -> Positions:
+    def close_all_positions(self, cancel_orders: bool=False) -> Positions:
         """Liquidates all open positions at market price"""
-        resp = self.delete('/positions')
+        resp = self.delete('/positions', data={'cancel_orders': cancel_orders})
         if self._use_raw_data:
             return resp
         else:

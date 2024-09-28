@@ -464,7 +464,7 @@ class CryptoDataStream(_DataStream):
         self._key_id = key_id
         self._secret_key = secret_key
         base_url = re.sub(r'^http', 'ws', base_url)
-        endpoint = base_url + '/v1beta2/crypto'
+        endpoint = base_url + '/v1beta3/crypto/us'
         if exchanges:
             if isinstance(exchanges, str):
                 endpoint += '?exchanges=' + exchanges

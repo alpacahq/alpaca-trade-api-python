@@ -5,7 +5,7 @@ from alpaca_trade_api.entity_v2 import BarsV2, QuotesV2, TradesV2, \
     EntityList, TradeV2, QuoteV2
 import pandas as pd
 from alpaca_trade_api.common import URL, get_credentials, get_data_url
-
+from alpaca_trade_api.rest import DATA_V2_MAX_LIMIT
 
 class AsyncRest:
     def __init__(self,
@@ -80,7 +80,7 @@ class AsyncRest:
         payload = {
             "start": start,
             "end":   end,
-            "limit": limit,
+            "limit": min(DATA_V2_MAX_LIMIT, limit),
         }
         df = await self._iterate_requests(symbol, payload, limit, _type,
                                           TradesV2)
